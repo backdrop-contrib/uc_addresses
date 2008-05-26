@@ -1,0 +1,1193 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Adds user profile address support to Ubercart.
+ *
+ * The uc_addresses module adds support for one or more addresses in
+ * the user's profile. When users register, they must provide an
+ * address. Users can then add more addresses and edit or delete
+ * existing addresses. One address must be designated as the default
+ * address and cannot be deleted (but it can be edited).
+ *
+ * The Ubercart order process is altered so that users select delivery
+ * and billing addresses from their collection of addresses rather
+ * than from previous orders. Any new addresses entered during the
+ * order process are automatically added to the user's list.
+ *
+ * @author Ben Thompson with inspiration from uc_order.module and uc_cart.module.
+ * @author Rich from Freestyle Systems (enhancements).
+ * @author Tony Freixas from Tiger Heron LLC (major revisions).
+ *
+ * @ingroup uc_addresses
+ */
+
+require_once('uc_addresses_address_pane.inc');
+
+/**
+ * Give users the ability to view anyone's default address.
+ */
+define('UC_ADDRESSES_ACCESS_VIEW_DEFAULT', 'view default addresses');
+
+/**
+ * Give users the ability to view anyone's addresses.
+ * Anyone with this permission also has UC_ADDRESSES_ACCESS_VIEW_DEFAULT.
+ */
+define('UC_ADDRESSES_ACCESS_VIEW_ALL', 'view all addresses');
+
+/**
+ * Give users the ability to add or edit anyone's addresses.
+ * Anyone with this permission also has
+ * UC_ADDRESSES_ACCESS_VIEW_DEFAULT and UC_ADDRESSES_ACCESS_VIEW_ALL.
+ */
+define('UC_ADDRESSES_ACCESS_ADD_EDIT', 'add/edit addresses');
+
+/*******************************************************************************
+ * Hook Functions
+ ******************************************************************************/
+
+/**
+ * Implementation of hook_menu().
+ *
+ * @param $may_cache A boolean that is TRUE if menu items will be cached.
+ * @return A array of menu items.
+ */
+function uc_addresses_menu($may_cache) {
+  global $user;
+  $items = array();
+
+  // All menu entries are dynamic, sad to say, as they all depend on
+  // the user ID
+
+  if (!$may_cache) {
+    drupal_add_css(drupal_get_path('module', 'uc_order') .'/uc_order.css');
+
+    $items[] = array(
+      'path' => 'user/'. check_plain(arg(1)) .'/addresses',
+      'title' => t('Addresses'),
+      'description' => t('Manage your addresses'),
+      'callback' => 'uc_addresses_list_addresses',
+      'callback arguments' => array(arg(1)),
+      'access' =>
+      user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
+      user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+      user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
+      $user->uid == arg(1),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 1,
+      );
+
+    if (!(is_numeric(arg(3)) && intval(arg(3)) == arg(3))) {
+      $items[] = array(
+	'path' => 'user/'. check_plain(arg(1)) .'/addresses/list',
+	'title' => t('Address list'),
+	'description' => t('Manage your addresses'),
+	'access' =>
+	user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
+	user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+	user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
+	$user->uid == arg(1),
+	'type' => MENU_DEFAULT_LOCAL_TASK,
+	);
+      $items[] = array(
+	'path' => 'user/' . check_plain(arg(1)) . '/addresses/new',
+	'title' => t('New address'),
+	'description' => t('Create a new address.'),
+	'callback' => 'uc_addresses_new_address',
+	'callback arguments' => array(check_plain(arg(1)), NULL, 'new'),
+	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	'type' => MENU_LOCAL_TASK,
+	);
+    }
+    else {
+      $items[] = array(
+	'path' => 'user/'. check_plain(arg(1)) .'/addresses/' . check_plain(arg(3)),
+	'title' => t('View Address'),
+	'description' => t('View one saved address'),
+	'callback' => 'uc_addresses_view_address',
+	'callback arguments' => array(check_plain(arg(1)), arg(3)),
+	'access' =>
+	user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
+	user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+	user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
+	$user->uid == arg(1),
+	'type' => MENU_CALLBACK,
+	);
+      $items[] = array(
+	'path' => 'user/'. check_plain(arg(1)) .'/addresses/'. check_plain(arg(3)) .'/edit',
+	'title' => t('Edit address'),
+	'callback' => 'uc_addresses_new_address',
+	'callback arguments' => array(check_plain(arg(1)), check_plain(arg(3)), 'edit'),
+	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	'type' => MENU_CALLBACK,
+	);
+      $items[] = array(
+	'path' => 'user/'. check_plain(arg(1)) .'/addresses/'. check_plain(arg(3)) .'/delete',
+	'title' => t('Delete address'),
+	'callback' => 'uc_addresses_delete_address_confirm',
+	'callback arguments' => array(check_plain(arg(1)), check_plain(arg(3))),
+	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	'type' => MENU_CALLBACK,
+	);
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ *
+ * @return array An array of permission names.
+ */
+function uc_addresses_perm() {
+  return array(UC_ADDRESSES_ACCESS_VIEW_DEFAULT,
+	       UC_ADDRESSES_ACCESS_VIEW_ALL,
+	       UC_ADDRESSES_ACCESS_ADD_EDIT);
+}
+
+/**
+ * Implementation of hook_user().
+ *
+ * @param $op An integer representing the action being performed.
+ * @param $edit An array of form values submitted by the user.
+ * @param $account The user on which the operation is being performed.
+ * @param $category The active category of user information being edited.
+ */
+function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
+  global $user;
+  switch ($op) {
+
+    case 'view':
+      // When viewing the basic user information, all we do is add a
+      // nice little message for the account holder, so that's all we
+      // need to check
+
+      if ($user->uid == $account->uid) {
+	$items = array();
+	$items['addresses'] =
+	  array('value' => l(t('Click here to manage your addresses.'),
+			     'user/'. $account->uid .'/addresses'),
+		'class' => 'member',
+	    );
+	return array(t('Addresses') => $items);
+      }
+      else {
+	return NULL;
+      }
+
+    case 'register':
+      // For registration, we want the user to enter his default address
+
+      $form = uc_addresses_pane_address('new', $arg1, $arg2);
+      $form = array($form['contents']);	// Modify to what we need
+      $form[0]['#title'] = t('Address');	// Rename the fieldset
+      return $form;
+
+    case 'insert':
+      // We're about to add the user to the database, so get the address
+      // info and add it to the address table
+
+      $address = (object)$edit;
+      $address->is_default = 0;
+      $aid = uc_addresses_add_address($address);
+      db_query("INSERT INTO {uc_addresses_defaults} (aid, uid) VALUES (%d, %d)", $aid, $uid);
+      return;
+
+    case 'delete':
+      // We're deleting the user, so delete all his/her addresses as
+      // well
+
+      db_query("DELETE FROM {uc_addresses} WHERE uid = %d", $account->uid);
+      dq_query("DELETE FROM {uc_addresses_defaults} WHERE uid = %d", $account->uid);
+      return;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Here we're going to override the saved address options on the
+ * checkout form.
+ *
+ * @param $form_id The name of the form.
+ * @param $form The form array.
+ */
+function uc_addresses_form_alter($form_id, &$form) {
+  global $user;
+  if ($form_id == 'uc_cart_checkout_form') {
+
+    // Create the list of addresses the user can select from
+    // Each address is just line a full address, but on one line
+
+    $options = NULL;
+    if ($addresses = uc_addresses_get_address($user->uid)) {
+      $options = array('0' => t('Select one...'));
+      foreach ($addresses as $address) {
+        $address = (array)$address;
+
+	// Not happy about this--if uc_address_format() ever changes
+	// it's output, we're hosed
+
+        $options[drupal_to_js($address)] =
+	  preg_replace('/<.*?>/', ', ',
+		       uc_address_format(
+			 $address['first_name'],
+			 $address['last_name'],
+			 $address['company'],
+			 $address['street1'],
+			 $address['street2'],
+			 $address['city'],
+			 $address['zone'],
+			 $address['postal_code'],
+			 $address['country']));
+      }
+    }
+
+    $address_book_icon =
+      l(uc_store_get_icon('file:address_book', FALSE, 'address-book-icon'),
+	'user/'. $user->uid . '/addresses', array(), NULL, NULL, FALSE, TRUE);
+
+    // If we have some addresses saved (almost always true), revise
+    // the delivery/billing address selection
+
+    if ($options) {
+      $form['panes']['delivery']['#description'] =
+	t('Select an existing address or enter a new delivery address and information. ' .
+	  'Click !here to manage your saved addresses.',
+	  array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+
+      $form['panes']['delivery']['delivery_address_select'] = array(
+	'#type' => 'select',
+	'#title' => t('Saved addresses'),
+	'#options' => $options,
+	'#attributes' => array('onchange' => 'apply_address(\'delivery\', this.value);'),
+	'#suffix' => $address_book_icon,
+	'#weight' => -10,
+	);
+
+      $form['panes']['billing']['billing_address_select'] = array(
+	'#type' => 'select',
+	'#title' => t('Saved addresses'),
+	'#options' => $options,
+	'#attributes' => array('onchange' => 'apply_address(\'billing\', this.value);'),
+	'#suffix' => $address_book_icon,
+	'#weight' => -10,
+	);
+    }
+
+    // If we have no addresses, remove the selection field. This
+    // occurs only when this module is added to a system that already
+    // has users
+
+    else {
+      unset($form['panes']['delivery']['delivery_address_select']);
+      unset($form['panes']['billing']['billing_address_select']);
+    }
+
+    // Add the "Save address" checkbox
+    // TODO: (Tony) I can add these, but don't know how to find out if
+    // the checkbox was checked. For now, all order addresses are
+    // automatically saved.
+
+//     $form['panes']['delivery']['delivery_address_save_address'] = array(
+//       '#title' => t('Save this address'),
+//       '#type' => 'checkbox',
+//       '#default_value' => 1,
+//       '#weight' => 10
+//       );
+//     $form['panes']['billing']['billing_address_save_address'] = array(
+//       '#title' => t('Save this address'),
+//       '#type' => 'checkbox',
+//       '#default_value' => 1,
+//       '#weight' => 10
+//       );
+  }
+}
+
+/*******************************************************************************
+ * Hook Functions (Ubercart)
+ ******************************************************************************/
+
+/**
+ * Implementation of hook_address_pane().
+ *
+ * @return array
+ */
+function uc_addresses_address_pane() {
+  $panes[] = array(
+    'id' => 'address',
+    'callback' => 'uc_addresses_pane_address',
+    'title' => t('Address'),
+    'desc' => t("Manage the user's addresses and contact information."),
+    'class' => 'pos-left',
+    'weight' => 1,
+    'show' => array('view', 'new', 'edit'),
+    );
+
+  return $panes;
+}
+
+/**
+ * Use hook_order to add an address or two to the user's address list.
+ * For the moment, we save all addresses. I'd like to add an option to
+ * let the user select which addresses get saved.
+ *
+ * @param $op The operation being performed.
+ * @param $arg1 A reference to the order object.
+ * @param $arg2 Not used.
+ */
+function uc_addresses_order($op, &$arg1, $arg2)
+{
+  if ($op == 'save') {
+    $order = $arg1;
+    $address = new stdClass();
+    $address->uid = $order->uid;
+    $address->first_name = $order->delivery_first_name;
+    $address->last_name = $order->delivery_last_name;
+    $address->company = $order->delivery_company;
+    $address->street1 = $order->delivery_street1;
+    $address->street2 = $order->delivery_street2;
+    $address->city = $order->delivery_city;
+    $address->zone = $order->delivery_zone;
+    $address->postal_code = $order->delivery_postal_code;
+    $address->country = $order->delivery_country;
+    $address->phone = $order->delivery_phone;
+    $address->is_default = 0;
+    uc_addresses_add_address($address, TRUE);
+
+    $address->first_name = $order->billing_first_name;
+    $address->last_name = $order->billing_last_name;
+    $address->company = $order->billing_company;
+    $address->street1 = $order->billing_street1;
+    $address->street2 = $order->billing_street2;
+    $address->city = $order->billing_city;
+    $address->zone = $order->billing_zone;
+    $address->postal_code = $order->billing_postal_code;
+    $address->country = $order->billing_country;
+    $address->phone = $order->billing_phone;
+    $address->is_default = 0;
+    uc_addresses_add_address($address, TRUE);
+  }
+}
+
+/*******************************************************************************
+ * Callback Functions, Forms, and Tables
+ ******************************************************************************/
+
+/**
+ * Report whether an address id refers to a user's default address or
+ * not.
+ *
+ * This is a utility function for themers.
+ *
+ * @param $aid The id of the address.
+ * @return  A boolean that is TRUE if the $aid refers to a user's default address.
+ */
+function uc_addresses_is_default($uid, $aid) {
+  $address = _UcAdressCache::get($uid, $aid);
+  if ($address == FALSE) return FALSE;
+  return $address->is_default;
+}
+
+/**
+ * Generate a list of all addresses defined by one user and then theme
+ * the list for display.
+ *
+ * The first address is the earliest defined address and is called the
+ * "default address".
+ *
+ * If the current user can edit the addresses, then provide an edit
+ * link for each address.
+ *
+ * @param $uid The id of the user whose list we want to display.
+ * @return The themed list (as a string).
+ */
+function uc_addresses_list_addresses($uid){
+  global $user;
+
+  // Get all the addresses for this user
+
+  $addresses = uc_addresses_get_address($uid);
+
+  // If we find some addresses, output the following
+
+  if ($addresses !== FALSE) {
+    foreach (element_children($addresses) as $address_index) {
+      $panes = _address_pane_list();
+      foreach ($panes as $pane) {
+	if (variable_get('uc_addresses_pane_'. $pane['id'] .'_enabled', TRUE)) {
+	  $func = $pane['callback'];
+	  if (function_exists($func)) {
+	    $return = $func('view', $addresses[$address_index], NULL);
+	    if (!is_NULL($return)) {
+	      $data[$pane['title']] = $return;
+	    }
+	  }
+	}
+      }
+      $output .= '<div class="list_address">';
+      $output .= theme('uc_addresses_list_address', $uid, $addresses[$address_index]->aid, $data);
+      $output .= '</div>';
+
+      // Check whether we only display the default address or all addresses
+
+      if (!user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) &&
+	  !user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) &&
+	  $user->uid != $uid) break;
+    }
+  }
+
+  // If we don't find any addresses
+
+  else {
+    $output .= t('There are no saved addresses.<br />');
+  }
+
+  // Decide whether to include a link for adding a new address based
+  // on whether the current user can edit the addresses
+
+  if (user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == $uid) {
+    $link = l(t('Add a new address'), 'user/'. $uid .'/addresses/new');
+    $output .= $link;
+  }
+
+  return $output;
+}
+
+/**
+ * Theme the address list view.
+ *
+ * @param $uid The id of the user who "owns" this address.
+ * @param $aid The id of the address we are theming.
+ * @param $panes An associative array for each address pane.
+ *	The key is the pane's title and the value is either the data
+ *	returned for that pane or an array of returned data.
+ * @return The themed address.
+ * @ingroup themeable
+ */
+function theme_uc_addresses_list_address($uid, $aid, $panes) {
+  global $user;
+
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+
+  $output = '<table class="address-preview-table">';
+  foreach ($panes as $title => $data) {
+
+    // We add an edit link only if the user is allowed to edit this address
+
+    if (user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == $uid) {
+      $output .= '<tr class="pane-title-row"><td colspan="2">'
+	. l(t('Edit this address'), 'user/'. $uid .'/addresses/' . $aid . '/edit')
+	.'</td></tr>';
+    }
+
+    // TODO: (Tony) Need to look into improving this. "valign" and
+    // "nowrap" are presentational attributes that should be left for
+    // the theme designer
+
+    if (uc_addresses_is_default($uid, $aid)) {
+      $output .= '<tr><td colspan="2" class="addresses-default-address-label"> '
+	. t('Default address') . '</td></tr>';
+    }
+    if (is_array($data)) {
+      foreach ($data as $row) {
+        if (is_array($row)) {
+          if (isset($row['border'])) {
+            $border = ' class="row-border-'. $row['border'] .'"';
+          }
+          else {
+            $border = '';
+          }
+          $output .= '<tr valign="top"'. $border .'><td class="title-col" '
+	    .'nowrap>'. $row['title'] .':</td><td class="data-col">'
+	    . $row['data'] .'</td></tr>';
+        }
+        else {
+          $output .= '<tr valign="top"><td colspan="2">'. $row .'</td></tr>';
+        }
+      }
+    }
+    else {
+      $output .= '<tr valign="top"><td colspan="2">'. $data .'</td></tr>';
+    }
+  }
+  $output .= '</table><br />';
+
+  return $output;
+}
+
+/**
+ * Display a form to add a new address or edit a user's addresses.
+ *
+ * @param $uid The user id of the user who "owns" this address.
+ * @param $aid The address id for this address (0 for new addresses)
+ * @param $view The URL path for which form to display. 'new' or 'edit'.
+ * @return An address form
+ */
+function uc_addresses_new_address($uid, $aid, $view){
+  global $user;
+
+  drupal_add_js(drupal_get_path('module', 'uc_cart') .'/uc_cart.js');
+
+  $output = drupal_get_form('uc_addresses_new_address_form', $uid, $aid, $view);
+  return $output;
+}
+
+/**
+ * Create a form used to add a new address or edit an existing address.
+ *
+ * @param $uid The user id of the user who "owns" this address.
+ * @param $aid The address id for this address (0 for new addresses)
+ * @param $view The URL path for which form to display. 'new' or 'edit'.
+ * @return An address form
+ * @ingroup forms
+ */
+function uc_addresses_new_address_form($uid, $aid, $view) {
+
+  // Cancel an address entry when a customer clicks the 'Cancel'
+  // button.
+
+  if ($_POST['op'] == t('Cancel')) {
+    drupal_goto('user/'. $uid .'/addresses');
+  }
+  if ($_POST['op'] == variable_get('uc_addresses_delete_button', t('Delete address'))) {
+    cache_clear_all();
+    drupal_goto('user/'. $uid .'/addresses/' . $aid . '/delete');
+  }
+
+  // Get the panes to display
+
+  $form['panes'] = array('#tree' => TRUE);
+  $panes = _address_pane_list($view);
+  foreach ($panes as $pane) {
+    if (in_array($view, $pane['show']) &&
+        variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
+      if ($aid != NULL){
+        $address = _UcAdressCache::get($uid, $aid);
+        $return = $pane['callback']($view, $address, NULL);
+      }
+      else {
+        $return = $pane['callback']($view, NULL, NULL);
+      }
+
+      // Add the pane if any display data is returned from the
+      // callback
+
+      if (is_array($return) && (!empty($return['description']) || !empty($return['contents']))) {
+
+        // Create the fieldset for the pane
+
+        $form['panes'][$pane['id']] = array(
+          '#type' => 'fieldset',
+          '#title' => $pane['title'],
+          '#description' => !empty($return['description']) ? $return['description'] : NULL,
+          '#collapsible' => $pane['collapsible'],
+          '#collapsed' => FALSE,
+          '#attributes' => array('id' => $pane['id'] .'-pane'),
+          '#theme' => $return['theme'],
+	  );
+
+        // Add the contents of the fieldset if any were returned
+
+        if (!empty($return['contents'])) {
+          $form['panes'][$pane['id']] = array_merge($form['panes'][$pane['id']], $return['contents']);
+        }
+      }
+    }
+  }
+
+  $form['cancel'] = array('#type' => 'submit', '#submit' => FALSE, '#value' => t('Cancel'));
+
+  // Edit an existing address
+
+  if (arg(4) == 'edit') {
+    if (!uc_addresses_is_default($uid, $aid)) {
+      $form['delete'] =
+	array('#type' => 'submit',
+	      '#value' => variable_get('uc_addresses_delete_button', t('Delete address')));
+    }
+    $form['continue'] =
+      array('#type' => 'submit',
+	    '#value' => variable_get('uc_addresses_update_button', t('Update address')));
+  }
+
+  // Add a new address
+
+  else {
+    $form['continue'] =
+      array('#type' => 'submit',
+	    '#value' => variable_get('uc_addresses_update_button', t('Add address')));
+  }
+
+  $form['#submit'] =
+    array('uc_addresses_new_address_form_submit' => array($uid, $aid, $view));
+
+  return $form;
+}
+
+/**
+ * Theme the add or edit address form.
+ *
+ * @param $form The form array to theme.
+ * @return The themed form (as a string).
+ * @ingroup themeable
+ */
+function theme_uc_addresses_new_address_form($form) {
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+
+  $output = '<p>';
+
+  foreach (element_children($form['panes']) as $pane_id) {
+
+    // TODO: (Tony) Not sure what's going on here.
+
+    if (function_exists(($func = _address_pane_data($pane_id, 'callback')))) {
+      $result = $func('theme', $form['panes'][$pane_id], NULL);
+      if (!empty($result)) {
+	$output .= $result;
+	$form['panes'][$pane_id] = array();
+      }
+      else {
+	$output .= drupal_render($form['panes'][$pane_id]);
+      }
+    }
+    else {
+      $output .= drupal_render($form['panes'][$pane_id]);
+    }
+  }
+
+  $output .= '<div id="checkout-form-bottom">'. drupal_render($form) .'</div>';
+
+  return $output;
+}
+
+/**
+ * Handle the form submit. If $view is 'edit' run update database
+ * function, if 'new' run insert database function.
+ *
+ * @param $form_id The name of the form.
+ * @param $form_values The form array.
+ * @param $uid The user who "owns" the address.
+ * @param $aid The address id (0 for new addresses).
+ * @param $view Either 'edit' or 'view'.
+ * @return The path where we should wind up.
+ */
+function uc_addresses_new_address_form_submit($form_id, $form_values, $uid, $aid, $view) {
+  global $user;
+
+  $address = new stdClass();
+  $address->uid = $uid;
+
+  $valid = TRUE;
+  foreach (element_children($form_values['panes']) as $pane_id) {
+    $func = _address_pane_data($pane_id, 'callback');
+    $isvalid = $func('process', $address, $form_values['panes'][$pane_id]);
+    if ($isvalid === FALSE) {
+      $_SESSION['expanded_panes'][] = $key;
+      $valid = FALSE;
+    }
+  }
+  if ($view == 'edit'){ // Update database
+    uc_addresses_update_address($address);
+  }
+  elseif ($view == 'new'){ // Insert into datebase
+    uc_addresses_add_address($address);
+  }
+
+  return 'user/'. $address->uid .'/addresses';
+}
+
+/**
+ * Display one address.
+ *
+ * @param $uid The id of the user who "owns" the address.
+ * @param $aid The id of the address.
+ * @return The address to display.
+ *
+ * TODO: (Tony) Shouldn't this be themed?
+ */
+function uc_addresses_view_address($uid, $aid)
+{
+  // Get address from database
+
+  $address = _UcAdressCache::get($uid, $aid);
+
+  if ($address === FALSE) {
+    drupal_set_message(t('This address does not exist.'));
+    drupal_goto('user/'. $uid .'/addresses');
+  }
+
+  // Get panes to display
+
+  $panes = _address_pane_list($view);
+  foreach ($panes as $pane) {
+    if (in_array($view, $pane['show']) &&
+        variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
+      $func = $pane['callback'];
+      if (function_exists($func) && ($contents = $func($view, $address, NULL)) != NULL) {
+        $output .= '<div class="address-pane '. $pane['class'] .'">';
+        if ($func('show-title', NULL, NULL) !== FALSE) {
+          $output .= '<div class="address-pane-title">'. $pane['title'] .': '
+	    . $func('view-title', $address, NULL) .'</div>';
+        }
+        $output .= $contents .'</div>';
+      }
+    }
+  }
+
+  return $output;
+}
+
+/**
+ * Format an address the same as the rest of the Ubercart store.
+ *
+ * @param $items An object containing address information.
+ * @return A formatted address.
+ */
+function uc_addresses_address($items){
+  $address = uc_address_format(
+    $items->first_name,
+    $items->last_name,
+    $items->company,
+    $items->street1,
+    $items->street2,
+    $items->city,
+    $items->zone,
+    $items->postal_code,
+    $items->country
+    );
+  return $address;
+}
+
+/**
+ * Display a confirmation page before deleting an address.
+ *
+ * @param $uid The id of the user who "owns" the address.
+ * @param $aid The id of the address to delete.
+ */
+function uc_addresses_delete_address_confirm($uid, $aid){
+
+  // We returned to this page after the user pressed cancel. Redirect
+  // the user back to the edit page
+
+  if ($_POST['op'] == t('Cancel')) {
+    // TODO: (Tony) This seems draconian
+    cache_clear_all();
+    drupal_goto('user/'. $uid .'/addresses/' . $aid . '/edit');
+  }
+
+  $form = drupal_get_form('uc_addresses_delete_address_confirm_form', $uid, $aid);
+
+  // If the address doesn't exist, let's get out of here
+
+  $address = _UcAdressCache::get($uid, $aid);
+  if ($address === FALSE) {
+    $_SESSION['add_address'] = NULL;
+    unset($_SESSION['add_address']);
+    drupal_goto('user/'. $uid .'/addresses/');
+  }
+
+  // Address exists. Display the warnings
+
+  $help =
+    variable_get('uc_addresses_delete_instructions',
+		 t('Are you are sure you want to Delete this address? ' .
+		   'Click !delete if all the information is correct. ' .
+		   'Click the Cancel button to not delete this address.',
+		   array('!delete' => variable_get('uc_addresses_delete_button',
+						   t('Delete address')))
+		   )
+      );
+
+  $panes = _address_pane_list();
+  foreach ($panes as $pane) {
+    if (variable_get('uc_addresses_pane_'. $pane['id'] .'_enabled', TRUE)) {
+      $func = $pane['callback'];
+      if (function_exists($func)) {
+        $return = $func('view', $address, NULL);
+        if (!is_NULL($return)) {
+          $data[$pane['title']] = $return;
+        }
+      }
+    }
+  }
+
+  $output = theme('uc_addresses_address_delete_confirm', $help, $data, $form);
+
+  return $output;
+}
+
+/**
+ * Theme the address deletion confirmation form.
+ *
+ * @param $help The help message to display.
+ * @param $panes An associative array for each address pane that
+ *	has information to add to the delete page. The key is the
+ *	pane's title and the value is either the data returned for
+ *	that pane or an array of returned data.
+ * @param $form The HTML version of the form that by default
+ *	includes the 'Back' and 'Delete Address' buttons at the bottom
+ *	of the confirmation page.
+ * @return The themed confirmation form (as a string).
+ * @ingroup themeable
+ */
+function theme_uc_addresses_address_delete_confirm($help, $panes, $form) {
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+
+  $output .= '<p>'. $help .'</p>';
+  $output .= '<div class="list_address"><table class="address-preview-table">';
+  foreach ($panes as $title => $data) {
+    $output .= '<tr class="pane-title-row"><td colspan="2">'. t('Address')
+      .'</td></tr>';
+    if (is_array($data)) {
+      foreach ($data as $row) {
+        if (is_array($row)) {
+          if (isset($row['border'])) {
+            $border = ' class="row-border-'. $row['border'] .'"';
+          }
+          else {
+            $border = '';
+          }
+          $output .= '<tr valign="top"'. $border .'><td class="title-col" '
+	    .'nowrap>'. $row['title'] .':</td><td class="data-col">'
+	    . $row['data'] .'</td></tr>';
+        }
+        else {
+          $output .= '<tr valign="top"><td colspan="2">'. $row .'</td></tr>';
+        }
+      }
+    }
+    else {
+      $output .= '<tr valign="top"><td colspan="2">'. $data .'</td></tr>';
+    }
+  }
+  $output .= '<tr class="preview-button-row"><td colspan="2">'. $form
+    .'</td></tr></table>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Get the submit buttons to confirm deletion of a user's address.
+ *
+ * @param $uid The id of the user who "owns" the address.
+ * @param $aid id of the address we are deleting.
+ * @return The buttons for the form (as a string).
+ * @ingroup forms
+ */
+function uc_addresses_delete_address_confirm_form($uid, $aid) {
+
+  // The buttons
+
+  $form['cancel'] = array('#type' => 'button',
+			  '#value' => t('Cancel'));
+  $form['submit'] = array('#type' => 'submit',
+			  '#value' => variable_get('uc_addresses_delete_button', t('Delete address')));
+
+  // Where we go if they say "OK"
+
+  $form['#submit'] = array('uc_addresses_delete_address_confirm_form_submit' => array($uid, $aid));
+
+  return $form;
+}
+
+/**
+ * Delete a user-confirmed address.
+ *
+ * @param $form_id The name of the form.
+ * @param $form_values The form parameters and their values.
+ * @param $uid The user id of the user who owns the address.
+ * @param $aid The id of the address to delete.
+ * @return The path to go to after the deletion occurs.
+ */
+function uc_addresses_delete_address_confirm_form_submit($form_id, $form_values, $uid, $aid) {
+  switch ($form_values['op']) {
+    case variable_get('uc_addresses_delete_button', t('Delete address')):
+      $_SESSION['do_complete'] = TRUE;
+      uc_addresses_delete_address($aid);
+      drupal_set_message(t('The address has been deleted.'));
+
+      return 'user/'. $uid .'/addresses';
+    }
+}
+
+/*******************************************************************************
+ * Database Functions, add, get, update and delete from uc_addresses table
+ ******************************************************************************/
+
+/**
+ * Add a new address to the database table. If the address is already
+ * in the database (for this user), it is not added.
+ *
+ * @param $address The address to add (as an object).
+ * @param The id of the new address or FALSE if there was an error.
+ */
+function uc_addresses_add_address($address, $silent = FALSE){
+
+  // We need to work with systems where this module is added when
+  // users are already present. Find out how many addresses this user has
+
+  $result = db_query("SELECT COUNT(*) FROM {uc_addresses} WHERE uid = %d", $address->uid);
+  $num_addresses = 0;
+  if (db_num_rows($result) == 1) {
+    $a = db_fetch_array($result);
+    $num_addresses = $a['COUNT(*)'];
+  }
+  if ($num_addresses < 1) $address->is_default = 1;
+
+  // Check to make sure the address is unique
+
+  if ($num_addresses > 0) {
+    $result =
+      db_query("SELECT aid FROM {uc_addresses} WHERE "
+	       ."uid = %d AND "
+	       ."first_name = '%s' AND "
+	       ."last_name = '%s' AND "
+	       ."phone = '%s' AND "
+	       ."company = '%s' AND "
+	       ."street1 = '%s' AND "
+	       ."street2 = '%s' AND "
+	       ."city = '%s' AND "
+	       ."zone = '%s' AND "
+	       ."postal_code = '%s' AND "
+	       ."country = '%s'",
+	       $address->uid,
+	       $address->first_name,
+	       $address->last_name,
+	       $address->phone,
+	       $address->company,
+	       $address->street1,
+	       $address->street2,
+	       $address->city,
+	       $address->zone,
+	       $address->postal_code,
+	       $address->country);
+
+    // If this occurs, the database table is corrupted. The fix,
+    // however, is simple: delete the extra address
+
+    if (db_num_rows($result) > 1) {
+      drupal_set_message(t('This address appears more than once in your address book. Please delete the duplicates and file a bug report.'), 'error');
+      return FALSE;
+    }
+
+    // If the address is already stored, leave them with a warning
+    // unless we were told to be quiet about this
+
+    if (db_num_rows($result) == 1) {
+      if (!$silent) drupal_set_message(t('This address already appears in your address book. A new address was not added.'), 'warning');
+      return FALSE;
+    }
+  }
+
+  // Add the address
+
+  $aid = db_next_id('uc_addresses');
+  db_query("INSERT INTO {uc_addresses} (aid, uid, first_name, last_name, "
+	   ."phone, company, street1, street2, city, zone, postal_code, country, "
+	   ."created, modified) VALUES (%d, %d, "
+	   ."'%s', '%s', '%s', "
+	   ."'%s', '%s', '%s', "
+	   ."'%s', %d, '%s', %d, "
+	   ."%d, %d)", $aid, $address->uid,
+           $address->first_name, $address->last_name, $address->phone,
+           $address->company, $address->street1, $address->street2,
+           $address->city, $address->zone, $address->postal_code,
+           ((is_NULL($address->country) || $address->country == 0) ? variable_get('uc_store_country', 840) : $address->country),
+           time(), time());
+
+  // Update the default address, if necessary
+
+  if ($address->is_default) {
+    if ($num_addresses < 1) {
+      db_query("INSERT INTO {uc_addresses_defaults} (aid, uid) VALUES (%d, %d)", $aid, $address->uid);
+    }
+    else {
+      db_query("UPDATE {uc_addresses_defaults} SET aid = %d WHERE uid = %d", $aid, $address->uid);
+    }
+  }
+
+  _UcAdressCache::set($address);
+  return $aid;
+}
+
+/**
+ * Update an address in the database table.
+ *
+ * @param $address The address to add.
+ * @param A boolean that is TRUE if the address was added, FALSE otherwise.
+ */
+function uc_addresses_update_address($address){
+  // Check to make sure the address is unique
+
+  $result =
+    db_query("SELECT aid FROM {uc_addresses} WHERE "
+	     ."uid = %d AND "
+	     ."first_name = '%s' AND "
+	     ."last_name = '%s' AND "
+	     ."phone = '%s' AND "
+	     ."company = '%s' AND "
+	     ."street1 = '%s' AND "
+	     ."street2 = '%s' AND "
+	     ."city = '%s' AND "
+	     ."zone = '%s' AND "
+	     ."postal_code = '%s' AND "
+	     ."country = '%s'",
+	     $address->uid,
+	     $address->first_name,
+	     $address->last_name,
+	     $address->phone,
+	     $address->company,
+	     $address->street1,
+	     $address->street2,
+	     $address->city,
+	     $address->zone,
+	     $address->postal_code,
+	     $address->country);
+
+  // If this occurs, the database table is corrupted. The fix,
+  // however, is simple: delete the extra address
+
+  if (db_num_rows($result) > 1) {
+    drupal_set_message(t('This address appears more than once in your address book. Please delete the duplicates and file a bug report.'), 'error');
+    return FALSE;
+  }
+
+  // If we get one address, it's OK only if it is the address we're
+  // trying to update
+
+  if (db_num_rows($result) == 1) {
+    $db_address = db_fetch_object($result);
+    if ($db_address->aid != $address->aid) {
+      drupal_set_message(t('The revised address is already in your address book. Your change was not made.'), 'warning');
+      return FALSE;
+    }
+  }
+
+  // We're set to go
+
+  db_query("UPDATE {uc_addresses} SET "
+	   ."first_name = '%s', last_name = '%s', phone = '%s', "
+	   ."company = '%s', street1 = '%s', street2 = '%s', "
+	   ."city = '%s', zone = %d, postal_code = '%s', country = %d, "
+	   ."modified = %d WHERE aid= %d", $address->aid,
+           $address->first_name, $address->last_name, $address->phone,
+           $address->company, $address->street1, $address->street2,
+           $address->city, $address->zone, $address->postal_code,
+           ((is_NULL($address->country) || $address->country == 0) ? variable_get('uc_store_country', 840) : $address->country),
+           time(), $address->aid);
+
+  // Update the default address, if necessary
+
+  if ($address->is_default) {
+      db_query("UPDATE {uc_addresses_defaults} SET aid = %d WHERE uid = %d", $address->aid, $address->uid);
+  }
+  drupal_set_message(t('The address was updated.'));
+
+  _UcAdressCache::set($address);
+  return TRUE;
+}
+
+/**
+ * Get an address or list of addresses from the database.
+ *
+ * @param $uid The id of the user who "owns" the address.
+ * @param $aid The id of the address to fetch. If NULL, fetch
+ *	all addresses owned by the user.
+ * @return FALSE on error. An object if $aid was not NULL. An
+ *	array of objects if $aid was NULL.
+ */
+function uc_addresses_get_address($uid, $aid = NULL){
+
+  // If $aid is present, return just the one address
+
+  if ($aid){
+    $result = db_query("SELECT * FROM {uc_addresses} WHERE aid = %d ", $aid);
+
+    // Check to make sure there is data
+
+    if (db_num_rows($result) == 0) return FALSE;
+    $address = db_fetch_object($result);
+
+    // Check to make sure it's from the right user
+
+    if ($address->uid != $uid) return FALSE;
+
+    // Find out if this is the default address
+
+    $address->is_default = 0;
+    $def = db_query("SELECT aid FROM {uc_addresses_defaults} WHERE uid = %d", $uid);
+    if (db_num_rows($def) == 1) {
+      $default_aid = db_fetch_object($def);
+      $address->is_default = $default_aid->aid == $address->aid;
+    }
+
+    // All OK
+
+    _UcAdressCache::set($address);
+    return $address;
+  }
+
+  // If $aid is NULL, return all addresses for that user
+
+  $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d ORDER BY created", $uid);
+
+  // Check to make sure there is data
+
+  if (db_num_rows($result) == 0) return FALSE;
+
+  // Find the default address
+
+  $def = db_query("SELECT aid FROM {uc_addresses_defaults} WHERE uid = %d", $uid);
+  if (db_num_rows($def) != 1) {
+    $default_aid = 0;
+  }
+  else {
+    $default_aid = db_fetch_object($def);
+  }
+
+  // Gather up everything
+
+  while ($address = db_fetch_object($result)) {
+    $address->is_default = $default_aid == $address->aid;
+    $addresses[] = $address;
+  }
+
+  _UcAdressCache::clear();
+  return $addresses;
+}
+
+/**
+ * Delete an address from the database.
+ *
+ * @param $aid The id of the address to delete.
+ * @param Always returns TRUE.
+ */
+function uc_addresses_delete_address($aid) {
+  db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $aid);
+  _UcAdressCache::clear();
+  return TRUE;
+}
+
+/**
+ * @class _UcAddressCache
+ *
+ * A simple caching class that stores the last accessed address.
+ */
+
+class _UcAdressCache
+{
+  static $address = NULL;
+
+  static function set($address) { _UcAdressCache::$address = $address; }
+  static function get($uid, $aid) {
+    if ($address != NULL &&
+	$aid == _UcAdressCache::$address->aid &&
+	$uid == _UcAdressCache::$address->uid) {
+      return $address;
+    }
+    return uc_addresses_get_address($uid, $aid);
+  }
+  static function clear() { _UcAdressCache::$address = NULL; }
+}

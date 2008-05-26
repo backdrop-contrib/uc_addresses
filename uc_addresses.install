@@ -1,0 +1,81 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_install().
+ */
+function uc_addresses_install() {
+  drupal_set_message(t('Beginning installation of uc_addresses module.'));
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("CREATE TABLE {uc_addresses} (
+	aid integer unsigned not null,
+        uid integer unsigned not null,
+        first_name varchar(32) not null,
+        last_name varchar(32) not null,
+        phone varchar(32) not null,
+        company varchar(64) not null,
+        street1 varchar(64) not null,
+        street2 varchar(64) not null,
+        city varchar(32) not null,
+        zone mediumint(9) not null,
+        postal_code varchar(10) not null,
+        country mediumint(9) not null,
+        created int(11) not null,
+        modified int(11) not null,
+        PRIMARY KEY (aid),
+	INDEX aid_uid_idx (aid, uid)
+      ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
+      db_query("CREATE TABLE {uc_addresses_defaults} (
+	aid integer unsigned not null,
+        uid integer unsigned not null,
+        PRIMARY KEY (aid, uid)
+      ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
+      $success = TRUE;
+      break;
+    case 'pgsql':
+      db_query("CREATE TABLE {uc_addresses} (
+	aid integer not null default 0,
+        uid integer not null default 0,
+        first_name varchar(32) not null default '',
+        last_name varchar(32) not null default '',
+        phone varchar(32) not null default '',
+        company varchar(64) not null default '',
+        street1 varchar(64) not null default '',
+        street2 varchar(64) not null default '',
+        city varchar(32) not null default '',
+        zone integer not null defualt 0,
+        postal_code varchar(10) not null default '',
+        country integer not null default 0,
+        created integer not null default 0,
+        modified integer not null default 0,
+        PRIMARY KEY (aid)
+      );");
+      db_query("CREATE INDEX {uc_addresses}_aid_uid_idx ON {uc_addresses} (aid, uid)");
+      db_query("CREATE TABLE {uc_addresses_defaults} (
+	aid integer not null default 0,
+        uid integer not null default 0,
+        PRIMARY KEY (aid, uid)
+      );");
+      $success = TRUE;
+      break;
+    default:
+      drupal_set_message(t('Unsupported database.'));
+  }
+  if ($success) {
+    drupal_set_message(t('The uc_addresses table was installed successfully.'));
+  }
+  else {
+    drupal_set_message(t('The installation of the uc_addresses module was unsuccessful.'), 'error');
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function uc_addresses_uninstall() {
+  db_query("DROP TABLE {uc_addresses}");
+  db_query("DROP TABLE {uc_addresses_defaults}");
+  db_query("DELETE FROM {sequences} WHERE name = 'uc_addresses');
+}
