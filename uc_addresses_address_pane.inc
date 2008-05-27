@@ -18,11 +18,11 @@
  * Create, edit, process or view the Address pane.
  *
  * @param $op The name of the operation to perform. One of 'new',
- *	'edit', 'process' or 'view'.
+ *	'add, 'edit', 'process' or 'view'.
  * @param $arg1 The address object.
  * @param $arg2 If op = 'process', $arg2 is an array storing the
  *	values the user entered for the form.
- * @return If $op is 'new' or 'edit', return a form. If $op is
+ * @return If $op is 'new', 'add' or 'edit', return a form. If $op is
  * 	'process', return an address object. If $op is 'view', return
  *	an array of address fields to view.
  * @ingroup forms
@@ -30,8 +30,8 @@
 function uc_addresses_pane_address($op, $arg1, $arg2) {
   global $user;
   switch ($op) {
-
     case 'new':
+    case 'add':
       $description = t('Enter your new address information.');
       $form['address'] = array(
 	'#type' => 'fieldset',
@@ -62,8 +62,8 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
-	if (isset($_POST['country'])) {
-	  $country_id = intval($_POST['country']);
+	if (isset($_POST['panes']['address']['country'])) {
+	  $country_id = intval($_POST['panes']['address']['country']);
 	}
 	else {
 	  $country_id = $arg1->country;
@@ -75,6 +75,14 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       }
       if (uc_address_field_enabled('phone')) {
 	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $arg1->phone, uc_address_field_required('phone'), NULL, 32, 16);
+      }
+      if ($op == 'add') {
+	$form['address']['save'] = array(
+	  '#type' => 'checkbox',
+	  '#title' => 'Default address',
+	  '#suffix' => t('Make this address the default address'),
+	  '#default_value' => $arg1->is_default,
+	  );
       }
 
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
@@ -121,8 +129,8 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
-	if (isset($_POST['country'])) {
-	  $country_id = intval($_POST['country']);
+	if (isset($_POST['panes']['address']['country'])) {
+	  $country_id = intval($_POST['panes']['address']['country']);
 	}
 	else {
 	  $country_id = $arg1->country;
@@ -134,8 +142,10 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       }
       $form['address']['save'] = array(
 	'#type' => 'checkbox',
-	'#title' => 'Default address',
+	'#title' => t('Default address'),
+	'#suffix' => t('Make this address the default address'),
 	'#default_value' => $arg1->is_default,
+	'#disabled' => $arg1->is_default,
 	);
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
 

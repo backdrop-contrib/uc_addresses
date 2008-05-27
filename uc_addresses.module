@@ -18,7 +18,7 @@
  *
  * @author Ben Thompson with inspiration from uc_order.module and uc_cart.module.
  * @author Rich from Freestyle Systems (enhancements).
- * @author Tony Freixas from Tiger Heron LLC (major revisions).
+ * @author Tony Freixas (maintainer) from Tiger Heron LLC (major revisions).
  *
  * @ingroup uc_addresses
  */
@@ -57,10 +57,38 @@ function uc_addresses_menu($may_cache) {
   global $user;
   $items = array();
 
-  // All menu entries are dynamic, sad to say, as they all depend on
-  // the user ID
+  if ($may_cache) {
+    $items[] = array(
+      'path' => 'admin/store/settings/addresses',
+      'title' => t('Address settings'),
+      'description' => t('Configure the address settings.'),
+      'callback' => 'uc_addresses_settings_overview',
+      'access' => user_access('administer store'),
+      'type' => MENU_NORMAL_ITEM,
+    );
+    $items[] = array(
+      'path' => 'admin/store/settings/addresses/overview',
+      'title' => t('Overview'),
+      'access' => user_access('administer store'),
+      'description' => t('View the address settings.'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+    );
+    $items[] = array(
+      'path' => 'admin/store/settings/addresses/edit',
+      'title' => t('Edit'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('uc_addresses_settings_form'),
+      'access' => user_access('administer store'),
+      'description' => t('Edit the address settings.'),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => -5,
+    );
+  }
 
-  if (!$may_cache) {
+  // The following can't be cached as they all depend on the user ID
+
+  else {
     drupal_add_css(drupal_get_path('module', 'uc_order') .'/uc_order.css');
 
     $items[] = array(
@@ -89,15 +117,17 @@ function uc_addresses_menu($may_cache) {
 	user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
 	$user->uid == arg(1),
 	'type' => MENU_DEFAULT_LOCAL_TASK,
+	'weight' => 0,
 	);
       $items[] = array(
-	'path' => 'user/' . check_plain(arg(1)) . '/addresses/new',
-	'title' => t('New address'),
-	'description' => t('Create a new address.'),
-	'callback' => 'uc_addresses_new_address',
-	'callback arguments' => array(check_plain(arg(1)), NULL, 'new'),
+	'path' => 'user/' . check_plain(arg(1)) . '/addresses/add',
+	'title' => t('Add address'),
+	'description' => t('Add a new address.'),
+	'callback' => 'uc_addresses_get_address',
+	'callback arguments' => array(check_plain(arg(1)), NULL, 'add'),
 	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
 	'type' => MENU_LOCAL_TASK,
+	'weight' => 3,
 	);
     }
     else {
@@ -117,7 +147,7 @@ function uc_addresses_menu($may_cache) {
       $items[] = array(
 	'path' => 'user/'. check_plain(arg(1)) .'/addresses/'. check_plain(arg(3)) .'/edit',
 	'title' => t('Edit address'),
-	'callback' => 'uc_addresses_new_address',
+	'callback' => 'uc_addresses_get_address',
 	'callback arguments' => array(check_plain(arg(1)), check_plain(arg(3)), 'edit'),
 	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
 	'type' => MENU_CALLBACK,
@@ -221,7 +251,7 @@ function uc_addresses_form_alter($form_id, &$form) {
     // Each address is just line a full address, but on one line
 
     $options = NULL;
-    if ($addresses = uc_addresses_get_address($user->uid)) {
+    if ($addresses = uc_addresses_get_db_address($user->uid)) {
       $options = array('0' => t('Select one...'));
       foreach ($addresses as $address) {
         $address = (array)$address;
@@ -253,8 +283,10 @@ function uc_addresses_form_alter($form_id, &$form) {
 
     if ($options) {
       $form['panes']['delivery']['#description'] =
-	t('Select an existing address or enter a new delivery address and information. ' .
-	  'Click !here to manage your saved addresses.',
+	(variable_get('uc_addresses_default_delivery_address', TRUE) ?
+	 t('Edit the address below or select an address from the list. ') :
+	 t('Enter an address below or select an address from the list. ')) .
+	t('Click !here to manage your saved addresses.',
 	  array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
 
       $form['panes']['delivery']['delivery_address_select'] = array(
@@ -266,6 +298,13 @@ function uc_addresses_form_alter($form_id, &$form) {
 	'#weight' => -10,
 	);
 
+      $form['panes']['billing']['#description'] =
+	(variable_get('uc_addresses_default_billing_address', TRUE) ?
+	 t('Edit the address below or select an address from the list. ') :
+	 t('Enter an address below or select an address from the list. ')) .
+	t('Click !here to manage your saved addresses.',
+	  array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+
       $form['panes']['billing']['billing_address_select'] = array(
 	'#type' => 'select',
 	'#title' => t('Saved addresses'),
@@ -274,6 +313,98 @@ function uc_addresses_form_alter($form_id, &$form) {
 	'#suffix' => $address_book_icon,
 	'#weight' => -10,
 	);
+
+      // Copy the default address to the delivery address fields if
+      // the option is enabled
+
+      if (variable_get('uc_addresses_default_delivery_address', TRUE)) {
+	foreach ($addresses as $address) {
+	  if ($address->is_default) {
+	    if (uc_address_field_enabled('first_name')) {
+	      $form['panes']['delivery']['delivery_first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, FALSE);
+	    }
+	    if (uc_address_field_enabled('last_name')) {
+	      $form['panes']['delivery']['delivery_last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, FALSE);
+	    }
+	    if (uc_address_field_enabled('phone')) {
+	      $form['panes']['delivery']['delivery_phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, FALSE, NULL, 32, 16);
+	    }
+	    if (uc_address_field_enabled('company')) {
+	      $form['panes']['delivery']['delivery_company'] = uc_textfield(uc_get_field_name('company'), $address->company, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('street1')) {
+	      $form['panes']['delivery']['delivery_street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('street2')) {
+	      $form['panes']['delivery']['delivery_street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('city')) {
+	      $form['panes']['delivery']['delivery_city'] = uc_textfield(uc_get_field_name('city'), $address->city, FALSE);
+	    }
+	    if (uc_address_field_enabled('country')) {
+	      $form['panes']['delivery']['delivery_country'] = uc_country_select(uc_get_field_name('country'), $address->country);
+	    }
+	    if (uc_address_field_enabled('zone')) {
+	      if (isset($_POST['delivery_country'])) {
+		$country_id = intval($_POST['delivery_country']);
+	      }
+	      else {
+		$country_id = $address->country;
+	      }
+	      $form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id);
+	    }
+	    if (uc_address_field_enabled('postal_code')) {
+	      $form['panes']['delivery']['delivery_postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, FALSE, NULL, 10, 10);
+	    }
+	  }
+	}
+      }
+
+      // Copy the default address to the billing address fields if the
+      // option is enabled
+
+      if (variable_get('uc_addresses_default_billing_address', TRUE)) {
+	foreach ($addresses as $address) {
+	  if ($address->is_default) {
+	    if (uc_address_field_enabled('first_name')) {
+	      $form['panes']['billing']['billing_first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, FALSE);
+	    }
+	    if (uc_address_field_enabled('last_name')) {
+	      $form['panes']['billing']['billing_last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, FALSE);
+	    }
+	    if (uc_address_field_enabled('phone')) {
+	      $form['panes']['billing']['billing_phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, FALSE, NULL, 32, 16);
+	    }
+	    if (uc_address_field_enabled('company')) {
+	      $form['panes']['billing']['billing_company'] = uc_textfield(uc_get_field_name('company'), $address->company, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('street1')) {
+	      $form['panes']['billing']['billing_street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('street2')) {
+	      $form['panes']['billing']['billing_street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, FALSE, NULL, 64);
+	    }
+	    if (uc_address_field_enabled('city')) {
+	      $form['panes']['billing']['billing_city'] = uc_textfield(uc_get_field_name('city'), $address->city, FALSE);
+	    }
+	    if (uc_address_field_enabled('country')) {
+	      $form['panes']['billing']['billing_country'] = uc_country_select(uc_get_field_name('country'), $address->country);
+	    }
+	    if (uc_address_field_enabled('zone')) {
+	      if (isset($_POST['billing_country'])) {
+		$country_id = intval($_POST['billing_country']);
+	      }
+	      else {
+		$country_id = $address->country;
+	      }
+	      $form['panes']['billing']['billing_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id);
+	    }
+	    if (uc_address_field_enabled('postal_code')) {
+	      $form['panes']['billing']['billing_postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, FALSE, NULL, 10, 10);
+	    }
+	  }
+	}
+      }
     }
 
     // If we have no addresses, remove the selection field. This
@@ -290,13 +421,13 @@ function uc_addresses_form_alter($form_id, &$form) {
     // the checkbox was checked. For now, all order addresses are
     // automatically saved.
 
-//     $form['panes']['delivery']['delivery_address_save_address'] = array(
+//     $form['panes']['billing']['billing_address_save_address'] = array(
 //       '#title' => t('Save this address'),
 //       '#type' => 'checkbox',
 //       '#default_value' => 1,
 //       '#weight' => 10
 //       );
-//     $form['panes']['billing']['billing_address_save_address'] = array(
+//     $form['panes']['delivery']['delivery_address_save_address'] = array(
 //       '#title' => t('Save this address'),
 //       '#type' => 'checkbox',
 //       '#default_value' => 1,
@@ -322,7 +453,7 @@ function uc_addresses_address_pane() {
     'desc' => t("Manage the user's addresses and contact information."),
     'class' => 'pos-left',
     'weight' => 1,
-    'show' => array('view', 'new', 'edit'),
+    'show' => array('view', 'add', 'edit'),
     );
 
   return $panes;
@@ -376,6 +507,49 @@ function uc_addresses_order($op, &$arg1, $arg2)
  ******************************************************************************/
 
 /**
+ * Display the addresses settings overview.
+ */
+function uc_addresses_settings_overview() {
+  $items = array(
+    (variable_get('uc_addresses_default_delivery_address', TRUE) ?
+     t('Automatically filling in the delivery address with the user\'s default address.') :
+     t('The customer must enter or choose a delivery address.')),
+    (variable_get('uc_addresses_default_billing_address', TRUE) ?
+     t('Automatically filling in the billing address with the user\'s default address.') :
+     t('The customer must enter or choose a billing address.')),
+    );
+  $sections[] = array(
+    'edit' => 'admin/store/settings/addresses/edit',
+    'title' => t('Address settings '),
+    'items' => $items,
+    );
+  $output = theme('uc_settings_overview', $sections);
+
+  return $output;
+}
+
+function uc_addresses_settings_form() {
+  $form['user'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('User settings'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  $form['user']['uc_addresses_default_billing_address'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Automatically fill in the billing address with the user\'s default address.',
+    '#default_value' => variable_get('uc_addresses_default_billing_address', TRUE),
+    );
+  $form['user']['uc_addresses_default_delivery_address'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Automatically fill in the delivery address with the user\'s default address.',
+    '#default_value' => variable_get('uc_addresses_default_delivery_address', TRUE),
+    );
+
+  return system_settings_form($form);
+}
+
+/**
  * Report whether an address id refers to a user's default address or
  * not.
  *
@@ -408,7 +582,7 @@ function uc_addresses_list_addresses($uid){
 
   // Get all the addresses for this user
 
-  $addresses = uc_addresses_get_address($uid);
+  $addresses = uc_addresses_get_db_address($uid);
 
   // If we find some addresses, output the following
 
@@ -448,7 +622,7 @@ function uc_addresses_list_addresses($uid){
   // on whether the current user can edit the addresses
 
   if (user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == $uid) {
-    $link = l(t('Add a new address'), 'user/'. $uid .'/addresses/new');
+    $link = l(t('Add a new address'), 'user/'. $uid .'/addresses/add');
     $output .= $link;
   }
 
@@ -469,6 +643,8 @@ function uc_addresses_list_addresses($uid){
 function theme_uc_addresses_list_address($uid, $aid, $panes) {
   global $user;
 
+  $address = _UcAdressCache::get($uid, $aid);
+
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
 
   $output = '<table class="address-preview-table">';
@@ -479,6 +655,9 @@ function theme_uc_addresses_list_address($uid, $aid, $panes) {
     if (user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == $uid) {
       $output .= '<tr class="pane-title-row"><td colspan="2">'
 	. l(t('Edit this address'), 'user/'. $uid .'/addresses/' . $aid . '/edit')
+	. ($address->is_default ? '' :
+	   ' | '
+	   . l(t('Delete this address'), 'user/'. $uid .'/addresses/' . $aid . '/delete'))
 	.'</td></tr>';
     }
 
@@ -522,15 +701,15 @@ function theme_uc_addresses_list_address($uid, $aid, $panes) {
  *
  * @param $uid The user id of the user who "owns" this address.
  * @param $aid The address id for this address (0 for new addresses)
- * @param $view The URL path for which form to display. 'new' or 'edit'.
+ * @param $view The URL path for which form to display. 'add' or 'edit'.
  * @return An address form
  */
-function uc_addresses_new_address($uid, $aid, $view){
+function uc_addresses_get_address($uid, $aid, $view){
   global $user;
 
-  drupal_add_js(drupal_get_path('module', 'uc_cart') .'/uc_cart.js');
+//  drupal_add_js(drupal_get_path('module', 'uc_cart') .'/uc_cart.js');
 
-  $output = drupal_get_form('uc_addresses_new_address_form', $uid, $aid, $view);
+  $output = drupal_get_form('uc_addresses_get_address_form', $uid, $aid, $view);
   return $output;
 }
 
@@ -539,11 +718,11 @@ function uc_addresses_new_address($uid, $aid, $view){
  *
  * @param $uid The user id of the user who "owns" this address.
  * @param $aid The address id for this address (0 for new addresses)
- * @param $view The URL path for which form to display. 'new' or 'edit'.
+ * @param $view The URL path for which form to display. 'new', 'add' or 'edit'.
  * @return An address form
  * @ingroup forms
  */
-function uc_addresses_new_address_form($uid, $aid, $view) {
+function uc_addresses_get_address_form($uid, $aid, $view) {
 
   // Cancel an address entry when a customer clicks the 'Cancel'
   // button.
@@ -602,11 +781,10 @@ function uc_addresses_new_address_form($uid, $aid, $view) {
   // Edit an existing address
 
   if (arg(4) == 'edit') {
-    if (!uc_addresses_is_default($uid, $aid)) {
-      $form['delete'] =
-	array('#type' => 'submit',
-	      '#value' => variable_get('uc_addresses_delete_button', t('Delete address')));
-    }
+    $form['delete'] =
+      array('#type' => 'submit',
+	    '#value' => variable_get('uc_addresses_delete_button', t('Delete address')),
+	    '#disabled' => $address->is_default);
     $form['continue'] =
       array('#type' => 'submit',
 	    '#value' => variable_get('uc_addresses_update_button', t('Update address')));
@@ -621,7 +799,7 @@ function uc_addresses_new_address_form($uid, $aid, $view) {
   }
 
   $form['#submit'] =
-    array('uc_addresses_new_address_form_submit' => array($uid, $aid, $view));
+    array('uc_addresses_get_address_form_submit' => array($uid, $aid, $view));
 
   return $form;
 }
@@ -633,7 +811,7 @@ function uc_addresses_new_address_form($uid, $aid, $view) {
  * @return The themed form (as a string).
  * @ingroup themeable
  */
-function theme_uc_addresses_new_address_form($form) {
+function theme_uc_addresses_get_address_form($form) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
 
   $output = '<p>';
@@ -664,16 +842,16 @@ function theme_uc_addresses_new_address_form($form) {
 
 /**
  * Handle the form submit. If $view is 'edit' run update database
- * function, if 'new' run insert database function.
+ * function, if 'new' or 'add', run insert database function.
  *
  * @param $form_id The name of the form.
  * @param $form_values The form array.
  * @param $uid The user who "owns" the address.
  * @param $aid The address id (0 for new addresses).
- * @param $view Either 'edit' or 'view'.
+ * @param $view Either ''new', 'add' or edit'.
  * @return The path where we should wind up.
  */
-function uc_addresses_new_address_form_submit($form_id, $form_values, $uid, $aid, $view) {
+function uc_addresses_get_address_form_submit($form_id, $form_values, $uid, $aid, $view) {
   global $user;
 
   $address = new stdClass();
@@ -691,7 +869,7 @@ function uc_addresses_new_address_form_submit($form_id, $form_values, $uid, $aid
   if ($view == 'edit'){ // Update database
     uc_addresses_update_address($address);
   }
-  elseif ($view == 'new'){ // Insert into datebase
+  elseif ($view == 'new' || $view == 'add'){ // Insert into datebase
     uc_addresses_add_address($address);
   }
 
@@ -769,12 +947,12 @@ function uc_addresses_address($items){
 function uc_addresses_delete_address_confirm($uid, $aid){
 
   // We returned to this page after the user pressed cancel. Redirect
-  // the user back to the edit page
+  // the user back to the address list
 
   if ($_POST['op'] == t('Cancel')) {
     // TODO: (Tony) This seems draconian
     cache_clear_all();
-    drupal_goto('user/'. $uid .'/addresses/' . $aid . '/edit');
+    drupal_goto('user/'. $uid .'/addresses/');
   }
 
   $form = drupal_get_form('uc_addresses_delete_address_confirm_form', $uid, $aid);
@@ -793,8 +971,7 @@ function uc_addresses_delete_address_confirm($uid, $aid){
   $help =
     variable_get('uc_addresses_delete_instructions',
 		 t('Are you are sure you want to Delete this address? ' .
-		   'Click !delete if all the information is correct. ' .
-		   'Click the Cancel button to not delete this address.',
+		   'Once deleted, the address cannot be recovered.',
 		   array('!delete' => variable_get('uc_addresses_delete_button',
 						   t('Delete address')))
 		   )
@@ -1071,7 +1248,7 @@ function uc_addresses_update_address($address){
 	   ."first_name = '%s', last_name = '%s', phone = '%s', "
 	   ."company = '%s', street1 = '%s', street2 = '%s', "
 	   ."city = '%s', zone = %d, postal_code = '%s', country = %d, "
-	   ."modified = %d WHERE aid= %d", $address->aid,
+	   ."modified = %d WHERE aid= %d",
            $address->first_name, $address->last_name, $address->phone,
            $address->company, $address->street1, $address->street2,
            $address->city, $address->zone, $address->postal_code,
@@ -1098,12 +1275,12 @@ function uc_addresses_update_address($address){
  * @return FALSE on error. An object if $aid was not NULL. An
  *	array of objects if $aid was NULL.
  */
-function uc_addresses_get_address($uid, $aid = NULL){
+function uc_addresses_get_db_address($uid, $aid = NULL){
 
   // If $aid is present, return just the one address
 
   if ($aid){
-    $result = db_query("SELECT * FROM {uc_addresses} WHERE aid = %d ", $aid);
+    $result = db_query("SELECT * FROM {uc_addresses} WHERE aid = %d ",	$aid);
 
     // Check to make sure there is data
 
@@ -1145,6 +1322,7 @@ function uc_addresses_get_address($uid, $aid = NULL){
   }
   else {
     $default_aid = db_fetch_object($def);
+    $default_aid = $default_aid->aid;
   }
 
   // Gather up everything
@@ -1187,7 +1365,7 @@ class _UcAdressCache
 	$uid == _UcAdressCache::$address->uid) {
       return $address;
     }
-    return uc_addresses_get_address($uid, $aid);
+    return uc_addresses_get_db_address($uid, $aid);
   }
   static function clear() { _UcAdressCache::$address = NULL; }
 }

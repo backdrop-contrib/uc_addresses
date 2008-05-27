@@ -77,5 +77,5 @@ function uc_addresses_install() {
 function uc_addresses_uninstall() {
   db_query("DROP TABLE {uc_addresses}");
   db_query("DROP TABLE {uc_addresses_defaults}");
-  db_query("DELETE FROM {sequences} WHERE name = 'uc_addresses');
+  db_query("DELETE FROM {sequences} WHERE name = 'uc_addresses'");
 }
