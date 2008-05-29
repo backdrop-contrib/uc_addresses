@@ -15,6 +15,7 @@
  * and billing addresses from their collection of addresses rather
  * than from previous orders. Any new addresses entered during the
  * order process are automatically added to the user's list.
+ * <!--break-->
  *
  * @author Ben Thompson with inspiration from uc_order.module and uc_cart.module.
  * @author Rich from Freestyle Systems (enhancements).
