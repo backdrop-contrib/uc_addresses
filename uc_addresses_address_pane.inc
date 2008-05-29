@@ -150,18 +150,18 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
 
     case 'process':
-      $arg1->aid = check_plain($arg2['aid']);
-      $arg1->first_name = check_plain($arg2['first_name']);
-      $arg1->last_name = check_plain($arg2['last_name']);
-      $arg1->company = check_plain($arg2['company']);
-      $arg1->street1 = check_plain($arg2['street1']);
-      $arg1->street2 = check_plain($arg2['street2']);
-      $arg1->city = check_plain($arg2['city']);
-      $arg1->zone = check_plain($arg2['zone']);
-      $arg1->postal_code = check_plain($arg2['postal_code']);
-      $arg1->country = check_plain($arg2['country']);
-      $arg1->phone = check_plain($arg2['phone']);
-      $arg1->is_default = check_plain($arg2['save']);
+      $arg1->aid = $arg2['aid'];
+      $arg1->first_name = $arg2['first_name'];
+      $arg1->last_name = $arg2['last_name'];
+      $arg1->company = $arg2['company'];
+      $arg1->street1 = $arg2['street1'];
+      $arg1->street2 = $arg2['street2'];
+      $arg1->city = $arg2['city'];
+      $arg1->zone = $arg2['zone'];
+      $arg1->postal_code = $arg2['postal_code'];
+      $arg1->country = $arg2['country'];
+      $arg1->phone = $arg2['phone'];
+      $arg1->is_default = $arg2['save'];
       return TRUE;
 
     case 'view':

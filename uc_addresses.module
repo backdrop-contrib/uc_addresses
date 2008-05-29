@@ -92,7 +92,7 @@ function uc_addresses_menu($may_cache) {
     drupal_add_css(drupal_get_path('module', 'uc_order') .'/uc_order.css');
 
     $items[] = array(
-      'path' => 'user/'. check_plain(arg(1)) .'/addresses',
+      'path' => 'user/'. arg(1) .'/addresses',
       'title' => t('Addresses'),
       'description' => t('Manage your addresses'),
       'callback' => 'uc_addresses_list_addresses',
@@ -108,7 +108,7 @@ function uc_addresses_menu($may_cache) {
 
     if (!(is_numeric(arg(3)) && intval(arg(3)) == arg(3))) {
       $items[] = array(
-	'path' => 'user/'. check_plain(arg(1)) .'/addresses/list',
+	'path' => 'user/'. arg(1) .'/addresses/list',
 	'title' => t('Address list'),
 	'description' => t('Manage your addresses'),
 	'access' =>
@@ -120,11 +120,11 @@ function uc_addresses_menu($may_cache) {
 	'weight' => 0,
 	);
       $items[] = array(
-	'path' => 'user/' . check_plain(arg(1)) . '/addresses/add',
+	'path' => 'user/' . arg(1) . '/addresses/add',
 	'title' => t('Add address'),
 	'description' => t('Add a new address.'),
 	'callback' => 'uc_addresses_get_address',
-	'callback arguments' => array(check_plain(arg(1)), NULL, 'add'),
+	'callback arguments' => array(arg(1), NULL, 'add'),
 	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
 	'type' => MENU_LOCAL_TASK,
 	'weight' => 3,
@@ -132,11 +132,11 @@ function uc_addresses_menu($may_cache) {
     }
     else {
       $items[] = array(
-	'path' => 'user/'. check_plain(arg(1)) .'/addresses/' . check_plain(arg(3)),
+	'path' => 'user/'. arg(1) .'/addresses/' . arg(3),
 	'title' => t('View Address'),
 	'description' => t('View one saved address'),
-	'callback' => 'uc_addresses_view_address',
-	'callback arguments' => array(check_plain(arg(1)), arg(3)),
+	'callback' => 'uc_addresses_list_addresses',
+	'callback arguments' => array(arg(1), arg(3)),
 	'access' =>
 	user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
 	user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
@@ -145,18 +145,18 @@ function uc_addresses_menu($may_cache) {
 	'type' => MENU_CALLBACK,
 	);
       $items[] = array(
-	'path' => 'user/'. check_plain(arg(1)) .'/addresses/'. check_plain(arg(3)) .'/edit',
+	'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/edit',
 	'title' => t('Edit address'),
 	'callback' => 'uc_addresses_get_address',
-	'callback arguments' => array(check_plain(arg(1)), check_plain(arg(3)), 'edit'),
+	'callback arguments' => array(arg(1), arg(3), 'edit'),
 	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
 	'type' => MENU_CALLBACK,
 	);
       $items[] = array(
-	'path' => 'user/'. check_plain(arg(1)) .'/addresses/'. check_plain(arg(3)) .'/delete',
+	'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/delete',
 	'title' => t('Delete address'),
 	'callback' => 'uc_addresses_delete_address_confirm',
-	'callback arguments' => array(check_plain(arg(1)), check_plain(arg(3))),
+	'callback arguments' => array(arg(1), arg(3)),
 	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
 	'type' => MENU_CALLBACK,
 	);
@@ -220,7 +220,7 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
 
       $address = (object)$edit;
       $address->is_default = 0;
-      $aid = uc_addresses_add_address($address);
+      $aid = _uc_addresses_db_add_address($address);
       db_query("INSERT INTO {uc_addresses_defaults} (aid, uid) VALUES (%d, %d)", $aid, $uid);
       return;
 
@@ -251,7 +251,7 @@ function uc_addresses_form_alter($form_id, &$form) {
     // Each address is just line a full address, but on one line
 
     $options = NULL;
-    if ($addresses = uc_addresses_get_db_address($user->uid)) {
+    if ($addresses = _uc_addresses_db_get_address($user->uid)) {
       $options = array('0' => t('Select one...'));
       foreach ($addresses as $address) {
         $address = (array)$address;
@@ -485,7 +485,7 @@ function uc_addresses_order($op, &$arg1, $arg2)
     $address->country = $order->delivery_country;
     $address->phone = $order->delivery_phone;
     $address->is_default = 0;
-    uc_addresses_add_address($address, TRUE);
+    _uc_addresses_db_add_address($address, TRUE);
 
     $address->first_name = $order->billing_first_name;
     $address->last_name = $order->billing_last_name;
@@ -498,7 +498,7 @@ function uc_addresses_order($op, &$arg1, $arg2)
     $address->country = $order->billing_country;
     $address->phone = $order->billing_phone;
     $address->is_default = 0;
-    uc_addresses_add_address($address, TRUE);
+    _uc_addresses_db_add_address($address, TRUE);
   }
 }
 
@@ -550,72 +550,93 @@ function uc_addresses_settings_form() {
 }
 
 /**
- * Report whether an address id refers to a user's default address or
- * not.
- *
- * This is a utility function for themers.
- *
- * @param $aid The id of the address.
- * @return  A boolean that is TRUE if the $aid refers to a user's default address.
- */
-function uc_addresses_is_default($uid, $aid) {
-  $address = _UcAdressCache::get($uid, $aid);
-  if ($address == FALSE) return FALSE;
-  return $address->is_default;
-}
-
-/**
- * Generate a list of all addresses defined by one user and then theme
- * the list for display.
- *
- * The first address is the earliest defined address and is called the
- * "default address".
+ * Generate a list of one or all addresses defined by one user and
+ * then theme the list for display.
  *
  * If the current user can edit the addresses, then provide an edit
  * link for each address.
  *
  * @param $uid The id of the user whose list we want to display.
+ * @param $aid The id of the address to display or null to display all.
  * @return The themed list (as a string).
  */
-function uc_addresses_list_addresses($uid){
+function uc_addresses_list_addresses($uid, $aid = NULL) {
   global $user;
 
-  // Get all the addresses for this user
+  // Save this for later use
 
-  $addresses = uc_addresses_get_db_address($uid);
+  $saved_aid = $aid;
 
-  // If we find some addresses, output the following
+  // Determine if the user can view all addresses or just the default address
 
-  if ($addresses !== FALSE) {
-    foreach (element_children($addresses) as $address_index) {
-      $panes = _address_pane_list();
-      foreach ($panes as $pane) {
-	if (variable_get('uc_addresses_pane_'. $pane['id'] .'_enabled', TRUE)) {
-	  $func = $pane['callback'];
-	  if (function_exists($func)) {
-	    $return = $func('view', $addresses[$address_index], NULL);
-	    if (!is_NULL($return)) {
-	      $data[$pane['title']] = $return;
-	    }
-	  }
-	}
-      }
-      $output .= '<div class="list_address">';
-      $output .= theme('uc_addresses_list_address', $uid, $addresses[$address_index]->aid, $data);
-      $output .= '</div>';
+  $can_view_all_addresses =
+    $user->uid == $uid ||
+    user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+    user_access(UC_ADDRESSES_ACCESS_ADD_EDIT);
 
-      // Check whether we only display the default address or all addresses
+  // Flag to determine error message
 
-      if (!user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) &&
-	  !user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) &&
-	  $user->uid != $uid) break;
+  $allowed_to_view_address = true;
+
+  // If they can view all addresses, fetch the addresses
+
+  if ($can_view_all_addresses) {
+    $addresses = _uc_addresses_db_get_address($uid, $aid);
+  }
+
+  // Otherwise, they can view only the default address
+
+  else {
+    if ($aid === NULL) {
+      $aid = _uc_addresses_get_default_address_id($uid);
+      if ($aid === NULL) $aid = 0; // NULL would mean read all addresses
+    }
+    $addresses = _uc_addresses_db_get_address($uid, $aid);
+    if (is_object($addresses) && $addresses->is_default === false) {
+      $addresses = FALSE;
+      $allowed_to_view_address = FALSE;
     }
   }
 
-  // If we don't find any addresses
+  $output = '';
+
+  // We have multiple addresses
+
+  if (is_array($addresses)) {
+    foreach ($addresses as $address) {
+      $output .= _uc_addresses_list_one_address($uid, $address);
+    }
+  }
+
+  // We have one address
+
+  elseif (is_object($addresses)) {
+    $output .= _uc_addresses_list_one_address($uid, $addresses);
+  }
+
+  // We don't have any addresses. The message we report depends on the
+  // user and what they asked for
 
   else {
-    $output .= t('There are no saved addresses.<br />');
+
+    // If they asked for all addresses and got nothing, it's because
+    // there is nothing
+
+    if ($saved_aid === NULL) {
+      $output .= t('No addresses have been saved.<br />');
+    }
+
+    // If they asked for a specific address, it could be because it
+    // doesn't exist or because they are only permitted to view the
+    // default address and the one they picked is not the default
+
+    elseif ($allowed_to_view_address) {
+      $output .= t('This address does not exist.<br />');
+    }
+
+    else {
+      $output .= t('You are not allowed to view this address.<br />');
+    }
   }
 
   // Decide whether to include a link for adding a new address based
@@ -630,24 +651,55 @@ function uc_addresses_list_addresses($uid){
 }
 
 /**
+ * List one address.
+ *
+ * @param $address The address object to list.
+ * @return The HTML string for the address.
+ */
+function _uc_addresses_list_one_address($uid, $address) {
+
+  $panes = _address_pane_list();
+  foreach ($panes as $pane) {
+    if (variable_get('uc_addresses_pane_'. $pane['id'] .'_enabled', TRUE)) {
+      $func = $pane['callback'];
+      if (function_exists($func)) {
+	$return = $func('view', $address, NULL);
+	if (!is_NULL($return)) {
+	  $data[$pane['title']] = $return;
+	}
+      }
+    }
+  }
+  $output .= '<div class="list_address">';
+  $output .= theme('uc_addresses_list_address', $address, $data);
+  $output .= '</div>';
+  return $output;
+}
+
+/**
  * Theme the address list view.
  *
- * @param $uid The id of the user who "owns" this address.
- * @param $aid The id of the address we are theming.
+ * @param $address The address object we are theming.
  * @param $panes An associative array for each address pane.
  *	The key is the pane's title and the value is either the data
  *	returned for that pane or an array of returned data.
  * @return The themed address.
  * @ingroup themeable
  */
-function theme_uc_addresses_list_address($uid, $aid, $panes) {
+function theme_uc_addresses_list_address($address, $panes) {
   global $user;
 
-  $address = _UcAdressCache::get($uid, $aid);
+  $uid = $address->uid;
+  $aid = $address->aid;
 
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
 
-  $output = '<table class="address-preview-table">';
+  if ($address->is_default) {
+    $output = '<table class="address-preview-table addresses-default-address">';
+  }
+  else {
+    $output = '<table class="address-preview-table">';
+  }
   foreach ($panes as $title => $data) {
 
     // We add an edit link only if the user is allowed to edit this address
@@ -661,11 +713,7 @@ function theme_uc_addresses_list_address($uid, $aid, $panes) {
 	.'</td></tr>';
     }
 
-    // TODO: (Tony) Need to look into improving this. "valign" and
-    // "nowrap" are presentational attributes that should be left for
-    // the theme designer
-
-    if (uc_addresses_is_default($uid, $aid)) {
+    if ($address->is_default) {
       $output .= '<tr><td colspan="2" class="addresses-default-address-label"> '
 	. t('Default address') . '</td></tr>';
     }
@@ -678,17 +726,17 @@ function theme_uc_addresses_list_address($uid, $aid, $panes) {
           else {
             $border = '';
           }
-          $output .= '<tr valign="top"'. $border .'><td class="title-col" '
-	    .'nowrap>'. $row['title'] .':</td><td class="data-col">'
+          $output .= '<tr class="pane-data-row"'. $border .'><td class="title-col" '
+	    .'>'. $row['title'] .':</td><td class="data-col">'
 	    . $row['data'] .'</td></tr>';
         }
         else {
-          $output .= '<tr valign="top"><td colspan="2">'. $row .'</td></tr>';
+          $output .= '<tr class="pane-data-row"><td colspan="2">'. $row .'</td></tr>';
         }
       }
     }
     else {
-      $output .= '<tr valign="top"><td colspan="2">'. $data .'</td></tr>';
+      $output .= '<tr class="pane-data-row"><td colspan="2">'. $data .'</td></tr>';
     }
   }
   $output .= '</table><br />';
@@ -706,8 +754,6 @@ function theme_uc_addresses_list_address($uid, $aid, $panes) {
  */
 function uc_addresses_get_address($uid, $aid, $view){
   global $user;
-
-//  drupal_add_js(drupal_get_path('module', 'uc_cart') .'/uc_cart.js');
 
   $output = drupal_get_form('uc_addresses_get_address_form', $uid, $aid, $view);
   return $output;
@@ -743,7 +789,7 @@ function uc_addresses_get_address_form($uid, $aid, $view) {
     if (in_array($view, $pane['show']) &&
         variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
       if ($aid != NULL){
-        $address = _UcAdressCache::get($uid, $aid);
+	$address = _uc_addresses_db_get_address($uid, $aid);
         $return = $pane['callback']($view, $address, NULL);
       }
       else {
@@ -867,54 +913,13 @@ function uc_addresses_get_address_form_submit($form_id, $form_values, $uid, $aid
     }
   }
   if ($view == 'edit'){ // Update database
-    uc_addresses_update_address($address);
+    _uc_addresses_db_update_address($address);
   }
   elseif ($view == 'new' || $view == 'add'){ // Insert into datebase
-    uc_addresses_add_address($address);
+    _uc_addresses_db_add_address($address);
   }
 
   return 'user/'. $address->uid .'/addresses';
-}
-
-/**
- * Display one address.
- *
- * @param $uid The id of the user who "owns" the address.
- * @param $aid The id of the address.
- * @return The address to display.
- *
- * TODO: (Tony) Shouldn't this be themed?
- */
-function uc_addresses_view_address($uid, $aid)
-{
-  // Get address from database
-
-  $address = _UcAdressCache::get($uid, $aid);
-
-  if ($address === FALSE) {
-    drupal_set_message(t('This address does not exist.'));
-    drupal_goto('user/'. $uid .'/addresses');
-  }
-
-  // Get panes to display
-
-  $panes = _address_pane_list($view);
-  foreach ($panes as $pane) {
-    if (in_array($view, $pane['show']) &&
-        variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
-      $func = $pane['callback'];
-      if (function_exists($func) && ($contents = $func($view, $address, NULL)) != NULL) {
-        $output .= '<div class="address-pane '. $pane['class'] .'">';
-        if ($func('show-title', NULL, NULL) !== FALSE) {
-          $output .= '<div class="address-pane-title">'. $pane['title'] .': '
-	    . $func('view-title', $address, NULL) .'</div>';
-        }
-        $output .= $contents .'</div>';
-      }
-    }
-  }
-
-  return $output;
 }
 
 /**
@@ -959,7 +964,7 @@ function uc_addresses_delete_address_confirm($uid, $aid){
 
   // If the address doesn't exist, let's get out of here
 
-  $address = _UcAdressCache::get($uid, $aid);
+  $address = _uc_addresses_db_get_address($uid, $aid);
   if ($address === FALSE) {
     $_SESSION['add_address'] = NULL;
     unset($_SESSION['add_address']);
@@ -1026,17 +1031,17 @@ function theme_uc_addresses_address_delete_confirm($help, $panes, $form) {
           else {
             $border = '';
           }
-          $output .= '<tr valign="top"'. $border .'><td class="title-col" '
-	    .'nowrap>'. $row['title'] .':</td><td class="data-col">'
+          $output .= '<tr class="pane-data-row"'. $border .'><td class="title-col" '
+	    .'>'. $row['title'] .':</td><td class="data-col">'
 	    . $row['data'] .'</td></tr>';
         }
         else {
-          $output .= '<tr valign="top"><td colspan="2">'. $row .'</td></tr>';
+          $output .= '<tr class="pane-data-row"><td colspan="2">'. $row .'</td></tr>';
         }
       }
     }
     else {
-      $output .= '<tr valign="top"><td colspan="2">'. $data .'</td></tr>';
+      $output .= '<tr class="pane-data-row"><td colspan="2">'. $data .'</td></tr>';
     }
   }
   $output .= '<tr class="preview-button-row"><td colspan="2">'. $form
@@ -1082,7 +1087,7 @@ function uc_addresses_delete_address_confirm_form_submit($form_id, $form_values,
   switch ($form_values['op']) {
     case variable_get('uc_addresses_delete_button', t('Delete address')):
       $_SESSION['do_complete'] = TRUE;
-      uc_addresses_delete_address($aid);
+      _uc_addresses_db_delete_address($aid);
       drupal_set_message(t('The address has been deleted.'));
 
       return 'user/'. $uid .'/addresses';
@@ -1090,7 +1095,7 @@ function uc_addresses_delete_address_confirm_form_submit($form_id, $form_values,
 }
 
 /*******************************************************************************
- * Database Functions, add, get, update and delete from uc_addresses table
+ * Database Functions
  ******************************************************************************/
 
 /**
@@ -1100,7 +1105,7 @@ function uc_addresses_delete_address_confirm_form_submit($form_id, $form_values,
  * @param $address The address to add (as an object).
  * @param The id of the new address or FALSE if there was an error.
  */
-function uc_addresses_add_address($address, $silent = FALSE){
+function _uc_addresses_db_add_address($address, $silent = FALSE){
 
   // We need to work with systems where this module is added when
   // users are already present. Find out how many addresses this user has
@@ -1111,51 +1116,17 @@ function uc_addresses_add_address($address, $silent = FALSE){
     $a = db_fetch_array($result);
     $num_addresses = $a['COUNT(*)'];
   }
+
+  // If this is the first address the user has ever added, make it the
+  // default address
+
   if ($num_addresses < 1) $address->is_default = 1;
 
-  // Check to make sure the address is unique
-
   if ($num_addresses > 0) {
-    $result =
-      db_query("SELECT aid FROM {uc_addresses} WHERE "
-	       ."uid = %d AND "
-	       ."first_name = '%s' AND "
-	       ."last_name = '%s' AND "
-	       ."phone = '%s' AND "
-	       ."company = '%s' AND "
-	       ."street1 = '%s' AND "
-	       ."street2 = '%s' AND "
-	       ."city = '%s' AND "
-	       ."zone = '%s' AND "
-	       ."postal_code = '%s' AND "
-	       ."country = '%s'",
-	       $address->uid,
-	       $address->first_name,
-	       $address->last_name,
-	       $address->phone,
-	       $address->company,
-	       $address->street1,
-	       $address->street2,
-	       $address->city,
-	       $address->zone,
-	       $address->postal_code,
-	       $address->country);
+    // Check for problems
 
-    // If this occurs, the database table is corrupted. The fix,
-    // however, is simple: delete the extra address
-
-    if (db_num_rows($result) > 1) {
-      drupal_set_message(t('This address appears more than once in your address book. Please delete the duplicates and file a bug report.'), 'error');
-      return FALSE;
-    }
-
-    // If the address is already stored, leave them with a warning
-    // unless we were told to be quiet about this
-
-    if (db_num_rows($result) == 1) {
-      if (!$silent) drupal_set_message(t('This address already appears in your address book. A new address was not added.'), 'warning');
-      return FALSE;
-    }
+    $result = _uc_addresses_db_check_address($address, 'add', false);
+    if (!$result) return FALSE;
   }
 
   // Add the address
@@ -1167,12 +1138,23 @@ function uc_addresses_add_address($address, $silent = FALSE){
 	   ."'%s', '%s', '%s', "
 	   ."'%s', '%s', '%s', "
 	   ."'%s', %d, '%s', %d, "
-	   ."%d, %d)", $aid, $address->uid,
-           $address->first_name, $address->last_name, $address->phone,
-           $address->company, $address->street1, $address->street2,
-           $address->city, $address->zone, $address->postal_code,
-           ((is_NULL($address->country) || $address->country == 0) ? variable_get('uc_store_country', 840) : $address->country),
-           time(), time());
+	   ."%d, %d)",
+	   $aid,
+	   $address->uid,
+           $address->first_name,
+	   $address->last_name,
+	   $address->phone,
+           $address->company,
+	   $address->street1,
+	   $address->street2,
+           $address->city,
+	   $address->zone,
+	   $address->postal_code,
+           ((is_NULL($address->country) || $address->country == 0) ?
+	    variable_get('uc_store_country', 840) :
+	    $address->country),
+           time(),
+	   time());
 
   // Update the default address, if necessary
 
@@ -1185,7 +1167,6 @@ function uc_addresses_add_address($address, $silent = FALSE){
     }
   }
 
-  _UcAdressCache::set($address);
   return $aid;
 }
 
@@ -1195,9 +1176,63 @@ function uc_addresses_add_address($address, $silent = FALSE){
  * @param $address The address to add.
  * @param A boolean that is TRUE if the address was added, FALSE otherwise.
  */
-function uc_addresses_update_address($address){
-  // Check to make sure the address is unique
+function _uc_addresses_db_update_address($address){
 
+  // Check for problems
+
+  $result = _uc_addresses_db_check_address($address, 'update', false);
+  if (!$result) return FALSE;
+
+  // We're set to go
+
+  db_query("UPDATE {uc_addresses} SET "
+	   ."first_name = '%s', "
+	   ."last_name = '%s', "
+	   ."phone = '%s', "
+	   ."company = '%s', "
+	   ."street1 = '%s', "
+	   ."street2 = '%s', "
+	   ."city = '%s', "
+	   ."zone = %d, "
+	   ."postal_code = '%s', "
+	   ."country = %d, "
+	   ."modified = %d "
+	   ."WHERE aid= %d",
+           $address->first_name,
+	   $address->last_name,
+	   $address->phone,
+           $address->company,
+	   $address->street1,
+	   $address->street2,
+           $address->city,
+	   $address->zone,
+	   $address->postal_code,
+           ((is_NULL($address->country) || $address->country == 0) ?
+	    variable_get('uc_store_country', 840) :
+	    $address->country),
+           time(),
+	   $address->aid);
+
+  // Update the default address, if necessary
+
+  if ($address->is_default) {
+      db_query("UPDATE {uc_addresses_defaults} SET aid = %d WHERE uid = %d", $address->aid, $address->uid);
+  }
+  drupal_set_message(t('The address was updated.'));
+
+  return TRUE;
+}
+
+/**
+ * Before adding or updating an address, check it for errors.
+ *
+ * @param $address The address we are about to add or update.
+ * @param $op Either 'add' or 'update'.
+ * @param A boolean which, if TRUE, tells us not to display warnings
+ *	to the user.
+ * @return TRUE if the address is valid, FALSE otherwise.
+ */
+function _uc_addresses_db_check_address($address, $op, $silent) {
   $result =
     db_query("SELECT aid FROM {uc_addresses} WHERE "
 	     ."uid = %d AND "
@@ -1223,46 +1258,39 @@ function uc_addresses_update_address($address){
 	     $address->postal_code,
 	     $address->country);
 
-  // If this occurs, the database table is corrupted. The fix,
-  // however, is simple: delete the extra address
+  // If the address appears more than once, the database table is
+  // corrupted. The fix, however, is simple: delete the extra address
 
   if (db_num_rows($result) > 1) {
-    drupal_set_message(t('This address appears more than once in your address book. Please delete the duplicates and file a bug report.'), 'error');
+    drupal_set_message(t('This address appears more than once in your address book. '
+			 .'Please delete the duplicates and file a bug report.'),
+		       'error');
     return FALSE;
   }
 
   // If we get one address, it's OK only if it is the address we're
-  // trying to update
+  // trying to add or update
 
   if (db_num_rows($result) == 1) {
     $db_address = db_fetch_object($result);
     if ($db_address->aid != $address->aid) {
-      drupal_set_message(t('The revised address is already in your address book. Your change was not made.'), 'warning');
+      if (!$silent) {
+	if ($op == 'add') {
+	  drupal_set_message(
+	    t('This address already appears in your address book. '
+	      .'A new address was not added.'),
+	    'warning');
+	}
+	else {
+	  drupal_set_message(
+	    t('The revised address is already in your address book. '
+	      .'Your change was not made.'),
+	    'warning');
+	}
+      }
       return FALSE;
     }
   }
-
-  // We're set to go
-
-  db_query("UPDATE {uc_addresses} SET "
-	   ."first_name = '%s', last_name = '%s', phone = '%s', "
-	   ."company = '%s', street1 = '%s', street2 = '%s', "
-	   ."city = '%s', zone = %d, postal_code = '%s', country = %d, "
-	   ."modified = %d WHERE aid= %d",
-           $address->first_name, $address->last_name, $address->phone,
-           $address->company, $address->street1, $address->street2,
-           $address->city, $address->zone, $address->postal_code,
-           ((is_NULL($address->country) || $address->country == 0) ? variable_get('uc_store_country', 840) : $address->country),
-           time(), $address->aid);
-
-  // Update the default address, if necessary
-
-  if ($address->is_default) {
-      db_query("UPDATE {uc_addresses_defaults} SET aid = %d WHERE uid = %d", $address->aid, $address->uid);
-  }
-  drupal_set_message(t('The address was updated.'));
-
-  _UcAdressCache::set($address);
   return TRUE;
 }
 
@@ -1275,7 +1303,7 @@ function uc_addresses_update_address($address){
  * @return FALSE on error. An object if $aid was not NULL. An
  *	array of objects if $aid was NULL.
  */
-function uc_addresses_get_db_address($uid, $aid = NULL){
+function _uc_addresses_db_get_address($uid, $aid = NULL){
 
   // If $aid is present, return just the one address
 
@@ -1302,7 +1330,6 @@ function uc_addresses_get_db_address($uid, $aid = NULL){
 
     // All OK
 
-    _UcAdressCache::set($address);
     return $address;
   }
 
@@ -1314,16 +1341,7 @@ function uc_addresses_get_db_address($uid, $aid = NULL){
 
   if (db_num_rows($result) == 0) return FALSE;
 
-  // Find the default address
-
-  $def = db_query("SELECT aid FROM {uc_addresses_defaults} WHERE uid = %d", $uid);
-  if (db_num_rows($def) != 1) {
-    $default_aid = 0;
-  }
-  else {
-    $default_aid = db_fetch_object($def);
-    $default_aid = $default_aid->aid;
-  }
+  $default_aid = _uc_addresses_get_default_address_id($uid);
 
   // Gather up everything
 
@@ -1332,8 +1350,29 @@ function uc_addresses_get_db_address($uid, $aid = NULL){
     $addresses[] = $address;
   }
 
-  _UcAdressCache::clear();
   return $addresses;
+}
+
+/**
+ * Get a user's default address id. Because the addresses module can
+ * be added to an existing system, it's possible that some people will
+ * not have a default address (or any addresses).
+ *
+ * @param $uid The id of the user who "owns" the address.
+ * @return The $id of the default address or NULL if none.
+ */
+function _uc_addresses_get_default_address_id($uid) {
+  $def =
+    db_query("SELECT aid FROM {uc_addresses_defaults} WHERE uid = %d", $uid);
+
+  if (db_num_rows($def) != 1) {
+    $aid = NULL;
+  }
+  else {
+    $obj = db_fetch_object($def);
+    $aid = $obj->aid;
+  }
+  return $aid;
 }
 
 /**
@@ -1342,30 +1381,7 @@ function uc_addresses_get_db_address($uid, $aid = NULL){
  * @param $aid The id of the address to delete.
  * @param Always returns TRUE.
  */
-function uc_addresses_delete_address($aid) {
+function _uc_addresses_db_delete_address($aid) {
   db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $aid);
-  _UcAdressCache::clear();
   return TRUE;
-}
-
-/**
- * @class _UcAddressCache
- *
- * A simple caching class that stores the last accessed address.
- */
-
-class _UcAdressCache
-{
-  static $address = NULL;
-
-  static function set($address) { _UcAdressCache::$address = $address; }
-  static function get($uid, $aid) {
-    if ($address != NULL &&
-	$aid == _UcAdressCache::$address->aid &&
-	$uid == _UcAdressCache::$address->uid) {
-      return $address;
-    }
-    return uc_addresses_get_db_address($uid, $aid);
-  }
-  static function clear() { _UcAdressCache::$address = NULL; }
 }

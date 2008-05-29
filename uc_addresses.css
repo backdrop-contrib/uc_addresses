@@ -50,10 +50,13 @@ width:20em;
   font-weight: normal;
 }
 
+.pane-data-row td { vertical-align: top }
+
 .address-review-table .title-col {
   text-align: right;
   font-weight: bold;
   padding-left: 1em;
+  white-space: nowrap;
 }
 
 .address-review-table .data-col {
@@ -79,6 +82,9 @@ width:20em;
 .address-review-table .review-button-row form {
   display: inline;
 }
+
+.addresses-default-address td { font-weight: bold; font-size: 110% }
+td.addresses-default-address-label { font-size: 120%; color: #999 }
 
 /**
  * CSS rules for the default address panes.

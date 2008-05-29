@@ -1,0 +1,6 @@
+TO DO LIST:
+
+ * Add a checkbox to the checkout delivery and billing addresses to
+   select whether to save the associated address. Currently, these
+   addresses are always saved (unless they are already in the
+   database).
