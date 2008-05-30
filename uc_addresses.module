@@ -1126,7 +1126,7 @@ function _uc_addresses_db_add_address($address, $silent = FALSE){
   if ($num_addresses > 0) {
     // Check for problems
 
-    $result = _uc_addresses_db_check_address($address, 'add', false);
+    $result = _uc_addresses_db_check_address($address, 'add', $silent);
     if (!$result) return FALSE;
   }
 
