@@ -92,75 +92,77 @@ function uc_addresses_menu($may_cache) {
   else {
     drupal_add_css(drupal_get_path('module', 'uc_order') .'/uc_order.css');
 
-    $items[] = array(
-      'path' => 'user/'. arg(1) .'/addresses',
-      'title' => t('Addresses'),
-      'description' => t('Manage your addresses'),
-      'callback' => 'uc_addresses_list_addresses',
-      'callback arguments' => array(arg(1)),
-      'access' =>
-      user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
-      user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
-      user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
-      $user->uid == arg(1),
-      'type' => MENU_LOCAL_TASK,
-      'weight' => 1,
-      );
-
-    if (!(is_numeric(arg(3)) && intval(arg(3)) == arg(3))) {
+    if (is_numeric(arg(1)) && intval(arg(1)) == arg(1)) {
       $items[] = array(
-	'path' => 'user/'. arg(1) .'/addresses/list',
-	'title' => t('Address list'),
+	'path' => 'user/'. arg(1) .'/addresses',
+	'title' => t('Addresses'),
 	'description' => t('Manage your addresses'),
-	'access' =>
-	user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
-	user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
-	user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
-	$user->uid == arg(1),
-	'type' => MENU_DEFAULT_LOCAL_TASK,
-	'weight' => 0,
-	);
-      $items[] = array(
-	'path' => 'user/' . arg(1) . '/addresses/add',
-	'title' => t('Add address'),
-	'description' => t('Add a new address.'),
-	'callback' => 'uc_addresses_get_address',
-	'callback arguments' => array(arg(1), NULL, 'add'),
-	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
-	'type' => MENU_LOCAL_TASK,
-	'weight' => 3,
-	);
-    }
-    else {
-      $items[] = array(
-	'path' => 'user/'. arg(1) .'/addresses/' . arg(3),
-	'title' => t('View Address'),
-	'description' => t('View one saved address'),
 	'callback' => 'uc_addresses_list_addresses',
-	'callback arguments' => array(arg(1), arg(3)),
+	'callback arguments' => array(arg(1)),
 	'access' =>
 	user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
 	user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
 	user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
 	$user->uid == arg(1),
-	'type' => MENU_CALLBACK,
+	'type' => MENU_LOCAL_TASK,
+	'weight' => 1,
 	);
-      $items[] = array(
-	'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/edit',
-	'title' => t('Edit address'),
-	'callback' => 'uc_addresses_get_address',
-	'callback arguments' => array(arg(1), arg(3), 'edit'),
-	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
-	'type' => MENU_CALLBACK,
-	);
-      $items[] = array(
-	'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/delete',
-	'title' => t('Delete address'),
-	'callback' => 'uc_addresses_delete_address_confirm',
-	'callback arguments' => array(arg(1), arg(3)),
-	'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
-	'type' => MENU_CALLBACK,
-	);
+
+      if (!(is_numeric(arg(3)) && intval(arg(3)) == arg(3))) {
+	$items[] = array(
+	  'path' => 'user/'. arg(1) .'/addresses/list',
+	  'title' => t('Address list'),
+	  'description' => t('Manage your addresses'),
+	  'access' =>
+	  user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
+	  user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+	  user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
+	  $user->uid == arg(1),
+	  'type' => MENU_DEFAULT_LOCAL_TASK,
+	  'weight' => 0,
+	  );
+	$items[] = array(
+	  'path' => 'user/' . arg(1) . '/addresses/add',
+	  'title' => t('Add address'),
+	  'description' => t('Add a new address.'),
+	  'callback' => 'uc_addresses_get_address',
+	  'callback arguments' => array(arg(1), NULL, 'add'),
+	  'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	  'type' => MENU_LOCAL_TASK,
+	  'weight' => 3,
+	  );
+      }
+      else {
+	$items[] = array(
+	  'path' => 'user/'. arg(1) .'/addresses/' . arg(3),
+	  'title' => t('View Address'),
+	  'description' => t('View one saved address'),
+	  'callback' => 'uc_addresses_list_addresses',
+	  'callback arguments' => array(arg(1), arg(3)),
+	  'access' =>
+	  user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
+	  user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
+	  user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
+	  $user->uid == arg(1),
+	  'type' => MENU_CALLBACK,
+	  );
+	$items[] = array(
+	  'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/edit',
+	  'title' => t('Edit address'),
+	  'callback' => 'uc_addresses_get_address',
+	  'callback arguments' => array(arg(1), arg(3), 'edit'),
+	  'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	  'type' => MENU_CALLBACK,
+	  );
+	$items[] = array(
+	  'path' => 'user/'. arg(1) .'/addresses/'. arg(3) .'/delete',
+	  'title' => t('Delete address'),
+	  'callback' => 'uc_addresses_delete_address_confirm',
+	  'callback arguments' => array(arg(1), arg(3)),
+	  'access' => user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) || $user->uid == arg(1),
+	  'type' => MENU_CALLBACK,
+	  );
+      }
     }
   }
   return $items;
