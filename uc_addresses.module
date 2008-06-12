@@ -213,8 +213,8 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
       // For registration, we want the user to enter his default address
 
       $form = uc_addresses_pane_address('new', $arg1, $arg2);
-      $form = array($form['contents']);	// Modify to what we need
-      $form[0]['#title'] = t('Address');	// Rename the fieldset
+      $form = array($form['contents']);	 // Modify to what we need
+      $form[0]['#title'] = t('Address'); // Rename the fieldset
       return $form;
 
     case 'insert':
@@ -223,8 +223,7 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
 
       $address = (object)$edit;
       $address->is_default = 0;
-      $aid = _uc_addresses_db_add_address($address);
-      db_query("INSERT INTO {uc_addresses_defaults} (aid, uid) VALUES (%d, %d)", $aid, $uid);
+      _uc_addresses_db_add_address($address);
       return;
 
     case 'delete':
@@ -232,7 +231,7 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
       // well
 
       db_query("DELETE FROM {uc_addresses} WHERE uid = %d", $account->uid);
-      dq_query("DELETE FROM {uc_addresses_defaults} WHERE uid = %d", $account->uid);
+      db_query("DELETE FROM {uc_addresses_defaults} WHERE uid = %d", $account->uid);
       return;
   }
 }
@@ -474,21 +473,12 @@ function uc_addresses_address_pane() {
 function uc_addresses_order($op, &$arg1, $arg2)
 {
   if ($op == 'save') {
+
     $order = $arg1;
     $address = new stdClass();
-    $address->uid = $order->uid;
-    $address->first_name = $order->delivery_first_name;
-    $address->last_name = $order->delivery_last_name;
-    $address->company = $order->delivery_company;
-    $address->street1 = $order->delivery_street1;
-    $address->street2 = $order->delivery_street2;
-    $address->city = $order->delivery_city;
-    $address->zone = $order->delivery_zone;
-    $address->postal_code = $order->delivery_postal_code;
-    $address->country = $order->delivery_country;
-    $address->phone = $order->delivery_phone;
-    $address->is_default = 0;
-    _uc_addresses_db_add_address($address, TRUE);
+
+    // Add the billing address first. If the user has no addresses,
+    // this is the one that will become the default address
 
     $address->first_name = $order->billing_first_name;
     $address->last_name = $order->billing_last_name;
@@ -500,6 +490,20 @@ function uc_addresses_order($op, &$arg1, $arg2)
     $address->postal_code = $order->billing_postal_code;
     $address->country = $order->billing_country;
     $address->phone = $order->billing_phone;
+    $address->is_default = 0;
+    _uc_addresses_db_add_address($address, TRUE);
+
+    $address->uid = $order->uid;
+    $address->first_name = $order->delivery_first_name;
+    $address->last_name = $order->delivery_last_name;
+    $address->company = $order->delivery_company;
+    $address->street1 = $order->delivery_street1;
+    $address->street2 = $order->delivery_street2;
+    $address->city = $order->delivery_city;
+    $address->zone = $order->delivery_zone;
+    $address->postal_code = $order->delivery_postal_code;
+    $address->country = $order->delivery_country;
+    $address->phone = $order->delivery_phone;
     $address->is_default = 0;
     _uc_addresses_db_add_address($address, TRUE);
   }
@@ -1108,12 +1112,62 @@ function uc_addresses_delete_address_confirm_form_submit($form_id, $form_values,
  * @param $address The address to add (as an object).
  * @param The id of the new address or FALSE if there was an error.
  */
-function _uc_addresses_db_add_address($address, $silent = FALSE){
+function _uc_addresses_db_add_address($address, $silent = FALSE) {
+  global $user;
+
+  // If this is an anonymous user, save the address for later
+
+  if ($address->uid == 0 && isset($address->first_name)) {
+    $saved_addresses = NULL;
+
+    if (isset($_SESSION['uc_addresses_saved_addresses'])) {
+      $saved_addresses = $_SESSION['uc_addresses_saved_addresses'];
+    }
+    if (!is_array($saved_addresses)) {
+      $saved_addresses = array();
+    }
+    $saved_addresses[] = drupal_clone($address);
+    $_SESSION['uc_addresses_saved_addresses'] = $saved_addresses;
+
+    return;
+  }
+
+  // If we have a logged in user but no address information, then some
+  // module created a user without going through the normal
+  // registration procedure. Let's see if we have any address
+  // information saved for this user
+
+  if ($address->uid != 0 && !isset($address->first_name)) {
+    if (isset($_SESSION['uc_addresses_saved_addresses'])) {
+      $saved_addresses = $_SESSION['uc_addresses_saved_addresses'];
+      if (is_array($saved_addresses)) {
+	foreach ($saved_addresses as $addr) {
+	  $addr->uid = $address->uid;
+	  $status = _uc_addresses_db_add_address($addr, true);
+	  if ($status === FALSE) return FALSE;
+	}
+      }
+      $_SESSION['uc_addresses_saved_addresses'] = null;
+      unset($_SESSION['uc_addresses_saved_addresses']);
+    }
+
+    // Let this user get created without an address
+
+    return TRUE;
+  }
+
+  // Final special case: no logged in user and no address information!
+
+  if ($address->uid == 0) return TRUE;
+
+  // From this point on, we have both a user and an address to add
 
   // We need to work with systems where this module is added when
   // users are already present. Find out how many addresses this user has
 
-  $result = db_query("SELECT COUNT(*) FROM {uc_addresses} WHERE uid = %d", $address->uid);
+  $result =
+      db_query("SELECT COUNT(*) FROM {uc_addresses} WHERE uid = %d", $address->uid);
+
   $num_addresses = 0;
   if (db_num_rows($result) == 1) {
     $a = db_fetch_array($result);
