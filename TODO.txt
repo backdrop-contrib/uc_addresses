@@ -4,3 +4,7 @@ TO DO LIST:
    select whether to save the associated address. Currently, these
    addresses are always saved (unless they are already in the
    database).
+
+ * If an anonymous user places an order using an existing e-mail
+   address, the order is attached to the account associated with the
+   e-mail, but the addresses are not added to that account.
