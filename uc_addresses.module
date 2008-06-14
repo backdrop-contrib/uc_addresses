@@ -284,42 +284,46 @@ function uc_addresses_form_alter($form_id, &$form) {
     // the delivery/billing address selection
 
     if ($options) {
-      $form['panes']['delivery']['#description'] =
-	(variable_get('uc_addresses_default_delivery_address', TRUE) ?
-	 t('Edit the address below or select an address from the list. ') :
-	 t('Enter an address below or select an address from the list. ')) .
-	t('Click !here to manage your saved addresses.',
-	  array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+      if (variable_get('uc_pane_delivery_enabled', TRUE)) {
+	$form['panes']['delivery']['#description'] =
+	  (variable_get('uc_addresses_default_delivery_address', TRUE) ?
+	   t('Edit the address below or select an address from the list. ') :
+	   t('Enter an address below or select an address from the list. ')) .
+	  t('Click !here to manage your saved addresses.',
+	    array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
 
-      $form['panes']['delivery']['delivery_address_select'] = array(
-	'#type' => 'select',
-	'#title' => t('Saved addresses'),
-	'#options' => $options,
-	'#attributes' => array('onchange' => 'apply_address(\'delivery\', this.value);'),
-	'#suffix' => $address_book_icon,
-	'#weight' => -10,
-	);
+	$form['panes']['delivery']['delivery_address_select'] = array(
+	  '#type' => 'select',
+	  '#title' => t('Saved addresses'),
+	  '#options' => $options,
+	  '#attributes' => array('onchange' => 'apply_address(\'delivery\', this.value);'),
+	  '#suffix' => $address_book_icon,
+	  '#weight' => -10,
+	  );
+      }
 
-      $form['panes']['billing']['#description'] =
-	(variable_get('uc_addresses_default_billing_address', TRUE) ?
-	 t('Edit the address below or select an address from the list. ') :
-	 t('Enter an address below or select an address from the list. ')) .
-	t('Click !here to manage your saved addresses.',
-	  array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+      if (variable_get('uc_pane_billing_enabled', TRUE)) {
+	$form['panes']['billing']['#description'] =
+	  (variable_get('uc_addresses_default_billing_address', TRUE) ?
+	   t('Edit the address below or select an address from the list. ') :
+	   t('Enter an address below or select an address from the list. ')) .
+	  t('Click !here to manage your saved addresses.',
+	    array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
 
-      $form['panes']['billing']['billing_address_select'] = array(
-	'#type' => 'select',
-	'#title' => t('Saved addresses'),
-	'#options' => $options,
-	'#attributes' => array('onchange' => 'apply_address(\'billing\', this.value);'),
-	'#suffix' => $address_book_icon,
-	'#weight' => -10,
-	);
+	$form['panes']['billing']['billing_address_select'] = array(
+	  '#type' => 'select',
+	  '#title' => t('Saved addresses'),
+	  '#options' => $options,
+	  '#attributes' => array('onchange' => 'apply_address(\'billing\', this.value);'),
+	  '#suffix' => $address_book_icon,
+	  '#weight' => -10,
+	  );
+      }
 
       // Copy the default address to the delivery address fields if
       // the option is enabled
 
-      if (variable_get('uc_addresses_default_delivery_address', TRUE)) {
+      if (variable_get('uc_addresses_default_delivery_address', TRUE) && variable_get('uc_pane_delivery_enabled', TRUE)) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
@@ -365,7 +369,7 @@ function uc_addresses_form_alter($form_id, &$form) {
       // Copy the default address to the billing address fields if the
       // option is enabled
 
-      if (variable_get('uc_addresses_default_billing_address', TRUE)) {
+      if (variable_get('uc_addresses_default_billing_address', TRUE) && variable_get('uc_pane_billing_enabled', TRUE)) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
@@ -480,32 +484,36 @@ function uc_addresses_order($op, &$arg1, $arg2)
     // Add the billing address first. If the user has no addresses,
     // this is the one that will become the default address
 
-    $address->first_name = $order->billing_first_name;
-    $address->last_name = $order->billing_last_name;
-    $address->company = $order->billing_company;
-    $address->street1 = $order->billing_street1;
-    $address->street2 = $order->billing_street2;
-    $address->city = $order->billing_city;
-    $address->zone = $order->billing_zone;
-    $address->postal_code = $order->billing_postal_code;
-    $address->country = $order->billing_country;
-    $address->phone = $order->billing_phone;
-    $address->is_default = 0;
-    _uc_addresses_db_add_address($address, TRUE);
+    if (variable_get('uc_pane_billing_enabled', TRUE)) {
+      $address->first_name = $order->billing_first_name;
+      $address->last_name = $order->billing_last_name;
+      $address->company = $order->billing_company;
+      $address->street1 = $order->billing_street1;
+      $address->street2 = $order->billing_street2;
+      $address->city = $order->billing_city;
+      $address->zone = $order->billing_zone;
+      $address->postal_code = $order->billing_postal_code;
+      $address->country = $order->billing_country;
+      $address->phone = $order->billing_phone;
+      $address->is_default = 0;
+      _uc_addresses_db_add_address($address, TRUE);
+    }
 
-    $address->uid = $order->uid;
-    $address->first_name = $order->delivery_first_name;
-    $address->last_name = $order->delivery_last_name;
-    $address->company = $order->delivery_company;
-    $address->street1 = $order->delivery_street1;
-    $address->street2 = $order->delivery_street2;
-    $address->city = $order->delivery_city;
-    $address->zone = $order->delivery_zone;
-    $address->postal_code = $order->delivery_postal_code;
-    $address->country = $order->delivery_country;
-    $address->phone = $order->delivery_phone;
-    $address->is_default = 0;
-    _uc_addresses_db_add_address($address, TRUE);
+    if (variable_get('uc_pane_delivery_enabled', TRUE)) {
+      $address->uid = $order->uid;
+      $address->first_name = $order->delivery_first_name;
+      $address->last_name = $order->delivery_last_name;
+      $address->company = $order->delivery_company;
+      $address->street1 = $order->delivery_street1;
+      $address->street2 = $order->delivery_street2;
+      $address->city = $order->delivery_city;
+      $address->zone = $order->delivery_zone;
+      $address->postal_code = $order->delivery_postal_code;
+      $address->country = $order->delivery_country;
+      $address->phone = $order->delivery_phone;
+      $address->is_default = 0;
+      _uc_addresses_db_add_address($address, TRUE);
+    }
   }
 }
 
