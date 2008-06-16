@@ -308,7 +308,7 @@ function uc_addresses_form_alter($form_id, &$form) {
 	   t('Edit the address below or select an address from the list. ') :
 	   t('Enter an address below or select an address from the list. ')) .
 	  t('Click !here to manage your saved addresses.',
-	    array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+	    array('!here' => l(t('here'), 'user/'. $user->uid . '/addresses')));
 
 	$form['panes']['billing']['billing_address_select'] = array(
 	  '#type' => 'select',

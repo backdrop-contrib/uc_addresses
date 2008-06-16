@@ -79,7 +79,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       if ($op == 'add') {
 	$form['address']['save'] = array(
 	  '#type' => 'checkbox',
-	  '#title' => 'Default address',
+	  '#title' => t('Default address'),
 	  '#suffix' => t('Make this address the default address'),
 	  '#default_value' => $arg1->is_default,
 	  );
