@@ -485,6 +485,7 @@ function uc_addresses_order($op, &$arg1, $arg2)
     // this is the one that will become the default address
 
     if (variable_get('uc_pane_billing_enabled', TRUE)) {
+      $address->uid = $order->uid;
       $address->first_name = $order->billing_first_name;
       $address->last_name = $order->billing_last_name;
       $address->company = $order->billing_company;
@@ -767,7 +768,7 @@ function theme_uc_addresses_list_address($address, $panes) {
  * @param $view The URL path for which form to display. 'add' or 'edit'.
  * @return An address form
  */
-function uc_addresses_get_address($uid, $aid, $view){
+function uc_addresses_get_address($uid, $aid, $view) {
   global $user;
 
   $output = drupal_get_form('uc_addresses_get_address_form', $uid, $aid, $view);
@@ -803,7 +804,7 @@ function uc_addresses_get_address_form($uid, $aid, $view) {
   foreach ($panes as $pane) {
     if (in_array($view, $pane['show']) &&
         variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
-      if ($aid != NULL){
+      if ($aid != NULL) {
 	$address = _uc_addresses_db_get_address($uid, $aid);
         $return = $pane['callback']($view, $address, NULL);
       }
@@ -927,10 +928,10 @@ function uc_addresses_get_address_form_submit($form_id, $form_values, $uid, $aid
       $valid = FALSE;
     }
   }
-  if ($view == 'edit'){ // Update database
+  if ($view == 'edit') { // Update database
     _uc_addresses_db_update_address($address);
   }
-  elseif ($view == 'new' || $view == 'add'){ // Insert into datebase
+  elseif ($view == 'new' || $view == 'add') { // Insert into datebase
     _uc_addresses_db_add_address($address);
   }
 
@@ -943,7 +944,7 @@ function uc_addresses_get_address_form_submit($form_id, $form_values, $uid, $aid
  * @param $items An object containing address information.
  * @return A formatted address.
  */
-function uc_addresses_address($items){
+function uc_addresses_address($items) {
   $address = uc_address_format(
     $items->first_name,
     $items->last_name,
@@ -964,7 +965,7 @@ function uc_addresses_address($items){
  * @param $uid The id of the user who "owns" the address.
  * @param $aid The id of the address to delete.
  */
-function uc_addresses_delete_address_confirm($uid, $aid){
+function uc_addresses_delete_address_confirm($uid, $aid) {
 
   // We returned to this page after the user pressed cancel. Redirect
   // the user back to the address list
@@ -1193,10 +1194,13 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
     $result = _uc_addresses_db_check_address($address, 'add', $silent);
     if (!$result) return FALSE;
   }
+  else {
+    _uc_addresses_db_normalize_address($address);
+  }
 
   // Add the address
 
-  $aid = db_next_id('uc_addresses');
+  $aid = db_next_id('{uc_addresses}_aid');
   db_query("INSERT INTO {uc_addresses} (aid, uid, first_name, last_name, "
 	   ."phone, company, street1, street2, city, zone, postal_code, country, "
 	   ."created, modified) VALUES (%d, %d, "
@@ -1241,7 +1245,7 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
  * @param $address The address to add.
  * @param A boolean that is TRUE if the address was added, FALSE otherwise.
  */
-function _uc_addresses_db_update_address($address){
+function _uc_addresses_db_update_address($address) {
 
   // Check for problems
 
@@ -1262,7 +1266,7 @@ function _uc_addresses_db_update_address($address){
 	   ."postal_code = '%s', "
 	   ."country = %d, "
 	   ."modified = %d "
-	   ."WHERE aid= %d",
+	   ."WHERE aid = %d",
            $address->first_name,
 	   $address->last_name,
 	   $address->phone,
@@ -1272,9 +1276,7 @@ function _uc_addresses_db_update_address($address){
            $address->city,
 	   $address->zone,
 	   $address->postal_code,
-           ((is_NULL($address->country) || $address->country == 0) ?
-	    variable_get('uc_store_country', 840) :
-	    $address->country),
+	   $address->country,
            time(),
 	   $address->aid);
 
@@ -1298,6 +1300,9 @@ function _uc_addresses_db_update_address($address){
  * @return TRUE if the address is valid, FALSE otherwise.
  */
 function _uc_addresses_db_check_address($address, $op, $silent) {
+
+  _uc_addresses_db_normalize_address($address);
+
   $result =
     db_query("SELECT aid FROM {uc_addresses} WHERE "
 	     ."uid = %d AND "
@@ -1360,6 +1365,32 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
 }
 
 /**
+ * SQL gets a little weird when comparing nulls. "value = NULL" is
+ * always false, even if the value is NULL! You have to write "value
+ * IS NULL" to get the "right" answer. Rather than changing the
+ * comparisons all over the place, we will make sure no value is null.
+ * Because address fields can be disabled, any field could be null.
+ *
+ * @param $address The address to normalize (altered in place).
+ */
+function _uc_addresses_db_normalize_address(&$address) {
+
+  // Yes, the comparisons are checking for null, '', and 0. This is
+  // deliberate--call me paranoid
+
+  if (!$address->first_name) $address->first_name = '';
+  if (!$address->last_name) $address->last_name = '';
+  if (!$address->phone) $address->phone = '';
+  if (!$address->company) $address->company = '';
+  if (!$address->street1) $address->street1 = '';
+  if (!$address->street2) $address->street2 = '';
+  if (!$address->city) $address->city = '';
+  if (!$address->zone) $address->zone = 0;
+  if (!$address->postal_code) $address->postal_code = '';
+  if (!$address->country) $address->country = variable_get('uc_store_country', 840);
+}
+
+/**
  * Get an address or list of addresses from the database.
  *
  * @param $uid The id of the user who "owns" the address.
@@ -1368,11 +1399,11 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
  * @return FALSE on error. An object if $aid was not NULL. An
  *	array of objects if $aid was NULL.
  */
-function _uc_addresses_db_get_address($uid, $aid = NULL){
+function _uc_addresses_db_get_address($uid, $aid = NULL) {
 
   // If $aid is present, return just the one address
 
-  if ($aid){
+  if ($aid) {
     $result = db_query("SELECT * FROM {uc_addresses} WHERE aid = %d ",	$aid);
 
     // Check to make sure there is data

@@ -72,6 +72,21 @@ function uc_addresses_install() {
 }
 
 /**
+ * First update: remove the old incorrect sequence number name and add
+ * the correct new one. Copy over the sequence number.
+ */
+function uc_addresses_update_1() {
+  $items = array();
+  $seq = db_query("SELECT * FROM {sequences} WHERE name = 'uc_addresses'");
+  if (db_num_rows($seq) == 1) {
+    $obj = db_fetch_object($seq);
+    $items[] = update_sql("DELETE FROM {sequences} WHERE name = 'uc_addresses'");
+    $items[] = update_sql("INSERT INTO {sequences} (name, id) VALUES('{uc_addresses}_aid'," . $obj->id . ")");
+  }
+  return $items;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function uc_addresses_uninstall() {
