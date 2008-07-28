@@ -210,12 +210,16 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
       }
 
     case 'register':
-      // For registration, we want the user to enter his default address
+      // For registration, we may want the user to enter his default
+      // address
 
-      $form = uc_addresses_pane_address('new', $arg1, $arg2);
-      $form = array($form['contents']);	 // Modify to what we need
-      $form[0]['#title'] = t('Address'); // Rename the fieldset
-      return $form;
+      if (variable_get('uc_addresses_require_address', TRUE)) {
+
+	$form = uc_addresses_pane_address('new', $arg1, $arg2);
+	$form = array($form['contents']);	 // Modify to what we need
+	$form[0]['#title'] = t('Address'); // Rename the fieldset
+	return $form;
+      }
 
     case 'insert':
       // We're about to add the user to the database, so get the address
@@ -533,6 +537,9 @@ function uc_addresses_settings_overview() {
     (variable_get('uc_addresses_default_billing_address', TRUE) ?
      t('Automatically filling in the billing address with the user\'s default address.') :
      t('The customer must enter or choose a billing address.')),
+    (variable_get('uc_addresses_require_address', TRUE) ?
+     t('The customer must enter an address when registering') :
+     t('The customer does not enter an address when registering.')),
     );
   $sections[] = array(
     'edit' => 'admin/store/settings/addresses/edit',
@@ -553,13 +560,18 @@ function uc_addresses_settings_form() {
   );
   $form['user']['uc_addresses_default_billing_address'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Automatically fill in the billing address with the user\'s default address.',
+    '#title' => t('Automatically fill in the billing address with the user\'s default address.'),
     '#default_value' => variable_get('uc_addresses_default_billing_address', TRUE),
     );
   $form['user']['uc_addresses_default_delivery_address'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Automatically fill in the delivery address with the user\'s default address.',
+    '#title' => t('Automatically fill in the delivery address with the user\'s default address.'),
     '#default_value' => variable_get('uc_addresses_default_delivery_address', TRUE),
+    );
+  $form['user']['uc_addresses_require_address'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Require that an address be entered during registration'),
+    '#default_value' => variable_get('uc_addresses_require_address', TRUE),
     );
 
   return system_settings_form($form);
