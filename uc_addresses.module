@@ -288,22 +288,28 @@ function uc_addresses_form_alter($form_id, &$form) {
     // the delivery/billing address selection
 
     if ($options) {
-      if (variable_get('uc_pane_delivery_enabled', TRUE)) {
-	$form['panes']['delivery']['#description'] =
-	  (variable_get('uc_addresses_default_delivery_address', TRUE) ?
-	   t('Edit the address below or select an address from the list. ') :
-	   t('Enter an address below or select an address from the list. ')) .
-	  t('Click !here to manage your saved addresses.',
-	    array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
 
-	$form['panes']['delivery']['delivery_address_select'] = array(
-	  '#type' => 'select',
-	  '#title' => t('Saved addresses'),
-	  '#options' => $options,
-	  '#attributes' => array('onchange' => 'apply_address(\'delivery\', this.value);'),
-	  '#suffix' => $address_book_icon,
-	  '#weight' => -10,
-	  );
+      // Might not have any shippable products so make sure the
+      // delivery address exists before mucking with it
+
+      if ($form['panes']['delivery']) {
+	if (variable_get('uc_pane_delivery_enabled', TRUE)) {
+	  $form['panes']['delivery']['#description'] =
+	    (variable_get('uc_addresses_default_delivery_address', TRUE) ?
+	     t('Edit the address below or select an address from the list. ') :
+	     t('Enter an address below or select an address from the list. ')) .
+	    t('Click !here to manage your saved addresses.',
+	      array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+
+	  $form['panes']['delivery']['delivery_address_select'] = array(
+	    '#type' => 'select',
+	    '#title' => t('Saved addresses'),
+	    '#options' => $options,
+	    '#attributes' => array('onchange' => 'apply_address(\'delivery\', this.value);'),
+	    '#suffix' => $address_book_icon,
+	    '#weight' => -10,
+	    );
+	}
       }
 
       if (variable_get('uc_pane_billing_enabled', TRUE)) {
