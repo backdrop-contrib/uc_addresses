@@ -337,28 +337,28 @@ function uc_addresses_form_alter($form_id, &$form) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
-	      $form['panes']['delivery']['delivery_first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, FALSE);
+	      $form['panes']['delivery']['delivery_first_name']['#default_value'] = $address->first_name;
 	    }
 	    if (uc_address_field_enabled('last_name')) {
-	      $form['panes']['delivery']['delivery_last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, FALSE);
+	      $form['panes']['delivery']['delivery_last_name']['#default_value'] = $address->last_name;
 	    }
 	    if (uc_address_field_enabled('phone')) {
-	      $form['panes']['delivery']['delivery_phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, FALSE, NULL, 32, 16);
+	      $form['panes']['delivery']['delivery_phone']['#default_value'] = $address->phone;
 	    }
 	    if (uc_address_field_enabled('company')) {
-	      $form['panes']['delivery']['delivery_company'] = uc_textfield(uc_get_field_name('company'), $address->company, FALSE, NULL, 64);
+	      $form['panes']['delivery']['delivery_company']['#default_value'] = $address->company;
 	    }
 	    if (uc_address_field_enabled('street1')) {
-	      $form['panes']['delivery']['delivery_street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, FALSE, NULL, 64);
+	      $form['panes']['delivery']['delivery_street1']['#default_value'] = $address->street1;
 	    }
 	    if (uc_address_field_enabled('street2')) {
-	      $form['panes']['delivery']['delivery_street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, FALSE, NULL, 64);
+	      $form['panes']['delivery']['delivery_street2']['#default_value'] = $address->street2;
 	    }
 	    if (uc_address_field_enabled('city')) {
-	      $form['panes']['delivery']['delivery_city'] = uc_textfield(uc_get_field_name('city'), $address->city, FALSE);
+	      $form['panes']['delivery']['delivery_city']['#default_value'] = $address->city;
 	    }
 	    if (uc_address_field_enabled('country')) {
-	      $form['panes']['delivery']['delivery_country'] = uc_country_select(uc_get_field_name('country'), $address->country);
+	      $form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
 	    }
 	    if (uc_address_field_enabled('zone')) {
 	      if (isset($_POST['delivery_country'])) {
@@ -367,10 +367,10 @@ function uc_addresses_form_alter($form_id, &$form) {
 	      else {
 		$country_id = $address->country;
 	      }
-	      $form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id);
+	      $form['panes']['delivery']['delivery_zone']['#default_value'] = $address->zone;
 	    }
 	    if (uc_address_field_enabled('postal_code')) {
-	      $form['panes']['delivery']['delivery_postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, FALSE, NULL, 10, 10);
+	      $form['panes']['delivery']['delivery_postal_code']['#default_value'] = $address->postal_code;
 	    }
 	  }
 	}
@@ -383,28 +383,28 @@ function uc_addresses_form_alter($form_id, &$form) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
-	      $form['panes']['billing']['billing_first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, FALSE);
+	      $form['panes']['billing']['billing_first_name']['#default_value'] = $address->first_name;
 	    }
 	    if (uc_address_field_enabled('last_name')) {
-	      $form['panes']['billing']['billing_last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, FALSE);
+	      $form['panes']['billing']['billing_last_name']['#default_value'] = $address->last_name;
 	    }
 	    if (uc_address_field_enabled('phone')) {
-	      $form['panes']['billing']['billing_phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, FALSE, NULL, 32, 16);
+	      $form['panes']['billing']['billing_phone']['#default_value'] = $address->phone;
 	    }
 	    if (uc_address_field_enabled('company')) {
-	      $form['panes']['billing']['billing_company'] = uc_textfield(uc_get_field_name('company'), $address->company, FALSE, NULL, 64);
+	      $form['panes']['billing']['billing_company']['#default_value'] = $address->company;
 	    }
 	    if (uc_address_field_enabled('street1')) {
-	      $form['panes']['billing']['billing_street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, FALSE, NULL, 64);
+	      $form['panes']['billing']['billing_street1']['#default_value'] = $address->street1;
 	    }
 	    if (uc_address_field_enabled('street2')) {
-	      $form['panes']['billing']['billing_street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, FALSE, NULL, 64);
+	      $form['panes']['billing']['billing_street2']['#default_value'] = $address->street2;
 	    }
 	    if (uc_address_field_enabled('city')) {
-	      $form['panes']['billing']['billing_city'] = uc_textfield(uc_get_field_name('city'), $address->city, FALSE);
+	      $form['panes']['billing']['billing_city']['#default_value'] = $address->city;
 	    }
 	    if (uc_address_field_enabled('country')) {
-	      $form['panes']['billing']['billing_country'] = uc_country_select(uc_get_field_name('country'), $address->country);
+	      $form['panes']['billing']['billing_country']['#default_value'] = $address->country;
 	    }
 	    if (uc_address_field_enabled('zone')) {
 	      if (isset($_POST['billing_country'])) {
@@ -413,10 +413,10 @@ function uc_addresses_form_alter($form_id, &$form) {
 	      else {
 		$country_id = $address->country;
 	      }
-	      $form['panes']['billing']['billing_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id);
+	      $form['panes']['billing']['billing_zone']['#default_value'] = $address->zone;
 	    }
 	    if (uc_address_field_enabled('postal_code')) {
-	      $form['panes']['billing']['billing_postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, FALSE, NULL, 10, 10);
+	      $form['panes']['billing']['billing_postal_code']['#default_value'] = $address->postal_code;
 	    }
 	  }
 	}
