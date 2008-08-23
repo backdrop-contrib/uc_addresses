@@ -77,6 +77,8 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $arg1->phone, uc_address_field_required('phone'), NULL, 32, 16);
       }
       if ($op == 'add') {
+	$form['address']['address_name'] = uc_textfield(t('Save as'), $arg1->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
+
 	$form['address']['save'] = array(
 	  '#type' => 'checkbox',
 	  '#title' => t('Default address'),
@@ -84,6 +86,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	  '#default_value' => $arg1->is_default,
 	  );
       }
+
 
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
 
@@ -140,6 +143,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       if (uc_address_field_enabled('postal_code')) {
 	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $arg1->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
       }
+      $form['address']['address_name'] = uc_textfield(t('Save as'), $arg1->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
       $form['address']['save'] = array(
 	'#type' => 'checkbox',
 	'#title' => t('Default address'),
@@ -161,6 +165,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       $arg1->postal_code = $arg2['postal_code'];
       $arg1->country = $arg2['country'];
       $arg1->phone = $arg2['phone'];
+      $arg1->address_name = $arg2['address_name'];
       $arg1->is_default = $arg2['save'];
       return TRUE;
 

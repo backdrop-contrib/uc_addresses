@@ -262,21 +262,27 @@ function uc_addresses_form_alter($form_id, &$form) {
       foreach ($addresses as $address) {
         $address = (array)$address;
 
-	// Not happy about this--if uc_address_format() ever changes
-	// it's output, we're hosed
+	if ($address['address_name']) {
+	  $options[drupal_to_js($address)] = $address['address_name'];
+	}
 
-        $options[drupal_to_js($address)] =
-	  preg_replace('/<.*?>/', ', ',
-		       uc_address_format(
-			 $address['first_name'],
-			 $address['last_name'],
-			 $address['company'],
-			 $address['street1'],
-			 $address['street2'],
-			 $address['city'],
-			 $address['zone'],
-			 $address['postal_code'],
-			 $address['country']));
+	else {
+	  // Not happy about this--if uc_address_format() ever changes
+	  // it's output, we're hosed
+
+	  $options[drupal_to_js($address)] =
+	    preg_replace('/<.*?>/', ', ',
+			 uc_address_format(
+			   $address['first_name'],
+			   $address['last_name'],
+			   $address['company'],
+			   $address['street1'],
+			   $address['street2'],
+			   $address['city'],
+			   $address['zone'],
+			   $address['postal_code'],
+			   $address['country']));
+	}
       }
     }
 
@@ -734,6 +740,7 @@ function theme_uc_addresses_list_address($address, $panes) {
   else {
     $output = '<table class="address-preview-table">';
   }
+
   foreach ($panes as $title => $data) {
 
     // We add an edit link only if the user is allowed to edit this address
@@ -751,6 +758,14 @@ function theme_uc_addresses_list_address($address, $panes) {
       $output .= '<tr><td colspan="2" class="addresses-default-address-label"> '
 	. t('Default address') . '</td></tr>';
     }
+
+    if ($address->address_name) {
+      $output .=
+	'<tr class="pane-data-row"'. $border .'><td class="title-col" '
+	.'>'.t('Name') .':</td><td class="data-col">'
+	. $address->address_name .'</td></tr>';
+    }
+
     if (is_array($data)) {
       foreach ($data as $row) {
         if (is_array($row)) {
@@ -1221,10 +1236,12 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
   $aid = db_next_id('{uc_addresses}_aid');
   db_query("INSERT INTO {uc_addresses} (aid, uid, first_name, last_name, "
 	   ."phone, company, street1, street2, city, zone, postal_code, country, "
+	   ."address_name, "
 	   ."created, modified) VALUES (%d, %d, "
 	   ."'%s', '%s', '%s', "
 	   ."'%s', '%s', '%s', "
 	   ."'%s', %d, '%s', %d, "
+	   ."'%s', "
 	   ."%d, %d)",
 	   $aid,
 	   $address->uid,
@@ -1240,6 +1257,7 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
            ((is_NULL($address->country) || $address->country == 0) ?
 	    variable_get('uc_store_country', 840) :
 	    $address->country),
+	   $address->address_name,
            time(),
 	   time());
 
@@ -1283,6 +1301,7 @@ function _uc_addresses_db_update_address($address) {
 	   ."zone = %d, "
 	   ."postal_code = '%s', "
 	   ."country = %d, "
+	   ."address_name = '%s', "
 	   ."modified = %d "
 	   ."WHERE aid = %d",
            $address->first_name,
@@ -1295,6 +1314,7 @@ function _uc_addresses_db_update_address($address) {
 	   $address->zone,
 	   $address->postal_code,
 	   $address->country,
+	   $address->address_name,
            time(),
 	   $address->aid);
 
@@ -1379,6 +1399,23 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
       return FALSE;
     }
   }
+
+  // Now check to make sure the address_name is not already in use
+
+  if ($address->address_name !== NULL & $address_name !== '') {
+    $result =
+      db_query("SELECT aid FROM {uc_addresses} WHERE "
+	       ."address_name = '%s'",
+	       $address->address_name);
+    if (db_num_rows($result) > 0) {
+      drupal_set_message(
+	t('The short name you selected for this address is already in your address book. '
+	  .'Please select a different name.'),
+	'error');
+      return FALSE;
+    }
+  }
+
   return TRUE;
 }
 
@@ -1406,6 +1443,7 @@ function _uc_addresses_db_normalize_address(&$address) {
   if (!$address->zone) $address->zone = 0;
   if (!$address->postal_code) $address->postal_code = '';
   if (!$address->country) $address->country = variable_get('uc_store_country', 840);
+  if (!$address->address_name) $address->address_name = '';
 }
 
 /**

@@ -87,6 +87,15 @@ function uc_addresses_update_1() {
 }
 
 /**
+ * Second update: add nickname field.
+ */
+function uc_addresses_update_2() {
+  $items = array();
+  $items[] = update_sql("ALTER TABLE {uc_addresses} ADD COLUMN address_name VARCHAR(20) DEFAULT NULL AFTER country");
+  return $items;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function uc_addresses_uninstall() {
