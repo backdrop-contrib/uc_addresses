@@ -337,9 +337,10 @@ function uc_addresses_form_alter($form_id, &$form) {
       }
 
       // Copy the default address to the delivery address fields if
-      // the option is enabled
+      // the option is enabled and if the fields are empty
 
-      if (variable_get('uc_addresses_default_delivery_address', TRUE) && variable_get('uc_pane_delivery_enabled', TRUE)) {
+      if (variable_get('uc_addresses_default_delivery_address', TRUE) && variable_get('uc_pane_delivery_enabled', TRUE) &&
+	  _uc_addresses_address_fields_empty($form['panes']['delivery'], 'delivery')) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
@@ -383,9 +384,10 @@ function uc_addresses_form_alter($form_id, &$form) {
       }
 
       // Copy the default address to the billing address fields if the
-      // option is enabled
+      // option is enabled and if the fields are empty
 
-      if (variable_get('uc_addresses_default_billing_address', TRUE) && variable_get('uc_pane_billing_enabled', TRUE)) {
+      if (variable_get('uc_addresses_default_billing_address', TRUE) && variable_get('uc_pane_billing_enabled', TRUE) &&
+	  _uc_addresses_address_fields_empty($form['panes']['billing'], 'billing')) {
 	foreach ($addresses as $address) {
 	  if ($address->is_default) {
 	    if (uc_address_field_enabled('first_name')) {
@@ -458,6 +460,27 @@ function uc_addresses_form_alter($form_id, &$form) {
   }
 }
 
+function _uc_addresses_address_fields_empty($fields, $type)
+{
+  if (uc_address_field_enabled('first_name') &&
+      $fields[$type . '_first_name']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('last_name') &&
+	   $fields[$type . '_last_name']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('phone') &&
+	 $fields[$type . '_phone']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('company') &&
+	 $fields[$type . '_company']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('street1') &&
+	   $fields[$type . '_street1']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('street2') &&
+	   $fields[$type . '_street2']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('city') &&
+	   $fields[$type . '_city']['#default_value']) return FALSE;
+  else if (uc_address_field_enabled('postal_code') &&
+	   $fields[$type . '_postal_code']['#default_value']) return FALSE;
+  return TRUE;
+}
+
 /*******************************************************************************
  * Hook Functions (Ubercart)
  ******************************************************************************/
@@ -492,8 +515,7 @@ function uc_addresses_address_pane() {
  */
 function uc_addresses_order($op, &$arg1, $arg2)
 {
-  if ($op == 'save') {
-
+  if ($op == 'update' && $arg1->order_status == 'in_checkout' && $arg2 == 'payment_received') {
     $order = $arg1;
     $address = new stdClass();
 
@@ -501,6 +523,7 @@ function uc_addresses_order($op, &$arg1, $arg2)
     // this is the one that will become the default address
 
     if (variable_get('uc_pane_billing_enabled', TRUE)) {
+      $address->address_name = '';
       $address->uid = $order->uid;
       $address->first_name = $order->billing_first_name;
       $address->last_name = $order->billing_last_name;
@@ -517,6 +540,7 @@ function uc_addresses_order($op, &$arg1, $arg2)
     }
 
     if (variable_get('uc_pane_delivery_enabled', TRUE)) {
+      $address->address_name = '';
       $address->uid = $order->uid;
       $address->first_name = $order->delivery_first_name;
       $address->last_name = $order->delivery_last_name;
@@ -1402,16 +1426,18 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
 
   // Now check to make sure the address_name is not already in use
 
-  if ($address->address_name !== NULL & $address_name !== '') {
+  if ($address->address_name) {
     $result =
       db_query("SELECT aid FROM {uc_addresses} WHERE "
 	       ."address_name = '%s'",
 	       $address->address_name);
     if (db_num_rows($result) > 0) {
-      drupal_set_message(
-	t('The short name you selected for this address is already in your address book. '
-	  .'Please select a different name.'),
-	'error');
+      if (!$silent) {
+	drupal_set_message(
+	  t('The short name you selected for this address is already in your address book. '
+	    .'Please select a different name.'),
+	  'error');
+      }
       return FALSE;
     }
   }
