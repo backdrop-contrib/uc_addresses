@@ -1425,6 +1425,7 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
   }
 
   // Now check to make sure the address_name is not already in use
+  // Unless its for the address we are trying to update
 
   if ($address->address_name) {
     $result =
@@ -1432,13 +1433,14 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
 	       ."address_name = '%s'",
 	       $address->address_name);
     if (db_num_rows($result) > 0) {
-      if (!$silent) {
+      $db_address = db_fetch_object($result);
+      if ($db_address->aid != $address->aid && !$silent) {
 	drupal_set_message(
 	  t('The short name you selected for this address is already in your address book. '
 	    .'Please select a different name.'),
 	  'error');
+	return FALSE;
       }
-      return FALSE;
     }
   }
 
