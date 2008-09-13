@@ -515,7 +515,7 @@ function uc_addresses_address_pane() {
  */
 function uc_addresses_order($op, &$arg1, $arg2)
 {
-  if ($op == 'update' && $arg1->order_status == 'in_checkout' && $arg2 == 'payment_received') {
+  if ($op == 'submit' && $arg1->order_status == 'in_checkout') {
     $order = $arg1;
     $address = new stdClass();
 
