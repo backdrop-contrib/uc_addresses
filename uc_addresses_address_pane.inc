@@ -29,6 +29,7 @@
  */
 function uc_addresses_pane_address($op, $arg1, $arg2) {
   global $user;
+
   switch ($op) {
     case 'new':
     case 'add':
@@ -62,8 +63,8 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
-	if (isset($_POST['country'])) {
-	  $country_id = intval($_POST['country']);
+	  if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
+	  $country_id = intval($_POST['panes']['address']['country']);
 	}
 	else {
 	  $country_id = $arg1->country;
@@ -132,8 +133,8 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
-	if (isset($_POST['country'])) {
-	  $country_id = intval($_POST['country']);
+	if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
+	  $country_id = intval($_POST['panes']['address']['country']);
 	}
 	else {
 	  $country_id = $arg1->country;
