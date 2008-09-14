@@ -63,11 +63,16 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
+	$country_id = $arg1->country;
+	if ($op == 'new') {
 	  if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
-	  $country_id = intval($_POST['panes']['address']['country']);
-	}
-	else {
-	  $country_id = $arg1->country;
+	    $country_id = intval($_POST['panes']['address']['country']);
+	  }
+	  else {
+	    if (isset($_POST['country'])) {
+	      $country_id = intval($_POST['country']);
+	    }
+	  }
 	}
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
