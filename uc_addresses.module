@@ -368,13 +368,7 @@ function uc_addresses_form_alter($form_id, &$form) {
 	      $form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
 	    }
 	    if (uc_address_field_enabled('zone')) {
-	      if (isset($_POST['delivery_country'])) {
-		$country_id = intval($_POST['delivery_country']);
-	      }
-	      else {
-		$country_id = $address->country;
-	      }
-	      $form['panes']['delivery']['delivery_zone']['#default_value'] = $address->zone;
+	      $form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
 	    }
 	    if (uc_address_field_enabled('postal_code')) {
 	      $form['panes']['delivery']['delivery_postal_code']['#default_value'] = $address->postal_code;
@@ -415,13 +409,7 @@ function uc_addresses_form_alter($form_id, &$form) {
 	      $form['panes']['billing']['billing_country']['#default_value'] = $address->country;
 	    }
 	    if (uc_address_field_enabled('zone')) {
-	      if (isset($_POST['billing_country'])) {
-		$country_id = intval($_POST['billing_country']);
-	      }
-	      else {
-		$country_id = $address->country;
-	      }
-	      $form['panes']['billing']['billing_zone']['#default_value'] = $address->zone;
+	      $form['panes']['billing']['billing_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
 	    }
 	    if (uc_address_field_enabled('postal_code')) {
 	      $form['panes']['billing']['billing_postal_code']['#default_value'] = $address->postal_code;
