@@ -64,16 +64,17 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       }
       if (uc_address_field_enabled('zone')) {
 	$country_id = $arg1->country;
-	if ($op == 'new') {
+	if ($op == 'add') {
 	  if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
 	    $country_id = intval($_POST['panes']['address']['country']);
 	  }
-	  else {
-	    if (isset($_POST['country'])) {
-	      $country_id = intval($_POST['country']);
-	    }
-	  }
 	}
+	else {
+	  if (isset($_POST['country'])) {
+	    $country_id = intval($_POST['country']);
+	  }
+        }
+
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
       if (uc_address_field_enabled('postal_code')) {
