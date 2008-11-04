@@ -94,8 +94,9 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	  );
       }
 
+      uc_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
-      return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
+      return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
     case 'edit':
       if ($arg1->is_default) {
@@ -141,9 +142,11 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       if (uc_address_field_enabled('zone')) {
 	if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
 	  $country_id = intval($_POST['panes']['address']['country']);
+	  firep($country_id, "From POST");
 	}
 	else {
 	  $country_id = $arg1->country;
+	  firep($country_id, "From arg1");
 	}
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
@@ -158,7 +161,10 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	'#default_value' => $arg1->is_default,
 	'#disabled' => $arg1->is_default,
 	);
-      return array('description' => $description, 'contents' => $form['address'], 'theme' => 'addresses_pane');
+
+      uc_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
+
+      return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
     case 'process':
       $arg1->aid = $arg2['aid'];
@@ -191,7 +197,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
  * @param $form The address form to theme.
  * @return The themed form (as a string).
  */
-function theme_addresses_pane($form) {
+function theme_uc_addresses_pane($form) {
   $req = '<span class="form-required">*</span>';
 
   if (isset($form['copy_address'])) {
@@ -206,10 +212,10 @@ function theme_addresses_pane($form) {
     }
     $title = $form[$field]['#title'] .':';
     unset($form[$field]['#title']);
-    if (substr($field, 9) == 'street1') {
+    if (substr($field, -7) == 'street1') {
       $title = uc_get_field_name('street') .':';
     }
-    elseif (substr($field, 9) == 'street2') {
+    elseif (substr($field, -7) == 'street2') {
       $title = ' ';
     }
     $output .= '<tr><td class="field-label">';

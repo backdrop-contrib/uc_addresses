@@ -2,75 +2,148 @@
 // $Id$
 
 /**
+ * Implementation of hook_schema().
+ */
+function uc_addresses_schema() {
+  $schema['uc_addresses'] = array(
+    'description' => t('Ubercart customer addresses'),
+    'fields' => array(
+      'aid' => array(
+        'description' => t('The address ID'),
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => t('The ID of the user who owns this address'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+	'default' => 0,
+      ),
+      'first_name' => array(
+        'description' => t('The addressee\'s first name'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'last_name' => array(
+        'description' => t('The addressee\'s last name'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'phone' => array(
+        'description' => t('The addressee\'s phone number'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'company' => array(
+        'description' => t('The addressee\'s company name'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'street1' => array(
+        'description' => t('The addressee\'s residence number and street'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'street2' => array(
+        'description' => t('The addressee\'s residence number and street (continued)'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'city' => array(
+        'description' => t('The addressee\'s city of residence'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'zone' => array(
+        'description' => t('The addressee\'s zone of residence'),
+        'type' => 'int',
+        'size' => 'medium',
+        'not null' => TRUE,
+	'default' => 0,
+      ),
+      'postal_code' => array(
+        'description' => t('The addressee\'s postal code'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+	'default' => '',
+      ),
+      'country' => array(
+        'description' => t('The addressee\'s country of residence'),
+        'type' => 'int',
+        'size' => 'medium',
+	'unsigned' => TRUE,
+        'not null' => TRUE,
+	'default' => 0,
+      ),
+      'address_name' => array(
+        'description' => t('The name used to access this address'),
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => t('The date this address was created'),
+        'type' => 'int',
+        'not null' => TRUE,
+	'default' => 0,
+      ),
+      'modified' => array(
+        'description' => t('The date this address was last modified'),
+        'type' => 'int',
+        'not null' => TRUE,
+	'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'aid_uid_idx' => array('aid', 'uid'),
+    ),
+    'primary key' => array('aid'),
+  );
+
+  $schema['uc_addresses_defaults'] = array(
+    'description' => t('Associates a user with an address: the default address'),
+    'fields' => array(
+      'aid' => array(
+        'description' => t('The ID of the address in the uc_adresses table'),
+        'type' => 'int',
+        'unsigned' => 1,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => t('The ID of the user'),
+        'type' => 'int',
+        'unsigned' => 1,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('aid', 'uid'),
+  );
+
+  return $schema;
+}
+
+/**
  * Implementation of hook_install().
  */
 function uc_addresses_install() {
-  drupal_set_message(t('Beginning installation of uc_addresses module.'));
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {uc_addresses} (
-	aid integer unsigned not null,
-        uid integer unsigned not null,
-        first_name varchar(32) not null,
-        last_name varchar(32) not null,
-        phone varchar(32) not null,
-        company varchar(64) not null,
-        street1 varchar(64) not null,
-        street2 varchar(64) not null,
-        city varchar(32) not null,
-        zone mediumint(9) not null,
-        postal_code varchar(10) not null,
-        country mediumint(9) not null,
-	address_name varchar(20),
-        created int(11) not null,
-        modified int(11) not null,
-        PRIMARY KEY (aid),
-	INDEX aid_uid_idx (aid, uid)
-      ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
-      db_query("CREATE TABLE {uc_addresses_defaults} (
-	aid integer unsigned not null,
-        uid integer unsigned not null,
-        PRIMARY KEY (aid, uid)
-      ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
-      $success = TRUE;
-      break;
-    case 'pgsql':
-      db_query("CREATE TABLE {uc_addresses} (
-	aid integer not null default 0,
-        uid integer not null default 0,
-        first_name varchar(32) not null default '',
-        last_name varchar(32) not null default '',
-        phone varchar(32) not null default '',
-        company varchar(64) not null default '',
-        street1 varchar(64) not null default '',
-        street2 varchar(64) not null default '',
-        city varchar(32) not null default '',
-        zone integer not null default 0,
-        postal_code varchar(10) not null default '',
-        country integer not null default 0,
-	address_name varchar(20) default '',
-        created integer not null default 0,
-        modified integer not null default 0,
-        PRIMARY KEY (aid)
-      );");
-      db_query("CREATE INDEX {uc_addresses}_aid_uid_idx ON {uc_addresses} (aid, uid)");
-      db_query("CREATE TABLE {uc_addresses_defaults} (
-	aid integer not null default 0,
-        uid integer not null default 0,
-        PRIMARY KEY (aid, uid)
-      );");
-      $success = TRUE;
-      break;
-    default:
-      drupal_set_message(t('Unsupported database.'));
-  }
-  if ($success) {
-    drupal_set_message(t('The uc_addresses table was installed successfully.'));
-  }
-  else {
-    drupal_set_message(t('The installation of the uc_addresses module was unsuccessful.'), 'error');
-  }
+  drupal_install_schema('uc_addresses');
 }
 
 /**
@@ -98,11 +171,38 @@ function uc_addresses_update_2() {
 }
 
 /**
+ * First Drupal 6 update: standardize database definitions as per uc_orders
+ */
+function uc_addresses_update_6000() {
+  db_drop_primary_key($ret, 'uc_addresses');
+  db_drop_index($ret, 'uc_addresses', 'aid_uid_idx');
+  db_change_field($ret, 'uc_addresses', 'aid', 'aid', array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE), array('primary key' => array('aid')));
+  db_change_field($ret, 'uc_addresses', 'uid', 'uid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  db_change_field($ret, 'uc_addresses', 'first_name', 'delivery_first_name', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'last_name', 'delivery_last_name', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'phone', 'delivery_phone', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'company', 'delivery_company', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'street1', 'delivery_street1', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'street2', 'delivery_street2', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'city', 'delivery_city', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'zone', 'delivery_zone', array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0));
+  db_change_field($ret, 'uc_addresses', 'postal_code', 'delivery_postal_code', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_change_field($ret, 'uc_addresses', 'country', 'delivery_country', array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0));
+  db_add_index($ret, 'uc_addresses', 'aid_uid_idx', array('aid', 'uid'));
+
+  db_drop_primary_key($ret, 'uc_addresses_defaults');
+  db_change_field($ret, 'uc_addresses_defaults', 'aid', 'aid', array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE));
+  db_change_field($ret, 'uc_addresses_defaults', 'uid', 'uid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  db_add_primary_key($ret, 'uc_addresses_defaults', array('aid', 'uid'));
+
+  return $ret;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function uc_addresses_uninstall() {
-  db_query("DROP TABLE {uc_addresses}");
-  db_query("DROP TABLE {uc_addresses_defaults}");
-  db_query("DELETE FROM {sequences} WHERE name = 'uc_addresses'");
+  drupal_uninstall_schema('uc_addresses');
+
   db_query("DELETE FROM {variable} WHERE name LIKE 'uc_addresses%'");
 }
