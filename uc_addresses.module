@@ -56,7 +56,6 @@ define('UC_ADDRESSES_ACCESS_ADD_EDIT', 'add/edit addresses');
  * Implementation of hook_init()
  */
 function uc_addresses_init() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_init\n", FILE_APPEND);
   drupal_add_css(drupal_get_path('module', 'uc_order') .'/uc_order.css');
 }
 
@@ -69,7 +68,6 @@ function uc_addresses_init() {
  * @return FALSE if the value is a valid address, else the address object.
  */
 function uc_addresses_address_load($aid, $uid) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_address_load\n", FILE_APPEND);
   if (!isset($aid)) return FALSE;
   return _uc_addresses_db_get_address($uid, $aid);
 }
@@ -81,7 +79,6 @@ function uc_addresses_address_load($aid, $uid) {
  * @return A array of menu items.
  */
 function uc_addresses_menu() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_menu\n", FILE_APPEND);
   global $user;
   $items = array();
 
@@ -174,7 +171,6 @@ function uc_addresses_menu() {
  * Implementation of hook_theme.
  */
 function uc_addresses_theme() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_theme\n", FILE_APPEND);
   return array(
     'uc_addresses_list_address' => array(
       'arguments' => array('address' => NULL, 'panes' => array()),
@@ -198,14 +194,12 @@ function uc_addresses_theme() {
  * @return array An array of permission names.
  */
 function uc_addresses_perm() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_perm\n", FILE_APPEND);
   return array(UC_ADDRESSES_ACCESS_VIEW_DEFAULT,
 	       UC_ADDRESSES_ACCESS_VIEW_ALL,
 	       UC_ADDRESSES_ACCESS_ADD_EDIT);
 }
 
 function uc_addresses_can_view_addresses($address_user) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_can_view_addresses\n", FILE_APPEND);
   global $user;
 
   $access =
@@ -218,7 +212,6 @@ function uc_addresses_can_view_addresses($address_user) {
 }
 
 function uc_addresses_can_add_edit_address($address_user) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_can_add_edit_address\n", FILE_APPEND);
   global $user;
 
   $access =
@@ -237,7 +230,6 @@ function uc_addresses_can_add_edit_address($address_user) {
  * @param $category The active category of user information being edited.
  */
 function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_user\n", FILE_APPEND);
   global $user;
   switch ($op) {
     case 'register':
@@ -281,7 +273,6 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
  *	the form.
  */
 function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_form_uc_cart_checkout_form_alter\n", FILE_APPEND);
   global $user;
 
   // Create the list of addresses the user can select from
@@ -510,7 +501,6 @@ function _uc_addresses_address_fields_empty($fields, $type)
  * @return array
  */
 function uc_addresses_address_pane() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_address_pane\n", FILE_APPEND);
   $panes[] = array(
     'id' => 'address',
     'callback' => 'uc_addresses_pane_address',
@@ -534,7 +524,6 @@ function uc_addresses_address_pane() {
  * @param $arg2 Not used.
  */
 function uc_addresses_order($op, &$arg1, $arg2) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_order\n", FILE_APPEND);
   if ($op == 'submit' && $arg1->order_status == 'in_checkout') {
     $order = $arg1;
     $address = new stdClass();
@@ -595,7 +584,6 @@ function uc_addresses_settings_overview() {
 }
 
 function uc_addresses_settings_form() {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_settings_form\n", FILE_APPEND);
   $form['user'] = array(
     '#type' => 'fieldset',
     '#title' => t('User settings'),
@@ -646,7 +634,6 @@ function uc_addresses_settings_form() {
  * @return The themed list (as a string).
  */
 function uc_addresses_list_addresses($address_user, $address = NULL) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_list_addresses\n", FILE_APPEND);
   global $user;
 
   $uid = $address_user->uid;
@@ -864,7 +851,6 @@ function theme_uc_addresses_list_address($address, $panes) {
  * @ingroup forms
  */
 function uc_addresses_get_address_form(&$form_state, $address_user, $address, $view) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_get_address_form\n", FILE_APPEND);
 
   $uid = $address_user->uid;
   $aid = $address ? $address->aid : 0;
@@ -982,7 +968,6 @@ function theme_uc_addresses_get_address_form($form) {
  * @return The path where we should wind up.
  */
 function uc_addresses_get_address_form_submit($form, &$form_state) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_get_address_form_submit\n", FILE_APPEND);
   global $user;
 
   $address_user = $form_state['storage']['user'];
@@ -1012,7 +997,6 @@ function uc_addresses_get_address_form_submit($form, &$form_state) {
     _uc_addresses_db_update_address($address);
   }
   elseif ($view == 'new' || $view == 'add') { // Insert into datebase
-    file_put_contents("C:/Debug.txt", "Adding a new address\n" . print_r($form_state, true) . "\n", FILE_APPEND);
     _uc_addresses_db_add_address($address);
   }
 
@@ -1026,7 +1010,6 @@ function uc_addresses_get_address_form_submit($form, &$form_state) {
  * @return A formatted address.
  */
 function uc_addresses_address($items) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_address\n", FILE_APPEND);
   $address = uc_address_format(
     $items->first_name,
     $items->last_name,
@@ -1048,8 +1031,6 @@ function uc_addresses_address($items) {
  * @param $address The address to delete.
  */
 function uc_addresses_delete_address_confirm($address_user, $address) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_delete_address_confirm\n", FILE_APPEND);
-
   $uid = $address_user->uid;
   $aid = $address->aid;
 
@@ -1142,7 +1123,6 @@ function theme_uc_addresses_address_delete_confirm($help, $panes, $form) {
  * @ingroup forms
  */
 function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, $address) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_delete_address_confirm_form\n", FILE_APPEND);
 
   $form_state['storage']['user'] = $address_user;
   $form_state['storage']['address'] = $address;
@@ -1162,7 +1142,6 @@ function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, $
  * @param $form_state The form state.
  */
 function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
-  file_put_contents("C:/Debug.txt", "In uc_addresses_delete_address_confirm_form_submit\n", FILE_APPEND);
 
   $address_user = $form_state['storage']['user'];
   $address = $form_state['storage']['address'];
