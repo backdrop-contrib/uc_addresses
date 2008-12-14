@@ -327,7 +327,7 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
 	   t('Edit the address below or select an address from the list. ') :
 	   t('Enter an address below or select an address from the list. ')) .
 	  t('Click !here to manage your saved addresses.',
-	    array('!here' => l('here', 'user/'. $user->uid . '/addresses')));
+	    array('!here' => l(t('here'), 'user/'. $user->uid . '/addresses')));
 
 	$form['panes']['delivery']['delivery_address_select'] = array(
 	  '#type' => 'select',
@@ -524,8 +524,10 @@ function uc_addresses_address_pane() {
  * @param $arg2 Not used.
  */
 function uc_addresses_order($op, &$arg1, $arg2) {
-  if ($op == 'submit' && $arg1->order_status == 'in_checkout') {
-    $order = $arg1;
+  global $user;
+  $order = $arg1;
+
+  if ($op == 'submit' && $order->order_status == 'in_checkout') {
     $address = new stdClass();
 
     // Add the billing address first. If the user has no addresses,
@@ -564,6 +566,16 @@ function uc_addresses_order($op, &$arg1, $arg2) {
       $address->is_default = 0;
       _uc_addresses_db_add_address($address, TRUE);
     }
+  }
+
+  // We have a user that is logged out, but the order system located
+  // an existing user that matches the email for the order
+
+  else if ($user->uid == 0 && $order->uid != 0 &&
+	   _uc_addresses_db_have_saved_addresses()) {
+    $address = new stdClass();
+    $address->uid = $order->uid;
+    _uc_addresses_db_add_address($address, TRUE);
   }
 }
 
@@ -1276,6 +1288,18 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
   }
 
   return $aid;
+}
+
+/**
+ * Check to see if we saved any addresses for an anonymous user.
+ *
+ * @return True if there are any saved addresses.
+ */
+
+function _uc_addresses_db_have_saved_addresses() {
+  return
+    isset($_SESSION['uc_addresses_saved_addresses']) &&
+    is_array($_SESSION['uc_addresses_saved_addresses']);
 }
 
 /**
