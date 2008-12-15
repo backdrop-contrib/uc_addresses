@@ -275,6 +275,14 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
 function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
   global $user;
 
+  // This is a good place to clear any addresses we might have
+  // leftover from a previous checkout
+
+  if (isset($_SESSION['uc_addresses_saved_addresses'])) {
+    $_SESSION['uc_addresses_saved_addresses'] = null;
+    unset($_SESSION['uc_addresses_saved_addresses']);
+  }
+
   // Create the list of addresses the user can select from
   // Each address is just line a full address, but on one line
 
