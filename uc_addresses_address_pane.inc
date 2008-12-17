@@ -142,11 +142,9 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       if (uc_address_field_enabled('zone')) {
 	if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
 	  $country_id = intval($_POST['panes']['address']['country']);
-	  firep($country_id, "From POST");
 	}
 	else {
 	  $country_id = $arg1->country;
-	  firep($country_id, "From arg1");
 	}
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
