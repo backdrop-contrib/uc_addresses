@@ -206,7 +206,7 @@ function uc_addresses_can_view_addresses($address_user) {
     user_access(UC_ADDRESSES_ACCESS_VIEW_DEFAULT) ||
     user_access(UC_ADDRESSES_ACCESS_VIEW_ALL) ||
     user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
-    $user->uid == $address_user;
+    $user->uid == $address_user->uid;
 
   return $access;
 }
@@ -216,7 +216,7 @@ function uc_addresses_can_add_edit_address($address_user) {
 
   $access =
     user_access(UC_ADDRESSES_ACCESS_ADD_EDIT) ||
-    $user->uid == $address_user;
+    $user->uid == $address_user->uid;
 
   return $access;
 }
