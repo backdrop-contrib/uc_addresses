@@ -237,7 +237,10 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
       // address
 
       if (variable_get('uc_addresses_require_address', TRUE)) {
-	$form = uc_addresses_pane_address('new', $arg1, $arg2);
+
+	// var_dump($op, $edit, $account, $category);
+
+	$form = uc_addresses_pane_address('new', NULL, $edit);
 	$form = array($form['contents']);	 // Modify to what we need
 	$form[0]['#title'] = t('Address'); // Rename the fieldset
 	return $form;
@@ -777,7 +780,7 @@ function _uc_addresses_list_one_address($address) {
       }
     }
   }
-  $output .= '<div class="list_address">';
+  $output = '<div class="list_address">';
   $output .= theme('uc_addresses_list_address', $address, $data);
   $output .= '</div>';
   return $output;
@@ -828,7 +831,7 @@ function theme_uc_addresses_list_address($address, $panes) {
 
     if ($address->address_name) {
       $output .=
-	'<tr class="pane-data-row"'. $border .'><td class="title-col" '
+	'<tr class="pane-data-row"><td class="title-col" '
 	.'>'.t('Name') .':</td><td class="data-col">'
 	. $address->address_name .'</td></tr>';
     }
@@ -885,12 +888,7 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address, $v
   foreach ($panes as $pane) {
     if (in_array($view, $pane['show']) &&
         variable_get('uc_addresses_pane_'. $pane['id'] .'_show_'. $view, TRUE)) {
-      if ($address != NULL) {
-        $return = $pane['callback']($view, $address, NULL);
-      }
-      else {
-        $return = $pane['callback']($view, NULL, NULL);
-      }
+      $return = $pane['callback']($view, $address, NULL);
 
       // Add the pane if any display data is returned from the
       // callback
@@ -903,7 +901,7 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address, $v
           '#type' => 'fieldset',
           '#title' => $pane['title'],
           '#description' => !empty($return['description']) ? $return['description'] : NULL,
-          '#collapsible' => $pane['collapsible'],
+          '#collapsible' => !empty($pane['collapsible']) ? $pane['collapsible'] : FALSE,
           '#collapsed' => FALSE,
           '#attributes' => array('id' => $pane['id'] .'-pane'),
           '#theme' => $return['theme'],
@@ -1100,7 +1098,7 @@ function uc_addresses_delete_address_confirm($address_user, $address) {
 function theme_uc_addresses_address_delete_confirm($help, $panes, $form) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
 
-  $output .= '<p>'. $help .'</p>';
+  $output = '<p>'. $help .'</p>';
   $output .= '<div class="list_address"><table class="address-preview-table">';
   foreach ($panes as $title => $data) {
     $output .= '<tr class="pane-title-row"><td colspan="2">'. t('Address')
@@ -1151,7 +1149,7 @@ function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, $
 
   $form['submit'] = array('#type' => 'submit',
 			  '#value' => variable_get('uc_addresses_delete_button', t('Delete address')),
-			  '#suffix' => l(t('Cancel'), 'user/'. $uid .'/addresses/'));
+			  '#suffix' => l(t('Cancel'), 'user/'. $address_user->uid .'/addresses/'));
   return $form;
 }
 
@@ -1420,7 +1418,7 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
     // If we get one address, it's OK only if it is the address we're
     // trying to add or update
 
-    if ($db_address->aid != $address->aid) {
+    if (!isset($address->aid) || ($db_address->aid != $address->aid)) {
       if (!$silent) {
 	if ($op == 'add') {
 	  drupal_set_message(
@@ -1487,7 +1485,7 @@ function _uc_addresses_db_normalize_address(&$address) {
   if (!$address->zone) $address->zone = 0;
   if (!$address->postal_code) $address->postal_code = '';
   if (!$address->country) $address->country = variable_get('uc_store_country', 840);
-  if (!$address->address_name) $address->address_name = '';
+  if (!isset($address->address_name) || !$address->address_name) $address->address_name = '';
 }
 
 /**
@@ -1574,7 +1572,7 @@ function _uc_addresses_get_default_address_id($uid) {
 function _uc_addresses_db_delete_address($aid) {
   $count =
     db_result(
-      db_query("SELECT COUNT(*) FROM {uc_adresses_defaults} WHERE "
+      db_query("SELECT COUNT(*) FROM {uc_addresses_defaults} WHERE "
 	       ."aid = %d", $aid));
   if ($count > 0) {
     drupal_set_message(t('You cannot delete your default address'));

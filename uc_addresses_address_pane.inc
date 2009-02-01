@@ -19,15 +19,15 @@
  *
  * @param $op The name of the operation to perform. One of 'new',
  *	'add, 'edit', 'process' or 'view'.
- * @param $arg1 The address object.
- * @param $arg2 If op = 'process', $arg2 is an array storing the
+ * @param $address The address object.
+ * @param $form_values If op = 'process', this is an array storing the
  *	values the user entered for the form.
  * @return If $op is 'new', 'add' or 'edit', return a form. If $op is
  * 	'process', return an address object. If $op is 'view', return
  *	an array of address fields to view.
  * @ingroup forms
  */
-function uc_addresses_pane_address($op, $arg1, $arg2) {
+function uc_addresses_pane_address($op, $address, $form_values) {
   global $user;
 
   switch ($op) {
@@ -36,34 +36,38 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       $description = t('Enter your new address information.');
       $form['address'] = array(
 	'#type' => 'fieldset',
-	'#title' => t("Add an address"),
+	'#title' => t('Add an address'),
 	'#collapsible' => TRUE,
 	'#collapsed' => FALSE,
 	);
 
+      if (!$address) {
+	$address = uc_addresses_blank_address();
+      }
+
       if (uc_address_field_enabled('first_name')) {
-	$form['address']['first_name'] = uc_textfield(uc_get_field_name('first_name'), $arg1->first_name, uc_address_field_required('first_name'));
+	$form['address']['first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, uc_address_field_required('first_name'));
       }
       if (uc_address_field_enabled('last_name')) {
-	$form['address']['last_name'] = uc_textfield(uc_get_field_name('last_name'), $arg1->last_name, uc_address_field_required('last_name'));
+	$form['address']['last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, uc_address_field_required('last_name'));
       }
       if (uc_address_field_enabled('company')) {
-	$form['address']['company'] = uc_textfield(uc_get_field_name('company'), $arg1->company, uc_address_field_required('company'), NULL, 64);
+	$form['address']['company'] = uc_textfield(uc_get_field_name('company'), $address->company, uc_address_field_required('company'), NULL, 64);
       }
       if (uc_address_field_enabled('street1')) {
-	$form['address']['street1'] = uc_textfield(uc_get_field_name('street1'), $arg1->street1, uc_address_field_required('street1'), NULL, 64);
+	$form['address']['street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, uc_address_field_required('street1'), NULL, 64);
       }
       if (uc_address_field_enabled('street2')) {
-	$form['address']['street2'] = uc_textfield(uc_get_field_name('street2'), $arg1->street2, uc_address_field_required('street2'), NULL, 64);
+	$form['address']['street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, uc_address_field_required('street2'), NULL, 64);
       }
       if (uc_address_field_enabled('city')) {
-	$form['address']['city'] = uc_textfield(uc_get_field_name('city'), $arg1->city, uc_address_field_required('city'));
+	$form['address']['city'] = uc_textfield(uc_get_field_name('city'), $address->city, uc_address_field_required('city'));
       }
       if (uc_address_field_enabled('country')) {
-	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
+	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $address->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
-	$country_id = $arg1->country;
+	$country_id = $address->country;
 	if ($op == 'add') {
 	  if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
 	    $country_id = intval($_POST['panes']['address']['country']);
@@ -75,22 +79,22 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	  }
         }
 
-	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
+	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
       if (uc_address_field_enabled('postal_code')) {
-	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $arg1->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
+	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
       }
       if (uc_address_field_enabled('phone')) {
-	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $arg1->phone, uc_address_field_required('phone'), NULL, 32, 16);
+	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, uc_address_field_required('phone'), NULL, 32, 16);
       }
       if ($op == 'add') {
-	$form['address']['address_name'] = uc_textfield(t('Save as'), $arg1->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
+	$form['address']['address_name'] = uc_textfield(t('Save as'), $address->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
 
 	$form['address']['save'] = array(
 	  '#type' => 'checkbox',
 	  '#title' => t('Default address'),
 	  '#suffix' => t('Make this address the default address'),
-	  '#default_value' => $arg1->is_default,
+	  '#default_value' => $address->is_default,
 	  );
       }
 
@@ -99,7 +103,7 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
     case 'edit':
-      if ($arg1->is_default) {
+      if ($address->is_default) {
 	$description = t('Edit your default address information.');
       }
       else {
@@ -113,51 +117,51 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 	);
       $form['address']['aid'] = array(
 	'#type' => 'hidden',
-	'#value' => $arg1->aid
+	'#value' => $address->aid
 	);
       if (uc_address_field_enabled('first_name')) {
-	$form['address']['first_name'] = uc_textfield(uc_get_field_name('first_name'), $arg1->first_name, uc_address_field_required('first_name'));
+	$form['address']['first_name'] = uc_textfield(uc_get_field_name('first_name'), $address->first_name, uc_address_field_required('first_name'));
       }
       if (uc_address_field_enabled('last_name')) {
-	$form['address']['last_name'] = uc_textfield(uc_get_field_name('last_name'), $arg1->last_name, uc_address_field_required('last_name'));
+	$form['address']['last_name'] = uc_textfield(uc_get_field_name('last_name'), $address->last_name, uc_address_field_required('last_name'));
       }
       if (uc_address_field_enabled('phone')) {
-	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $arg1->phone, uc_address_field_required('phone'), NULL, 32, 16);
+	$form['address']['phone'] = uc_textfield(uc_get_field_name('phone'), $address->phone, uc_address_field_required('phone'), NULL, 32, 16);
       }
       if (uc_address_field_enabled('company')) {
-	$form['address']['company'] = uc_textfield(uc_get_field_name('company'), $arg1->company, uc_address_field_required('company'), NULL, 64);
+	$form['address']['company'] = uc_textfield(uc_get_field_name('company'), $address->company, uc_address_field_required('company'), NULL, 64);
       }
       if (uc_address_field_enabled('street1')) {
-	$form['address']['street1'] = uc_textfield(uc_get_field_name('street1'), $arg1->street1, uc_address_field_required('street1'), NULL, 64);
+	$form['address']['street1'] = uc_textfield(uc_get_field_name('street1'), $address->street1, uc_address_field_required('street1'), NULL, 64);
       }
       if (uc_address_field_enabled('street2')) {
-	$form['address']['street2'] = uc_textfield(uc_get_field_name('street2'), $arg1->street2, uc_address_field_required('street2'), NULL, 64);
+	$form['address']['street2'] = uc_textfield(uc_get_field_name('street2'), $address->street2, uc_address_field_required('street2'), NULL, 64);
       }
       if (uc_address_field_enabled('city')) {
-	$form['address']['city'] = uc_textfield(uc_get_field_name('city'), $arg1->city, uc_address_field_required('city'));
+	$form['address']['city'] = uc_textfield(uc_get_field_name('city'), $address->city, uc_address_field_required('city'));
       }
       if (uc_address_field_enabled('country')) {
-	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $arg1->country, NULL, 'name', uc_address_field_required('country'));
+	$form['address']['country'] = uc_country_select(uc_get_field_name('country'), $address->country, NULL, 'name', uc_address_field_required('country'));
       }
       if (uc_address_field_enabled('zone')) {
 	if (isset($_POST['panes'], $_POST['panes']['address'], $_POST['panes']['address']['country'])) {
 	  $country_id = intval($_POST['panes']['address']['country']);
 	}
 	else {
-	  $country_id = $arg1->country;
+	  $country_id = $address->country;
 	}
-	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
+	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
       }
       if (uc_address_field_enabled('postal_code')) {
-	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $arg1->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
+	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
       }
-      $form['address']['address_name'] = uc_textfield(t('Save as'), $arg1->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
+      $form['address']['address_name'] = uc_textfield(t('Save as'), $address->address_name, FALSE, t('Enter a name for this address (e.g. Home or Work)'));
       $form['address']['save'] = array(
 	'#type' => 'checkbox',
 	'#title' => t('Default address'),
 	'#suffix' => t('Make this address the default address'),
-	'#default_value' => $arg1->is_default,
-	'#disabled' => $arg1->is_default,
+	'#default_value' => $address->is_default,
+	'#disabled' => $address->is_default,
 	);
 
       uc_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
@@ -165,28 +169,51 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
     case 'process':
-      $arg1->aid = $arg2['aid'];
-      $arg1->first_name = $arg2['first_name'];
-      $arg1->last_name = $arg2['last_name'];
-      $arg1->company = $arg2['company'];
-      $arg1->street1 = $arg2['street1'];
-      $arg1->street2 = $arg2['street2'];
-      $arg1->city = $arg2['city'];
-      $arg1->zone = $arg2['zone'];
-      $arg1->postal_code = $arg2['postal_code'];
-      $arg1->country = $arg2['country'];
-      $arg1->phone = $arg2['phone'];
-      $arg1->address_name = $arg2['address_name'];
-      $arg1->is_default = $arg2['save'];
+      $address->first_name = $form_values['first_name'];
+      $address->last_name = $form_values['last_name'];
+      $address->company = $form_values['company'];
+      $address->street1 = $form_values['street1'];
+      $address->street2 = $form_values['street2'];
+      $address->city = $form_values['city'];
+      $address->zone = $form_values['zone'];
+      $address->postal_code = $form_values['postal_code'];
+      $address->country = $form_values['country'];
+      $address->phone = $form_values['phone'];
+      $address->address_name = $form_values['address_name'];
+      $address->is_default = $form_values['save'];
       return TRUE;
 
     case 'view':
-      $view[] = array('title' => t('Address'), 'data' => uc_addresses_address($arg1));
-      if (uc_address_field_enabled('phone') && !empty($arg1->phone)) {
-	$view[] = array('title' => t('Phone'), 'data' => check_plain($arg1->phone));
+      $view[] = array('title' => t('Address'), 'data' => uc_addresses_address($address));
+      if (uc_address_field_enabled('phone') && !empty($address->phone)) {
+	$view[] = array('title' => t('Phone'), 'data' => check_plain($address->phone));
       }
       return $view;
   }
+}
+
+/**
+ * Create a blank address. This is the address we use when first
+ * displaying a form used to add an address.
+ *
+ * @return A blank address object
+ */
+function uc_addresses_blank_address()
+{
+  $address = new stdClass();
+  $address->first_name = '';
+  $address->last_name = '';
+  $address->company = '';
+  $address->street1 = '';
+  $address->street2 = '';
+  $address->city = '';
+  $address->zone = '';
+  $address->postal_code = '';
+  $address->country = '';
+  $address->phone = '';
+  $address->address_name = '';
+  $address->is_default = false;
+  return $address;
 }
 
 /**
@@ -200,7 +227,7 @@ function theme_uc_addresses_pane($form) {
 
   $output = '';
   if (isset($form['copy_address'])) {
-    $output .= drupal_render($form['copy_address']);
+    $output = drupal_render($form['copy_address']);
   }
 
   $output .= '<div class="address-pane-table"><table>';
