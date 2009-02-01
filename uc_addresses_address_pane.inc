@@ -198,8 +198,9 @@ function uc_addresses_pane_address($op, $arg1, $arg2) {
 function theme_uc_addresses_pane($form) {
   $req = '<span class="form-required">*</span>';
 
+  $output = '';
   if (isset($form['copy_address'])) {
-    $output = drupal_render($form['copy_address']);
+    $output .= drupal_render($form['copy_address']);
   }
 
   $output .= '<div class="address-pane-table"><table>';
