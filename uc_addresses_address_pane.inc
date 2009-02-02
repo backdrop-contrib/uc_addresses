@@ -98,7 +98,7 @@ function uc_addresses_pane_address($op, $address, $form_values) {
 	  );
       }
 
-      uc_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
+      drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
@@ -164,7 +164,7 @@ function uc_addresses_pane_address($op, $address, $form_values) {
 	'#disabled' => $address->is_default,
 	);
 
-      uc_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
+      drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
