@@ -372,42 +372,44 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
     // Copy the default address to the delivery address fields if
     // the option is enabled and if the fields are empty
 
-    if (variable_get('uc_addresses_default_delivery_address', TRUE) && variable_get('uc_pane_delivery_enabled', TRUE) &&
-	_uc_addresses_address_fields_empty($form['panes']['delivery'], 'delivery')) {
-      foreach ($addresses as $address) {
-	if ($address->is_default) {
-	  if (uc_address_field_enabled('first_name')) {
-	    $form['panes']['delivery']['delivery_first_name']['#default_value'] = $address->first_name;
-	  }
-	  if (uc_address_field_enabled('last_name')) {
-	    $form['panes']['delivery']['delivery_last_name']['#default_value'] = $address->last_name;
-	  }
-	  if (uc_address_field_enabled('phone')) {
-	    $form['panes']['delivery']['delivery_phone']['#default_value'] = $address->phone;
-	  }
-	  if (uc_address_field_enabled('company')) {
-	    $form['panes']['delivery']['delivery_company']['#default_value'] = $address->company;
-	  }
-	  if (uc_address_field_enabled('street1')) {
-	    $form['panes']['delivery']['delivery_street1']['#default_value'] = $address->street1;
-	  }
-	  if (uc_address_field_enabled('street2')) {
-	    $form['panes']['delivery']['delivery_street2']['#default_value'] = $address->street2;
-	  }
-	  if (uc_address_field_enabled('city')) {
-	    $form['panes']['delivery']['delivery_city']['#default_value'] = $address->city;
-	  }
-	  if (uc_address_field_enabled('country')) {
-	    $form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
-	  }
-	  if (uc_address_field_enabled('zone')) {
-	    $form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
-	  }
-	  if (uc_address_field_enabled('postal_code')) {
-	    $form['panes']['delivery']['delivery_postal_code']['#default_value'] = $address->postal_code;
-	  }
+    if ($form['panes']['delivery']) {
+	if (variable_get('uc_addresses_default_delivery_address', TRUE) && variable_get('uc_pane_delivery_enabled', TRUE) &&
+	    _uc_addresses_address_fields_empty($form['panes']['delivery'], 'delivery')) {
+	    foreach ($addresses as $address) {
+		if ($address->is_default) {
+		    if (uc_address_field_enabled('first_name')) {
+			$form['panes']['delivery']['delivery_first_name']['#default_value'] = $address->first_name;
+		    }
+		    if (uc_address_field_enabled('last_name')) {
+			$form['panes']['delivery']['delivery_last_name']['#default_value'] = $address->last_name;
+		    }
+		    if (uc_address_field_enabled('phone')) {
+			$form['panes']['delivery']['delivery_phone']['#default_value'] = $address->phone;
+		    }
+		    if (uc_address_field_enabled('company')) {
+			$form['panes']['delivery']['delivery_company']['#default_value'] = $address->company;
+		    }
+		    if (uc_address_field_enabled('street1')) {
+			$form['panes']['delivery']['delivery_street1']['#default_value'] = $address->street1;
+		    }
+		    if (uc_address_field_enabled('street2')) {
+			$form['panes']['delivery']['delivery_street2']['#default_value'] = $address->street2;
+		    }
+		    if (uc_address_field_enabled('city')) {
+			$form['panes']['delivery']['delivery_city']['#default_value'] = $address->city;
+		    }
+		    if (uc_address_field_enabled('country')) {
+			$form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
+		    }
+		    if (uc_address_field_enabled('zone')) {
+			$form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
+		    }
+		    if (uc_address_field_enabled('postal_code')) {
+			$form['panes']['delivery']['delivery_postal_code']['#default_value'] = $address->postal_code;
+		    }
+		}
+	    }
 	}
-      }
     }
 
     // Copy the default address to the billing address fields if the
