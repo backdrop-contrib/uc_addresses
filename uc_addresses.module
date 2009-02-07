@@ -179,7 +179,7 @@ function uc_addresses_theme() {
       'arguments' => array('form' => NULL),
       ),
     'uc_addresses_address_delete_confirm' => array(
-      'arguments' => array('help' => '', 'panes' => array(), $form => NULL),
+      'arguments' => array('help' => '', 'panes' => array(), 'form' => NULL),
       ),
     'uc_addresses_pane' => array(
       'arguments' => array('form' => NULL),
