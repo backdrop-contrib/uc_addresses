@@ -75,7 +75,6 @@ function uc_addresses_address_load($aid, $uid) {
 /**
  * Implementation of hook_menu().
  *
- * @param $may_cache A boolean that is TRUE if menu items will be cached.
  * @return A array of menu items.
  */
 function uc_addresses_menu() {
@@ -88,6 +87,7 @@ function uc_addresses_menu() {
     'page callback' => 'uc_addresses_settings_overview',
     'access arguments' => array('administer store'),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'uc_addresses.admin.inc',
     );
   $items['admin/store/settings/addresses/overview'] = array(
     'title' => 'Overview',
@@ -104,6 +104,7 @@ function uc_addresses_menu() {
     'description' => 'Edit the address settings.',
     'type' => MENU_LOCAL_TASK,
     'weight' => -5,
+    'file' => 'uc_addresses.admin.inc',
     );
 
   $items['user/%user_uid_optional/addresses'] = array(
@@ -161,6 +162,11 @@ function uc_addresses_menu() {
     'page arguments' => array(1, 3),
     'access callback' => 'uc_addresses_can_add_edit_address',
     'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+    );
+  $items['uc_addresses_js_util'] = array(
+    'page callback' => 'uc_addresses_js_util',
+    'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
     );
 
@@ -237,9 +243,6 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
       // address
 
       if (variable_get('uc_addresses_require_address', TRUE)) {
-
-	// var_dump($op, $edit, $account, $category);
-
 	$form = uc_addresses_pane_address('new', NULL, $edit);
 	$form = array($form['contents']);	 // Modify to what we need
 	$form[0]['#title'] = t('Address'); // Rename the fieldset
@@ -327,6 +330,7 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
   // the delivery/billing address selection
 
   if ($options) {
+    drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
     // Might not have any shippable products so make sure the
     // delivery address exists before mucking with it
@@ -402,10 +406,17 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
 	      $form['panes']['delivery']['delivery_city']['#default_value'] = $address->city;
 	    }
 	    if (uc_address_field_enabled('country')) {
-	      $form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
+		$form['panes']['delivery']['delivery_country']['#default_value'] = $address->country;
 	    }
 	    if (uc_address_field_enabled('zone')) {
-	      $form['panes']['delivery']['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
+	      $form['panes']['delivery']['delivery_zone'] =
+		uc_zone_select(
+		  $form['panes']['delivery']['delivery_zone']['#title'],
+		  $address->zone,
+		  $form['panes']['delivery']['delivery_zone']['#description'],
+		  $address->country,
+		  'name',
+		  $form['panes']['delivery']['delivery_zone']['#required']);
 	    }
 	    if (uc_address_field_enabled('postal_code')) {
 	      $form['panes']['delivery']['delivery_postal_code']['#default_value'] = $address->postal_code;
@@ -448,7 +459,14 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
 	    $form['panes']['billing']['billing_country']['#default_value'] = $address->country;
 	  }
 	  if (uc_address_field_enabled('zone')) {
-	    $form['panes']['billing']['billing_zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $address->country, 'name', uc_address_field_required('zone'));
+	    $form['panes']['billing']['billing_zone'] =
+	      uc_zone_select(
+		$form['panes']['billing']['billing_zone']['#title'],
+		$address->zone,
+		$form['panes']['billing']['billing_zone']['#description'],
+		$address->country,
+		'name',
+		$form['panes']['billing']['billing_zone']['#required']);
 	  }
 	  if (uc_address_field_enabled('postal_code')) {
 	    $form['panes']['billing']['billing_postal_code']['#default_value'] = $address->postal_code;
@@ -600,57 +618,6 @@ function uc_addresses_order($op, &$arg1, $arg2) {
 /*******************************************************************************
  * Callback Functions, Forms, and Tables
  ******************************************************************************/
-
-/**
- * Display the addresses settings overview.
- */
-function uc_addresses_settings_overview() {
-  $summaries = array();
-  $summaries = array_merge($summaries, summarize_child_form_pages('admin/store/settings/addresses/edit', FALSE, TRUE));
-
-  // Theme it all up in a summaries overview.
-  return theme('summary_overview', $summaries);
-
-}
-
-function uc_addresses_settings_form() {
-  $form['user'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('User settings'),
-    '#summary callback' => 'summarize_form',
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-  );
-  $form['user']['uc_addresses_default_billing_address'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically fill in the billing address with the user\'s default address.'),
-    '#default_value' => variable_get('uc_addresses_default_billing_address', TRUE),
-    '#summary callback' => 'summarize_checkbox',
-    '#summary arguments' => array(
-      t('We will automatically fill in the delivery address with the user\'s default address.'),
-      t('The customer must enter or choose a delivery address.')),
-    );
-  $form['user']['uc_addresses_default_delivery_address'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automatically fill in the delivery address with the user\'s default address.'),
-    '#default_value' => variable_get('uc_addresses_default_delivery_address', TRUE),
-    '#summary callback' => 'summarize_checkbox',
-    '#summary arguments' => array(
-      t('We will automatically fill in the billing address with the user\'s default address.'),
-      t('The customer must enter or choose a billing address.')),
-      );
-  $form['user']['uc_addresses_require_address'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Require that an address be entered during registration'),
-    '#default_value' => variable_get('uc_addresses_require_address', TRUE),
-    '#summary callback' => 'summarize_checkbox',
-    '#summary arguments' => array(
-      t('The customer must enter an address when registering'),
-      t('The customer does not enter an address when registering.')),
-    );
-
-  return system_settings_form($form);
-}
 
 /**
  * Generate a list of one or all addresses defined by one user and
@@ -811,6 +778,7 @@ function theme_uc_addresses_list_address($address, $panes) {
 
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
 
+  $output = '';
   if ($address->is_default) {
     $output = '<table class="address-preview-table addresses-default-address">';
   }
@@ -1175,6 +1143,39 @@ function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
   drupal_set_message(t('The address has been deleted.'));
 
   drupal_goto('user/'. $address_user->uid .'/addresses');
+}
+
+/**
+ * This function handles the AHAH call made when a user changes the
+ * country selection. A new set of zone values is generated.
+ */
+
+function uc_addresses_js_util()
+{
+  $country_id = intval($_POST['country_id']) > 0 ? intval($_POST['country_id']) : uc_store_default_country();
+  $title = isset($_POST['title']) ? check_plain($_POST['title']) : NULL;
+  $display = isset($_POST['display']) ? check_plain($_POST['display']) : 'name';
+  $select = $zone = uc_zone_select($title, NULL, NULL, $country_id, $display);
+
+  // Remove DIV and SELECT tags as well as any newlines and carriage
+  // returns from the generated HTML code
+
+  $select['#parents'] = array();
+  $match = array('`<[/]*div[^>]*>`', '`<[/]*select[^>]*>`', '`\n|\r`');
+  $replace = array('', '', '');
+  $output = preg_replace($match, $replace, theme('select', $select));
+
+  // Update the cached copy of the form
+
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_build_id = $_POST['form_build_id'];
+  $form = form_get_cache($form_build_id, $form_state);
+  $form['panes']['address']['zone'] = $zone;
+
+  form_set_cache($form_build_id, $form, $form_state);
+
+  print $output;
+  exit();
 }
 
 /*******************************************************************************
@@ -1574,19 +1575,32 @@ function _uc_addresses_get_default_address_id($uid) {
  * Delete an address from the database.
  *
  * @param $aid The id of the address to delete.
- * @param Always returns TRUE.
+ * @return Returns TRUE if the address was deleted.
  */
 function _uc_addresses_db_delete_address($aid) {
-  $count =
-    db_result(
-      db_query("SELECT COUNT(*) FROM {uc_addresses_defaults} WHERE "
-	       ."aid = %d", $aid));
-  if ($count > 0) {
-    drupal_set_message(t('You cannot delete your default address'));
+  if (_uc_addresses_db_check_if_default($aid)) {
+    drupal_set_message(t('You cannot delete your default address'), 'warning');
     return FALSE;
   }
   else {
     db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $aid);
     return TRUE;
   }
+}
+
+/**
+ * Check to see if an address is the default address.
+ *
+ * @param $aid The id of the address to check.
+ * @return Returns TRUE if the address is the default address.
+ */
+function _uc_addresses_db_check_if_default($aid) {
+  $count =
+    db_result(
+      db_query("SELECT COUNT(*) FROM {uc_addresses_defaults} WHERE "
+	       ."aid = %d", $aid));
+  if ($count > 0) {
+    return TRUE;
+  }
+  return FALSE;
 }
