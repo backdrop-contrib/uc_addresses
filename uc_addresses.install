@@ -199,6 +199,32 @@ function uc_addresses_update_6000() {
 }
 
 /**
+ * Second Drupal 6 update: undo the first Drupal 6 update. Not sure
+ * why I did it. Addresses can be used for delivery OR billing. Also,
+ * people who do not uc_addresses already installed will get a
+ * different database than those who update.
+ */
+function uc_addresses_update_6001() {
+  $ret = array();
+
+// Assume if one is bad, they are all bad
+
+  if (db_column_exists('uc_addresses', 'delivery_first_name')) {
+    db_change_field($ret, 'uc_addresses', 'delivery_first_name', 'first_name', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_last_name', 'last_name', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_phone', 'phone', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_company', 'company', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_street1', 'street1', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_street2', 'street2', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_city', 'city', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_zone', 'zone', array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0));
+    db_change_field($ret, 'uc_addresses', 'delivery_postal_code', 'postal_code', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+    db_change_field($ret, 'uc_addresses', 'delivery_country', 'country', array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0));
+  }
+  return $ret;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function uc_addresses_uninstall() {
