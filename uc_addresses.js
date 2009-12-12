@@ -4,7 +4,7 @@
  * Set the select box change behavior for the country selector
  */
 Drupal.behaviors.ucAddressesCountrySelect = function(context) {
-  $('select[@id*=-country-]:not(.ucAddressesCountrySelect-processed)', context).addClass('ucAddressesCountrySelect-processed').change(
+  $('select[id*=-country-]:not(.ucAddressesCountrySelect-processed)', context).addClass('ucAddressesCountrySelect-processed').change(
       function() {
 	uc_addresses_update_zone_select(this.id, '');
       }
@@ -19,7 +19,7 @@ function uc_addresses_update_zone_select(country_select, default_zone) {
 
   var options = {
     'country_id' : $('#' + country_select).val(),
-    'form_build_id' : $('form[@id^=uc-addresses] input[@name=form_build_id]').val()
+    'form_build_id' : $('form[id^=uc-addresses] input[name=form_build_id]').val()
   };
 
   $('#' + zone_select).parent()
