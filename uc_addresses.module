@@ -550,67 +550,47 @@ function uc_addresses_address_pane() {
 }
 
 /**
- * Use hook_order to add an address or two to the user's address list.
- * For the moment, we save all addresses. I'd like to add an option to
- * let the user select which addresses get saved.
+ * Use hook_uc_checkout_complete to catch any new addresses.
  *
- * @param $op The operation being performed.
- * @param $arg1 A reference to the order object.
- * @param $arg2 Not used.
+ * @param $order The order.
+ * @param $user The user.
  */
-function uc_addresses_order($op, &$arg1, $arg2) {
-  global $user;
-  $order = $arg1;
+function uc_addresses_uc_checkout_complete($order, $user) {
 
-  if ($op == 'submit' && $order->order_status == 'in_checkout') {
-    $address = new stdClass();
+  $address = new stdClass();
 
-    // Add the billing address first. If the user has no addresses,
-    // this is the one that will become the default address
+  // Add the billing address first. If the user has no addresses,
+  // this is the one that will become the default address
 
-    if (variable_get('uc_pane_billing_enabled', TRUE)) {
-      $address->address_name = '';
-      $address->uid = $order->uid;
-      $address->first_name = $order->billing_first_name;
-      $address->last_name = $order->billing_last_name;
-      $address->company = $order->billing_company;
-      $address->street1 = $order->billing_street1;
-      $address->street2 = $order->billing_street2;
-      $address->city = $order->billing_city;
-      $address->zone = $order->billing_zone;
-      $address->postal_code = $order->billing_postal_code;
-      $address->country = $order->billing_country;
-      $address->phone = $order->billing_phone;
-      $address->is_default = 0;
-      _uc_addresses_db_add_address($address, TRUE);
-    }
+  $address->address_name = '';
+  $address->uid = $order->uid;
+  $address->first_name = $order->billing_first_name;
+  $address->last_name = $order->billing_last_name;
+  $address->company = $order->billing_company;
+  $address->street1 = $order->billing_street1;
+  $address->street2 = $order->billing_street2;
+  $address->city = $order->billing_city;
+  $address->zone = $order->billing_zone;
+  $address->postal_code = $order->billing_postal_code;
+  $address->country = $order->billing_country;
+  $address->phone = $order->billing_phone;
+  $address->is_default = 0;
+  _uc_addresses_db_add_address($address, TRUE);
 
-    if (variable_get('uc_pane_delivery_enabled', TRUE) &&
-	(uc_cart_is_shippable() || !variable_get('uc_cart_delivery_not_shippable', TRUE))) {
-      $address->address_name = '';
-      $address->uid = $order->uid;
-      $address->first_name = $order->delivery_first_name;
-      $address->last_name = $order->delivery_last_name;
-      $address->company = $order->delivery_company;
-      $address->street1 = $order->delivery_street1;
-      $address->street2 = $order->delivery_street2;
-      $address->city = $order->delivery_city;
-      $address->zone = $order->delivery_zone;
-      $address->postal_code = $order->delivery_postal_code;
-      $address->country = $order->delivery_country;
-      $address->phone = $order->delivery_phone;
-      $address->is_default = 0;
-      _uc_addresses_db_add_address($address, TRUE);
-    }
-  }
-
-  // We have a user that is logged out, but the order system located
-  // an existing user that matches the email for the order
-
-  else if ($user->uid == 0 && $order->uid != 0 &&
-	   _uc_addresses_db_have_saved_addresses()) {
-    $address = new stdClass();
+  if (uc_order_is_shippable($order)) {
+    $address->address_name = '';
     $address->uid = $order->uid;
+    $address->first_name = $order->delivery_first_name;
+    $address->last_name = $order->delivery_last_name;
+    $address->company = $order->delivery_company;
+    $address->street1 = $order->delivery_street1;
+    $address->street2 = $order->delivery_street2;
+    $address->city = $order->delivery_city;
+    $address->zone = $order->delivery_zone;
+    $address->postal_code = $order->delivery_postal_code;
+    $address->country = $order->delivery_country;
+    $address->phone = $order->delivery_phone;
+    $address->is_default = 0;
     _uc_addresses_db_add_address($address, TRUE);
   }
 }
@@ -852,9 +832,14 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address, $v
 
   $uid = $address_user->uid;
   $aid = $address ? $address->aid : 0;
-  $form_state['storage']['user'] = $address_user;
-  $form_state['storage']['address'] = $address;
-  $form_state['storage']['view'] = $view;
+
+  $form['stored_values'] = array(
+    '#type' => 'value',
+    '#value' => array(
+      'user' => $address_user,
+      'address' => $address,
+      'view' => $view),
+    );
 
   // Get the panes to display
 
@@ -963,37 +948,39 @@ function theme_uc_addresses_get_address_form($form) {
 function uc_addresses_get_address_form_submit($form, &$form_state) {
   global $user;
 
-  $address_user = $form_state['storage']['user'];
-  $address = $form_state['storage']['address'];
-  $view = $form_state['storage']['view'];
+  $address_user = $form['stored_values']['#value']['user'];
+  $address = $form['stored_values']['#value']['address'];
+  $view = $form['stored_values']['#value']['view'];
 
   if ($form_state['clicked_button']['#value'] == t('Delete address')) {
       cache_clear_all();
-      drupal_goto('user/'. $address_user->uid .'/addresses/' . $address->aid . '/delete');
+      $form_state['redirect'] =
+	array('user/'. $address_user->uid .'/addresses/' . $address->aid . '/delete');
   }
+  else {
+    if (!$address) {
+      $address = new stdClass();
+      $address->uid = $address_user->uid;
+    }
 
-  if (!$address) {
-    $address = new stdClass();
-    $address->uid = $address_user->uid;
-  }
-
-  $valid = TRUE;
-  foreach (element_children($form_state['values']['panes']) as $pane_id) {
-    $func = _address_pane_data($pane_id, 'callback');
-    $isvalid = $func('process', $address, $form_state['values']['panes'][$pane_id]);
-    if ($isvalid === FALSE) {
-      $_SESSION['expanded_panes'][] = $key;
-      $valid = FALSE;
+    $valid = TRUE;
+    foreach (element_children($form_state['values']['panes']) as $pane_id) {
+      $func = _address_pane_data($pane_id, 'callback');
+      $isvalid = $func('process', $address, $form_state['values']['panes'][$pane_id]);
+      if ($isvalid === FALSE) {
+	$_SESSION['expanded_panes'][] = $key;
+	$valid = FALSE;
+      }
+    }
+    if ($view == 'edit') { // Update database
+      _uc_addresses_db_update_address($address);
+    }
+    elseif ($view == 'new' || $view == 'add') { // Insert into datebase
+      _uc_addresses_db_add_address($address);
     }
   }
-  if ($view == 'edit') { // Update database
-    _uc_addresses_db_update_address($address);
-  }
-  elseif ($view == 'new' || $view == 'add') { // Insert into datebase
-    _uc_addresses_db_add_address($address);
-  }
 
-  drupal_goto('user/'. $address_user->uid .'/addresses');
+  $form_state['redirect'] = array('user/'. $address_user->uid .'/addresses');
 }
 
 /**
@@ -1117,8 +1104,13 @@ function theme_uc_addresses_address_delete_confirm($help, $panes, $form) {
  */
 function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, $address) {
 
-  $form_state['storage']['user'] = $address_user;
-  $form_state['storage']['address'] = $address;
+  $form['stored_values'] = array(
+    '#type' => 'value',
+    '#value' => array(
+      'user' => $address_user,
+      'address' => $address),
+    );
+
 
   // The buttons
 
@@ -1136,13 +1128,13 @@ function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, $
  */
 function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
 
-  $address_user = $form_state['storage']['user'];
-  $address = $form_state['storage']['address'];
+  $address_user = $form['stored_values']['#value']['user'];
+  $address = $form['stored_values']['#value']['address'];
 
   _uc_addresses_db_delete_address($address->aid);
   drupal_set_message(t('The address has been deleted.'));
 
-  drupal_goto('user/'. $address_user->uid .'/addresses');
+  $form_state['redirect'] = array('user/'. $address_user->uid .'/addresses');
 }
 
 /**
@@ -1190,52 +1182,12 @@ function uc_addresses_js_util()
  * @param The id of the new address or FALSE if there was an error.
  */
 function _uc_addresses_db_add_address($address, $silent = FALSE) {
-  global $user;
 
-  // If this is an anonymous user, save the address for later
+  // No user -- shouldn't happen
+  if ($address->uid == 0) { echo "User 0\n"; exit(1); }
 
-  if ($address->uid == 0 && isset($address->first_name)) {
-    $saved_addresses = NULL;
-
-    if (isset($_SESSION['uc_addresses_saved_addresses'])) {
-      $saved_addresses = $_SESSION['uc_addresses_saved_addresses'];
-    }
-    if (!is_array($saved_addresses)) {
-      $saved_addresses = array();
-    }
-    $saved_addresses[] = drupal_clone($address);
-    $_SESSION['uc_addresses_saved_addresses'] = $saved_addresses;
-
-    return;
-  }
-
-  // If we have a logged in user but no address information, then some
-  // module created a user without going through the normal
-  // registration procedure. Let's see if we have any address
-  // information saved for this user
-
-  if ($address->uid != 0 && !isset($address->first_name)) {
-    if (isset($_SESSION['uc_addresses_saved_addresses'])) {
-      $saved_addresses = $_SESSION['uc_addresses_saved_addresses'];
-      if (is_array($saved_addresses)) {
-	foreach ($saved_addresses as $addr) {
-	  $addr->uid = $address->uid;
-	  $status = _uc_addresses_db_add_address($addr, true);
-	  if ($status === FALSE) return FALSE;
-	}
-      }
-      $_SESSION['uc_addresses_saved_addresses'] = null;
-      unset($_SESSION['uc_addresses_saved_addresses']);
-    }
-
-    // Let this user get created without an address
-
-    return TRUE;
-  }
-
-  // Final special case: no logged in user and no address information!
-
-  if ($address->uid == 0) return TRUE;
+  // No address -- may happen
+  if (!isset($address->first_name)) return TRUE;
 
   // From this point on, we have both a user and an address to add
 
@@ -1506,6 +1458,8 @@ function _uc_addresses_db_normalize_address(&$address) {
  *	array of objects if $aid was NULL.
  */
 function _uc_addresses_db_get_address($uid, $aid = NULL) {
+
+  if ($aid === 0) return FALSE;
 
   // If $aid is present, return just the one address
 
