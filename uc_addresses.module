@@ -244,10 +244,11 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
 
       if (variable_get('uc_addresses_require_address', TRUE)) {
 	$form = uc_addresses_pane_address('new', NULL, $edit);
-	$form = array($form['contents']);	 // Modify to what we need
-	$form[0]['#title'] = t('Address'); // Rename the fieldset
+	$form = array($form['contents']); 	// Modify to what we need
+	$form[0]['#title'] = t('Address'); 	// Rename the fieldset
 	return $form;
       }
+      return;
 
     case 'insert':
       // We're about to add the user to the database, so get the address
