@@ -277,14 +277,6 @@ function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
 function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
   global $user;
 
-  // This is a good place to clear any addresses we might have
-  // leftover from a previous checkout
-
-  if (isset($_SESSION['uc_addresses_saved_addresses'])) {
-    $_SESSION['uc_addresses_saved_addresses'] = null;
-    unset($_SESSION['uc_addresses_saved_addresses']);
-  }
-
   // Create the list of addresses the user can select from
   // Each address is just line a full address, but on one line
 
@@ -334,7 +326,7 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
   // the delivery/billing address selection
 
   if ($options) {
-    //drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
+      //drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
     // Might not have any shippable products so make sure the
     // delivery address exists before mucking with it
@@ -359,7 +351,7 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
           '#suffix' => $address_book_icon,
           '#weight' => -10,
         );
-        
+
         // Copy the default address to the delivery address fields if
         // the option is enabled and if the fields are empty
         if (variable_get('uc_addresses_default_delivery_address', TRUE) && _uc_addresses_address_fields_empty($form['panes']['delivery'], 'delivery')) {
@@ -419,7 +411,7 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
         '#suffix' => $address_book_icon,
         '#weight' => -10,
       );
-      
+
       // Copy the default address to the billing address fields if the
       // option is enabled and if the fields are empty
       if (variable_get('uc_addresses_default_billing_address', TRUE) && _uc_addresses_address_fields_empty($form['panes']['billing'], 'billing')) {
