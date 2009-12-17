@@ -98,8 +98,6 @@ function uc_addresses_pane_address($op, $address, $form_values) {
 	  );
       }
 
-      drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
-
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
     case 'edit':
@@ -163,8 +161,6 @@ function uc_addresses_pane_address($op, $address, $form_values) {
 	'#default_value' => $address->is_default,
 	'#disabled' => $address->is_default,
 	);
-
-      drupal_add_js(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.js');
 
       return array('description' => $description, 'contents' => $form['address'], 'theme' => 'uc_addresses_pane');
 
