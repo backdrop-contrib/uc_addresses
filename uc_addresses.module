@@ -971,9 +971,8 @@ function uc_addresses_get_address_form_submit($form, &$form_state) {
     elseif ($view == 'new' || $view == 'add') { // Insert into datebase
       _uc_addresses_db_add_address($address);
     }
+    $form_state['redirect'] = array('user/'. $address_user->uid .'/addresses');
   }
-
-  $form_state['redirect'] = array('user/'. $address_user->uid .'/addresses');
 }
 
 /**
