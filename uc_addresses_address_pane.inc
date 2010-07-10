@@ -80,6 +80,9 @@ function uc_addresses_pane_address($op, $address, $form_values) {
         }
 
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
+	if (count($form['address']['zone']['#options']) == 1) {
+	  $form['address']['zone']['#required'] = FALSE;
+	}
       }
       if (uc_address_field_enabled('postal_code')) {
 	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
@@ -149,6 +152,9 @@ function uc_addresses_pane_address($op, $address, $form_values) {
 	  $country_id = $address->country;
 	}
 	$form['address']['zone'] = uc_zone_select(uc_get_field_name('zone'), $address->zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
+	if (count($form['address']['zone']['#options']) == 1) {
+	  $form['address']['zone']['#required'] = FALSE;
+	}
       }
       if (uc_address_field_enabled('postal_code')) {
 	$form['address']['postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $address->postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);
