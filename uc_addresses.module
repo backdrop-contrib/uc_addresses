@@ -1173,16 +1173,16 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
 
   // Add the address
 
-  db_query("INSERT INTO {uc_addresses} (aid, uid, first_name, last_name, "
+  db_query("INSERT INTO {uc_addresses} ("
+	   ."uid, first_name, last_name, "
 	   ."phone, company, street1, street2, city, zone, postal_code, country, "
 	   ."address_name, "
-	   ."created, modified) VALUES (%d, %d, "
-	   ."'%s', '%s', '%s', "
-	   ."'%s', '%s', '%s', "
-	   ."'%s', %d, '%s', %d, "
+	   ."created, modified) "
+	   ."VALUES ("
+	   ."%d, '%s', '%s', "
+	   ."'%s', '%s', '%s', '%s', '%s', %d, '%s', %d, "
 	   ."'%s', "
 	   ."%d, %d)",
-	   0,
 	   $address->uid,
            $address->first_name,
 	   $address->last_name,
@@ -1303,9 +1303,9 @@ function _uc_addresses_db_check_address($address, $op, $silent) {
 	     ."street1 = '%s' AND "
 	     ."street2 = '%s' AND "
 	     ."city = '%s' AND "
-	     ."zone = '%s' AND "
+	     ."zone = %d AND "
 	     ."postal_code = '%s' AND "
-	     ."country = '%s'",
+	     ."country = %d",
 	     $address->uid,
 	     $address->first_name,
 	     $address->last_name,
