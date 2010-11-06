@@ -1146,7 +1146,7 @@ function _uc_addresses_db_add_address($address, $silent = FALSE) {
   if ($address->uid == 0) { echo "User 0\n"; exit(1); }
 
   // No address -- may happen
-  if (!isset($address->first_name)) return TRUE;
+  if (count(get_object_vars($address)) == 0) return TRUE;
 
   // From this point on, we have both a user and an address to add
 
