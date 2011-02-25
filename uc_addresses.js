@@ -1,4 +1,3 @@
-// $Id$
 
 /**
  * Set the select box change behavior for the country selector
