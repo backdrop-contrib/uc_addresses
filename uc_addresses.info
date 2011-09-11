@@ -1,7 +1,0 @@
-name = Ubercart Addresses
-description = "Allows users to manage a set of addresses that can be referenced when placing an order."
-dependencies[] = uc_order
-dependencies[] = uc_store
-package = "Ubercart - extra"
-
-core = 6.x
