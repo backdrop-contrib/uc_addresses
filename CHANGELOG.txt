@@ -1,0 +1,27 @@
+Ubercart Addresses 6.x-2.x, xxxx-xx-xx
+------------------------------
+- by MegaChriz: Removed own checkout panes (due to 
+    complexity with CA triggering)
+- by MegaChriz: Increased dependency of Ubercart to
+    Ubercart 2.6
+- by MegaChriz: Implemented order panes (rough version,
+    incomplete)
+- by MegaChriz: Implemented tokens for address display
+- by MegaChriz: Replaced address display in invoice 
+    with Ubercart Addresses version
+- by MegaChriz: added hook hook_uc_addresses_presave().
+- by MegaChriz: moved hooks documentation to
+    uc_addresses.api.php
+
+Ubercart Addresses 6.x-2.x-dev, 2011-09-14
+------------------------------
+New features:
+- by freixas, MegaChriz: Implemented a total new API
+- by MegaChriz: Added a system for adding extra 
+    address fields (for developers)
+- by MegaChriz: added hooks for addresses operations
+    (load, insert, update and delete)
+- by MegaChriz: Added address format display settings
+    for addresses from Ubercart Addresses
+- by freixas, MegaChriz: Improved permission settings
+- by MegaChriz: Improved theming

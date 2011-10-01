@@ -65,7 +65,7 @@ Note: when a user is deleted, all their addresses are also deleted.
 Dependencies
 ------------
 
-This module requires ctools and uc_store.
+This module requires uc_store, ctools and token.
 
 Installation
 ------------

@@ -262,6 +262,7 @@ function uc_addresses_elements() {
     '#uc_addresses_address' => UcAddressesAddress::newAddress(),
     '#uc_addresses_context' => 'default',
     '#required' => TRUE,
+    '#key_prefix' => '',
   );
 
   return $types;
@@ -278,30 +279,50 @@ function uc_addresses_elements() {
  * @return array
  */
 function uc_addresses_process_address_field(&$element, $form_state) {
+
   $element['#tree'] = TRUE;
   $prefix = $element['#key_prefix'] ? ($element['#key_prefix'] . '_') : '';
 
   if (isset($form_state['uc_addresses_address'])) {
     // Use submitted Ajax values.
-    $value = $form_state['uc_addresses_address'];
+    $values = $form_state['uc_addresses_address'];
   }
   elseif (is_array($element['#value']) || is_object($element['#value'])) {
     // Use provided default value.
-    $value = (array) $element['#value'];
+    $values = (array) $element['#value'];
   }
   else {
-    $value = array();
+    $values = array();
+  }
+
+  // Delete prefixes from value array if available
+  if ($prefix) {
+    foreach ($values as $fieldname => $fieldvalue) {
+      if (strpos($fieldname, $prefix) === 0) {
+        $fixed_fieldname = substr($fieldname, strlen($prefix));
+        $values[$fixed_fieldname] = $fieldvalue;
+        unset($values[$fieldname]);
+      }
+    }
   }
 
   $handler_instances = uc_addresses_get_address_field_handler_instances($element['#uc_addresses_address'], $element['#uc_addresses_context']);
   foreach ($handler_instances as $instance) {
     if ($instance->isFieldEnabled() && $instance->checkContext()) {
-      $element += $instance->getFormField($element, $form_state);
+      $element += $instance->getFormField($element, $values);
     }
   }
 
   // Allow other modules to alter the element
   drupal_alter('uc_addresses_address_field', $element);
+
+  // Add prefixes if set
+  if ($prefix) {
+    foreach (element_children($element) as $fieldname) {
+      $element[$prefix . $fieldname] = $element[$fieldname];
+      unset($element[$fieldname]);
+    }
+  }
 
   return $element;
 }
@@ -315,18 +336,19 @@ function uc_addresses_process_address_field(&$element, $form_state) {
  */
 function uc_addresses_validate_address_field(&$element, $form_state) {
   $handler_instances = uc_addresses_get_address_field_handler_instances($element['#uc_addresses_address'], $element['#uc_addresses_context']);
+  $prefix = $element['#key_prefix'] ? ($element['#key_prefix'] . '_') : '';
 
   foreach ($handler_instances as $fieldname => $instance) {
-    if ($instance->isFieldEnabled() && isset($element[$fieldname])) {
-      $instance->validateValue($element[$fieldname]['#value']);
+    if ($instance->isFieldEnabled() && isset($element[$prefix . $fieldname])) {
+      $instance->validateValue($element[$prefix . $fieldname]['#value']);
     }
   }
 
   if (!form_get_errors()) {
     // Put form values into address object
     foreach ($handler_instances as $fieldname => $instance) {
-      if ($instance->isFieldEnabled() && isset($element[$fieldname])) {
-        $instance->setValue($element[$fieldname]['#value']);
+      if ($instance->isFieldEnabled() && isset($element[$prefix . $fieldname])) {
+        $instance->setValue($element[$prefix . $fieldname]['#value']);
       }
     }
   }
@@ -368,9 +390,13 @@ function uc_addresses_preprocess_address($address, $context = 'default') {
   // Address format
   $fields['address'] = array(
     'title' => t('Address'),
-    'data' => uc_addresses_format_address($address),
+    'data' => uc_addresses_format_address($address, $context),
     '#weight' => -1,
   );
+  if ($context == 'order_view') {
+    // Don't show address label when viewing the order.
+    unset($fields['address']['title']);
+  }
 
   // Allow other modules to alter the preprocessed address fields
   drupal_alter('uc_addresses_preprocess_address', $fields, $address, $context);
@@ -386,31 +412,47 @@ function uc_addresses_preprocess_address($address, $context = 'default') {
 // ---------------------------------------------------------------------------
 
 /**
- * Implementation of hook_checkout_pane().
- *
- * @return array
+ * Implementation of hook_checkout_pane_alter().
+ * Alters delivery and billing pane
+ * @param array $panes
+ * @return void
  */
-function uc_addresses_checkout_pane() {
+function uc_addresses_checkout_pane_alter(&$panes) {
   // Load file with the callback functions
   module_load_include('ubercart.inc', 'uc_addresses');
 
-  $panes[] = array(
-    'id' => 'uc_addresses_billing',
-    'callback' => 'uc_addresses_checkout_pane_billing',
-    'title' => t('Billing information'),
-    'desc' => t('Get basic information needed to collect payment.'),
-    'weight' => 4,
-  );
-  $panes[] = array(
-    'id' => 'uc_addresses_shipping',
-    'callback' => 'uc_addresses_checkout_pane_shipping',
-    'title' => t('Delivery information'),
-    'desc' => t('Get the information for where the order needs to ship.'),
-    'weight' => 3,
-    'shippable' => TRUE,
-  );
+  foreach ($panes as $key => $pane) {
+    switch ($pane['id']) {
+      case 'billing':
+        $panes[$key]['callback'] = 'uc_addresses_checkout_pane_billing';
+        break;
+      case 'delivery':
+        $panes[$key]['callback'] = 'uc_addresses_checkout_pane_shipping';
+        break;
+    }
+  }
+}
 
-  return $panes;
+/**
+ * Implementation of hook_order_pane_alter().
+ * Alters delivery and billing pane
+ * @param array $panes
+ * @return void
+ */
+function uc_addresses_order_pane_alter(&$panes) {
+  // Load file with the callback functions
+  module_load_include('ubercart.inc', 'uc_addresses');
+
+  foreach ($panes as $key => $pane) {
+    switch ($pane['id']) {
+      case 'ship_to':
+        $panes[$key]['callback'] = 'uc_addresses_order_pane_ship_to';
+        break;
+      case 'bill_to':
+        $panes[$key]['callback'] = 'uc_addresses_order_pane_bill_to';
+        break;
+    }
+  }
 }
 
 /**
@@ -437,8 +479,8 @@ function uc_addresses_order($op, &$order, $arg2) {
         }
 
         // Check session first for temporary saved addresses
-        if (isset($_SESSION['uc_addresses_order'][$address_type])) {
-          $address = unserialize($_SESSION['uc_addresses_order'][$address_type]);
+        if (isset($_SESSION['uc_addresses_order'][$order->order_id][$address_type])) {
+          $address = unserialize($_SESSION['uc_addresses_order'][$order->order_id][$address_type]);
         }
         else {
           // Construct new address
@@ -453,7 +495,6 @@ function uc_addresses_order($op, &$order, $arg2) {
         }
         $order->uc_addresses[$address_type] = $address;
       }
-      //print_r_tree(get_defined_vars());die();
       break;
   }
 }
@@ -647,6 +688,10 @@ function uc_addresses_token_list($type = 'all') {
       $tokens['uc_addresses']['uc_addresses_' . $fieldname . '-raw'] = t('!name, raw', array('!name' => $handler->getFieldTitle()));
     }
   }
+  elseif ($type == 'order') {
+    $tokens['order']['uc-addresses-shipping-address'] = t('The order shipping address, formatted with Ubercart Addresses module.');
+    $tokens['order']['uc-addresses-billing-address'] = t('The order billing address, formatted with Ubercart Addresses module.');
+  }
   return $tokens;
 }
 
@@ -692,28 +737,16 @@ function uc_addresses_token_values($type, $object = NULL) {
         }
       }
       break;
+    case 'order':
+      if ($object->uc_addresses['shipping'] instanceof UcAddressesAddress) {
+        $values['uc-addresses-shipping-address'] = uc_addresses_format_address($object->uc_addresses['shipping'], 'token');
+      }
+      if ($object->uc_addresses['billing'] instanceof UcAddressesAddress) {
+        $values['uc-addresses-billing-address'] = uc_addresses_format_address($object->uc_addresses['billing'], 'token');
+      }
+      break;
   }
   return $values;
-}
-
-// -----------------------------------------------------------------------------
-// FORM ALTERS
-// -----------------------------------------------------------------------------
-
-/**
- * Implementation of hook_form_FORM_ID_alter() for uc_cart_checkout_panes_form.
- *
- * @param array $form
- * @param array $form_state
- * @return void
- */
-function uc_addresses_form_uc_cart_checkout_panes_form_alter(&$form, $form_state) {
-  if (isset($form['panes']['uc_addresses_shipping'])) {
-    $form['panes']['uc_addresses_shipping']['title']['#value'] = t('!pane_title (Ubercart Addresses)', array('!pane_title' => $form['panes']['uc_addresses_shipping']['title']['#value']));
-  }
-  if (isset($form['panes']['uc_addresses_billing'])) {
-    $form['panes']['uc_addresses_billing']['title']['#value'] = t('!pane_title (Ubercart Addresses)', array('!pane_title' => $form['panes']['uc_addresses_billing']['title']['#value']));
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -777,6 +810,17 @@ function theme_uc_addresses_address($element) {
   return theme('form_element', $element, (!empty($element['#children']) ? $element['#children'] : ''));
 }
 
+/**
+ * Overwrite address display values for invoices.
+ *
+ * @param array $variables
+ * @return void
+ */
+function uc_addresses_preprocess_uc_order(&$variables) {
+  $variables['order_shipping_address'] = $variables['uc_addresses_shipping_address'];
+  $variables['order_billing_address'] = $variables['uc_addresses_billing_address'];
+}
+
 // -----------------------------------------------------------------------------
 // UTIL
 // -----------------------------------------------------------------------------
@@ -785,15 +829,28 @@ function theme_uc_addresses_address($element) {
  * Format an address by using tokens.
  *
  * @param UcAddressesAddress $address
+ *   The address object
+ * @param string $context
+ *   The context in which the address will be displayed
  * @return string
  *   A formatted address.
  */
-function uc_addresses_format_address($address) {
+function uc_addresses_format_address($address, $context = '') {
   $country_id = $address->getField('country');
   $format = uc_addresses_get_address_format($country_id);
 
   // Replace tokens
-  $address_string = token_replace($format, 'uc_addresses', $address);
+  if ($context == 'token') {
+    // Ouch! We can't replace tokens two levels deep!
+    // We use our own token replace system here.
+    module_load_include('tokens.inc', 'uc_addresses');
+    $address_string = uc_addresses_token_replace($format, $address);
+  }
+  else {
+    // In other cases the token replacement can be handled by the
+    // token module itself.
+    $address_string = token_replace($format, 'uc_addresses', $address);
+  }
 
   // Clean-up address string
   $address_string = strtr($address_string, array("\n" => '<br />'));
@@ -801,6 +858,17 @@ function uc_addresses_format_address($address) {
   $match = array('`^<br( /)?>`', '`<br( /)?>$`', '`<br( /)?>(\s*|[\s*<br( /)?>\s*]+)<br( /)?>`', '`<br( /)?><br( /)?>`', '`<br( /)?>, N/A`');
   $replace = array('', '', '<br />', '<br />', '', '');
   $address_string = preg_replace($match, $replace, $address_string);
+
+  switch ($context) {
+    case 'token':
+    case 'checkout_review':
+    case 'order_view':
+      // Respect Ubercart capitalize address setting
+      if (variable_get('uc_order_capitalize_addresses', TRUE)) {
+        $address_string = drupal_strtoupper($address_string);
+      }
+      break;
+  }
 
   return $address_string;
 }

@@ -397,6 +397,9 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     }
 
     if ($this->isDirty()) {
+      // Allow other modules to alter the address before saving
+      module_invoke_all('uc_addresses_address_presave', $this);
+
       $address = $this->getSchemaAddress();
       $address->modified = time();
       $address->uid = $this->getUserId();
@@ -418,7 +421,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       // Address is saved and no longer 'dirty'.
       $this->clearDirty();
 
-      // Give other modules a chance to react on this
+      // Notify other modules that an address has been saved
       module_invoke_all($hook, $this);
     }
   }

@@ -39,6 +39,9 @@ abstract class UcAddressesUcFieldHandler extends UcAddressesFieldHandler {
    *	 TRUE if the field is required.
    */
   public function isFieldRequired() {
+    if ($this->getContext() == 'order_form') {
+      return FALSE;
+    }
     return uc_address_field_required($this->getFieldName());
   }
 }
@@ -67,6 +70,7 @@ class UcAddressesUcTextFieldHandler extends UcAddressesUcFieldHandler {
         '#title' => $this->getFieldTitle(),
         '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
         '#default_value' => $default,
+        '#size' => 32,
       ),
     );
   }

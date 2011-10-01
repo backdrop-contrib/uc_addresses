@@ -2,8 +2,8 @@
 /**
  * @file
  * These hooks are invoked by the Ubercart Addresses module.
- * @todo
- *   - more documentation needed for hook_uc_addresses_field_handlers().
+ * @todo more documentation needed for hook_uc_addresses_field_handlers().
+ * @todo Document the rest of the API.
  */
 
 /**
@@ -163,6 +163,28 @@ function hook_uc_addresses_preprocess_address_alter(&$fields, $address, $context
 function hook_uc_addresses_address_load($address, $obj) {
   // Example: set a value for my custom added field (through hook_uc_addresses_fields())
   $address->setField('myfield', 'myvalue');
+}
+
+/**
+ * This hook allows you alter the address just before it's saved.
+ *
+ * @param UcAddressesAddress $address
+ *   The address object
+ * @return void
+ */
+function hook_uc_addresses_address_presave($address) {
+  // Example: set a nickname for this address if there is none.
+  if ($address->getName() == '') {
+    $nickname = 'my address name';
+    if (!$address->setName($nickname)) {
+      // Try an other name if this nickname is already used.
+      $numb = 2;
+      $other_nickname = $nickname . ' ' . $numb++;
+      while (!$address->setName($other_nickname)) {
+        $other_nickname = $nickname . ' ' . $numb++;
+      }
+    }
+  }
 }
 
 /**

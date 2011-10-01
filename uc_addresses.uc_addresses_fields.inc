@@ -4,8 +4,6 @@
  * In this file fields and field handlers for Ubercart Addresses will be registered.
  */
 
-//drupal_set_message('uc_addresses.uc_addresses.uc_addresses_fields.inc included');
-
 // ---------------------------------------------------------------------------
 // UC_ADDRESSES HOOKS
 // ---------------------------------------------------------------------------

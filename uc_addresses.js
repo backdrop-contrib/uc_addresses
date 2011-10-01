@@ -27,13 +27,13 @@ $(document).ready(uc_addresses_trigger_copy_address);
  * @return void
  */
 function uc_addresses_copy_address(checked, source, target) {
-  var address_pane_source = '#uc_addresses_' + source + '-pane';
-  var address_pane_target = '#uc_addresses_' + target + '-pane';
+  var address_pane_source = '#' + source + '-pane';
+  var address_pane_target = '#' + target + '-pane';
 
   if (checked) {
     // Copy over the zone options manually.
-    zone_field_source = '#edit-panes-uc-addresses-' + source + '-' + source + '-zone';
-    zone_field_target = '#edit-panes-uc-addresses-' + target + '-' + target + '-zone';
+    zone_field_source = '#edit-panes-' + source + '-' + source + '-' + source + '-zone';
+    zone_field_target = '#edit-panes-' + target + '-' + target + '-' + target + '-zone';
     if ($(zone_field_target).html() != $(zone_field_source).html()) {
       $(zone_field_target).empty().append($(zone_field_source).children().clone());
       $(zone_field_target).attr('disabled', $(zone_field_source).attr('disabled'));
@@ -44,7 +44,7 @@ function uc_addresses_copy_address(checked, source, target) {
       function(i) {
         // Copy the values from the source pane to the target pane
         var source_field = this.id;
-        source_field = source_field.replace(target + '-' + target, source + '-' + source);
+        source_field = source_field.replace(target + '-' + target + '-' + target, source + '-' + source + '-' + source);
         var target_field = this.id;
         if (target_field != source_field) {
           if (this.type == 'checkbox') {
@@ -125,8 +125,8 @@ function uc_addresses_apply_address(type, address_str) {
     return;
   }
    
-  var address_pane = '#uc_addresses_' + type + '-pane';
-  var field_id_prefix = 'edit-panes-uc-addresses-' + type + '-' + type + '-';
+  var address_pane = '#' + type + '-pane';
+  var field_id_prefix = 'edit-panes-' + type + '-' + type + '-' + type + '-';
 
   eval('var address = ' + address_str + ';');
 

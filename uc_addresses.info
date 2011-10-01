@@ -1,7 +1,8 @@
 name = Ubercart Addresses
 description = "Allows users to manage a set of addresses that can be referenced when placing an order."
-dependencies[] = ctools
 dependencies[] = uc_store
+dependencies[] = ctools
+dependencies[] = token
 package = "Ubercart - extra"
 core = 6.x
 php = 5.0

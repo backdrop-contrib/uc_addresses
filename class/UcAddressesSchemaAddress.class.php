@@ -211,7 +211,7 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns "save" field data
+   * Returns "safe" field data
    *
    * @access public
    * @return array
