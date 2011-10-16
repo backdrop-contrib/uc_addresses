@@ -126,14 +126,16 @@ function uc_addresses_apply_address(type, address_str) {
   }
    
   var address_pane = '#' + type + '-pane';
-  var field_id_prefix = 'edit-panes-' + type + '-' + type + '-' + type + '-';
+  var order_field_id_prefix = 'edit-' + type + '-' + type + '-';
+  var checkout_field_id_prefix = 'edit-panes-' + type + '-' + type + '-' + type + '-';
 
   eval('var address = ' + address_str + ';');
 
   $(address_pane + ' input, select, textarea', ':visible', document.body).each(
     function (i) {
       fieldname = this.id;
-      fieldname = fieldname.replace(field_id_prefix, '');
+      fieldname = fieldname.replace(checkout_field_id_prefix, '');
+      fieldname = fieldname.replace(order_field_id_prefix, '');
       
       if (fieldname != 'country' && fieldname != 'zone' && address[fieldname] != undefined) {
         if (this.type == 'checkbox') {

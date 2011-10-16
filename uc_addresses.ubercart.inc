@@ -132,19 +132,7 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
       }
 
       // Address book selecting
-      $addresses = UcAddressesAddressBook::get($user->uid)->getAddresses();
-      $has_saved_addresses = FALSE;
-      if (count($addresses) > 0) {
-        // Check if there is at least one saved addresses
-        foreach ($addresses as $address) {
-          if (!$address->isNew()) {
-            $has_saved_addresses = TRUE;
-            break;
-          }
-        }
-      }
-      // Only display saved addresses dropdown if the user has at least one saved address
-      if ($has_saved_addresses) {
+      if ($select = uc_addresses_select_address($user->uid, $uc_type, $form['uc_addresses_address']['#value'])) {
         $description =
           (
             ($auto_fill_address)?
@@ -152,49 +140,10 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
             t('Enter an address below or select an address from the list.')
           )
           . ' '
-          . t('Go to your <a href="@address-book">address book</a> to manage your saved addresses.', array('@address-book' => url('user/'. $user->uid . '/addresses')));
-
-        $address_book_default_value = NULL;
-        // Display a way of selecting an address
-        $options = array(
-          '0' => t('Select one...'),
-        );
-        foreach ($addresses as $address) {
-          // Display saved addresses only
-          if ($address->isNew()) {
-            continue;
-          }
-          $data = array();
-          $fields = $address->getRawFieldData();
-          // Replace underscores and spaces with a hyphen
-          foreach ($fields as $fieldname => $value) {
-            $fieldname_with_hyphens = str_replace(array('_', ' '), '-', $fieldname);
-            $data[$fieldname_with_hyphens] = $value;
-          }
-          if ($address_name = $address->getName()) {
-            $options[drupal_to_js($data)] = $address_name;
-          }
-          else {
-            $options[drupal_to_js($data)] = preg_replace('/<.*?>/', ', ', uc_addresses_format_address($address));
-          }
-
-          // Add default value if address was automatically filled
-          if ($address->compareAddress($form['uc_addresses_address']['#value'])) {
-            $address_book_default_value = drupal_to_js($data);
-          }
-        }
-
-        $form[$uc_type]['addressbook'] = array(
-          '#type' => 'select',
-          '#title' => t('Saved addresses'),
-          '#attributes' => array('onchange' => "uc_addresses_apply_address('" . $uc_type . "', this.value);"),
-          '#options' => $options,
-          '#weight' => -50,
-        );
-        // Add default value for address book
-        if ($address_book_default_value) {
-          $form[$uc_type]['addressbook']['#default_value'] = $address_book_default_value;
-        }
+          . t('Go to your <a href="@address-book">address book</a> to manage your saved addresses.', array('@address-book' => url('user/'. $user->uid . '/addresses')))
+        ;
+        $form['addresses']['#title'] = t('Saved addresses');
+        $form[$uc_type]['addressbook'] = $select;
       }
 
       return array(
@@ -350,8 +299,15 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
       $form[$uc_type]['#uc_addresses_address'] = $address;
       return $form;
 
+    case 'edit-title':
+      $output = ' <img src="'. base_path() . drupal_get_path('module', 'uc_store')
+        . '/images/address_book.gif" alt="'. t('Select from address book.') .'" '
+        . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $order['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
+        . 'style="position: relative; top: 2px; cursor: pointer;" />';
+      return $output;
+
     case 'edit-theme':
-      $output = drupal_render($order[$uc_type]);
+      $output = '<div id="' . $uc_type . '-pane"><div id="' . $uc_type . '_address_select"></div>' . drupal_render($order[$uc_type]) . '</div>';
       return $output;
 
     case 'edit-process':

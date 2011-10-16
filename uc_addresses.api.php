@@ -16,6 +16,10 @@
  * used with address edit forms.
  *
  * A field handler is a class that extends UcAddressesFormFieldHandler.
+ * The declaration of field handlers is based on the CTools plugin API.
+ *
+ * For a working example look at uc_addresses_uc_addresses_field_handlers()
+ * in the file uc_addresses.uc_addresses_fields.inc.
  *
  * @return array
  */
@@ -38,23 +42,34 @@ function hook_uc_addresses_field_handlers() {
  * This hook allows you to register extra fields to be used in
  * all address edit forms.
  *
- * Format to return:
- * Array (
- *   fieldname => Array (
- *     'handler' => handler class (registered through hook_uc_addresses_field_handlers())
- *     'display_settings' (array of contexts to show or hide the field on)
- *     'strings' (array of strings to be used in the field handler)
- *   ),
- * )
- *
- * Adding display settings to the field definition is optional.
- * If you don't set this, assumed is that the field may be showed
- * everywhere.
- *
- * Define the strings array only if you have multiple fields using
- * the same handler, but with slighty different texts.
+ * For a working example look at uc_addresses_uc_addresses_fields()
+ * in the file uc_addresses.uc_addresses_fields.inc.
  *
  * @return array
+ *   An associarive array containing:
+ *   - handler: handler class, registered through hook_uc_addresses_field_handlers().
+ *   - display_settings: (optional) An array of contexts to show or hide the
+ *     field on:
+ *     - default: boolean, if it may be displayed by default.
+ *     - address_form: boolean, if it may be displayed on the address edit form.
+ *     - address_view: boolean, if it may be displayed on the address book page.
+ *     - checkout_form: boolean, if it may be displayed on the checkout page.
+ *     - checkout_review: boolean, if it may be displayed on the checkout review
+ *       page.
+ *     - order_form: boolean, if it may be displayed on the order edit page.
+ *     - order_view: boolean, if it may be displayed on order view pages.
+ *     Adding display settings to the field definition is optional.
+ *     If you don't set this, assumed is that the field may be showed
+ *     everywhere.
+ *   - strings: (optional) An array of strings to be used in the field handler.
+ *     Define the strings array only if you have multiple fields using
+ *     the same handler, but with slighty different texts.
+ *   - compare: (optional) boolean, may this field be used in address
+ *     comparisons?
+ *     An address comparison is done to avoid having double addresses in the
+ *     address book.
+ *
+ * @see hook_uc_addresses_field_handlers()
  */
 function hook_uc_addresses_fields() {
   // Example: register my own field
@@ -68,9 +83,10 @@ function hook_uc_addresses_fields() {
         'checkout_form' => FALSE, // Don't display during checkout
         'checkout_review' => FALSE, // Don't display at checkout review
         'order_form' => TRUE, // Display on order edit forms
-        'order_view' => TRUE, // Display on order pages
+        'order_view' => TRUE, // Display on order view pages
       ),
-      'strings' => array(),
+      'strings' => array(), // This field does not need specific strings
+      'compare' => TRUE, // Field is used in address comparisons
     );
   );
 }
@@ -80,6 +96,7 @@ function hook_uc_addresses_fields() {
  * a chance to alter the definitions with this hook.
  *
  * @param array $fields
+ *
  * @return void
  */
 function hook_uc_addresses_fields_alter(&$fields) {
@@ -98,6 +115,7 @@ function hook_uc_addresses_fields_alter(&$fields) {
  *
  * @param array $element
  *   The form element, contains several subfields.
+ *
  * @return void
  */
 function hook_uc_addresses_address_field_alter(&$element) {
@@ -119,20 +137,18 @@ function hook_uc_addresses_address_field_alter(&$element) {
  *
  * @param array $fields
  *   An array containing the field data like this:
- *   Array (
- *     fieldname => Array (
- *       'title' => field title (string)
- *       'data' => field value (string)
- *       '#weight' => weight (int)
- *     )
- *   )
+ *   - fieldname (array):
+ *     - title => field title (string)
+ *     - 'data' => field value (string)
+ *     - '#weight' => weight (int)
  * @param UcAddressesAddress $address
  *   The address object
  * @param string $context
  *   The context in which the fields will be displayed:
- *   - 'address_view' => the address book
- *   - 'checkout_review' => the checkout review page
- *   - 'order_view' => order view pages
+ *   - address_view: the address book
+ *   - checkout_review: the checkout review page
+ *   - order_view: order view pages
+ *
  * @return void
  */
 function hook_uc_addresses_preprocess_address_alter(&$fields, $address, $context) {
@@ -158,6 +174,7 @@ function hook_uc_addresses_preprocess_address_alter(&$fields, $address, $context
  *   The address object
  * @param object $obj
  *   The fetched database record
+ *
  * @return void
  */
 function hook_uc_addresses_address_load($address, $obj) {
@@ -170,6 +187,7 @@ function hook_uc_addresses_address_load($address, $obj) {
  *
  * @param UcAddressesAddress $address
  *   The address object
+ *
  * @return void
  */
 function hook_uc_addresses_address_presave($address) {
@@ -192,6 +210,7 @@ function hook_uc_addresses_address_presave($address) {
  *
  * @param UcAddressesAddress $address
  *   The address object
+ *
  * @return void
  */
 function hook_uc_addresses_address_insert($address) {
@@ -208,6 +227,7 @@ function hook_uc_addresses_address_insert($address) {
  *
  * @param UcAddressesAddress $address
  *   The address object
+ *
  * @return void
  */
 function hook_uc_addresses_address_update($address) {
@@ -224,6 +244,7 @@ function hook_uc_addresses_address_update($address) {
  *
  * @param UcAddressesAddress $address
  *   The address object
+ *
  * @return void
  */
 function hook_uc_addresses_address_delete($address) {
@@ -247,7 +268,8 @@ function hook_uc_addresses_address_delete($address) {
  * @param object $address_user
  *   Owner of the address
  * @param UcAddressesAddress $address
- *   Address object, optional
+ *   (optional) Address object
+ *
  * @return boolean
  */
 function hook_uc_addresses_may_view($address_user, $address) {
@@ -271,7 +293,8 @@ function hook_uc_addresses_may_view($address_user, $address) {
  * @param object $address_user
  *   Owner of the address
  * @param UcAddressesAddress $address
- *   Address object, optional
+ *   (optional) Address object
+ *
  * @return boolean
  */
 function hook_uc_addresses_may_edit($address_user, $address) {
@@ -302,7 +325,8 @@ function hook_uc_addresses_may_edit($address_user, $address) {
  * @param object $address_user
  *   Owner of the address
  * @param UcAddressesAddress $address
- *   Address object, optional
+ *   (optional) Address object
+ *
  * @return boolean
  */
 function hook_uc_addresses_may_delete($address_user, $address) {

@@ -162,7 +162,7 @@ function _uc_addresses_update_6200() {
 
   // Get address defaults
   $default_aids = array();
-  $result = db_query('SELECT * FROM {uc_addresses_defaults}');
+  $result = db_query('SELECT aid FROM {uc_addresses_defaults}');
   while ($default = db_fetch_array($result)) {
     $default_aids[] = $default['aid'];
   }

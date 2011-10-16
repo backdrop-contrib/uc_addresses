@@ -147,13 +147,17 @@ function uc_addresses_country_formats_page($country_id = NULL) {
   // List all countries
   $header = array(
     t('Country'),
+    t('Status'),
   );
 
   $rows = array();
   $path = 'admin/store/settings/countries/edit/uc_addresses_formats';
   $result = db_query("SELECT country_id, country_name FROM {uc_countries} ORDER BY country_name ASC");
   while ($country = db_fetch_object($result)) {
-    $rows[] = array(l($country->country_name, $path . '/' . $country->country_id));
+    $rows[] = array(
+      l($country->country_name, $path . '/' . $country->country_id),
+      (variable_get('uc_addresses_address_format_' . $country->country_id, NULL)? t('Overridden'):t('Ubercart default')),
+    );
   }
 
   return theme('table', $header, $rows);

@@ -120,6 +120,7 @@ function uc_addresses_list_one_address($address_user, UcAddressesAddress $addres
  *
  * @param array $vars
  * @return void
+ *
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_list_address(&$vars) {
@@ -143,7 +144,7 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
   }
   if ($vars['options']['delete_link']) {
     $link_options = array(
-      'attributes' => array('class' => 'address-link delete-address-link')
+      'attributes' => array('class' => 'address-link delete-address-link'),
     );
     if ($vars['options']['destination']) {
       $link_options['query'] = array('destination' => $vars['options']['destination']);
@@ -183,8 +184,10 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
  *   The user who "owns" this address.
  * @param $address
  *   The address to edit (NULL for new addresses)
+ *
  * @return array
  *   An address form
+ *
  * @ingroup forms
  */
 function uc_addresses_get_address_form(&$form_state, $address_user, $address) {
@@ -210,14 +213,14 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address) {
     // New address
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => variable_get('uc_addresses_add_button', t('Add address')),
+      '#value' => variable_get('uc_addresses_add_button', t('Save address')),
     );
   }
   else {
     // Existing address
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => variable_get('uc_addresses_update_button', t('Update address')),
+      '#value' => variable_get('uc_addresses_update_button', t('Save address')),
     );
     $form['delete'] = array(
       '#type' => 'submit',
@@ -234,18 +237,22 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address) {
   // Add cancel link
   $form['cancel'] = array(
     '#type' => 'markup',
-    '#value' => l(t('Cancel'), 'user/'. $address_user->uid .'/addresses/'),
+    '#value' => l(t('Cancel'), 'user/'. $address_user->uid .'/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
   );
 
   return $form;
 }
 
 /**
- * Validate handler for the address form
+ * Validate handler for the address form.
  *
  * @param array $form
  * @param array $form_state
+ *
  * @return void
+ *
+ * @see uc_addresses_get_address_form()
+ * @see uc_addresses_get_address_form_submit()
  */
 function uc_addresses_get_address_form_validate(&$form, &$form_state) {
   switch ($form_state['clicked_button']['#value']) {
@@ -260,11 +267,15 @@ function uc_addresses_get_address_form_validate(&$form, &$form_state) {
 }
 
 /**
- * Submit handler for the address form
+ * Submit handler for the address form.
  *
  * @param array $form
  * @param array $form_state
+ *
  * @return void
+ *
+ * @see uc_addresses_get_address_form()
+ * @see uc_addresses_get_address_form_validate()
  */
 function uc_addresses_get_address_form_submit(&$form, &$form_state) {
   try {
@@ -290,25 +301,24 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
  * Theme the add or edit address form.
  *
  * @param $form The form array to theme.
+ *
  * @return string
  *   The themed form.
+ *
  * @ingroup themeable
  */
 function theme_uc_addresses_get_address_form($form) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
-
-  $output = '';
-
-  $output .= '<div id="checkout-form-bottom">'. drupal_render($form) .'</div>';
-
-  return $output;
+  return drupal_render($form);
 }
 
 /**
  * Prepare variables for address form
  *
  * @param array $vars
+ *
  * @return void
+ *
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_pane(&$vars) {
@@ -327,6 +337,7 @@ function template_preprocess_uc_addresses_pane(&$vars) {
  *   The user who "owns" the address.
  * @param UcAddressesAddress $address
  *   The address to delete.
+ *
  * @return string
  */
 function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $address) {
@@ -358,10 +369,12 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
  *   The HTML version of the form that by default
  *	 includes the 'Back' and 'Delete Address' buttons at the bottom
  *   of the confirmation page.
+ *
  * @return string
  *   The themed confirmation form.
+ *
  * @ingroup themeable
- * @todo Move to template
+ * @todo Move to template?
  */
 function theme_uc_addresses_address_delete_confirm($help, $form) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
@@ -380,8 +393,10 @@ function theme_uc_addresses_address_delete_confirm($help, $form) {
  *   The user who "owns" the address.
  * @param UcAddressesAddress $address
  *   The address we are deleting.
+ *
  * @return string
  *   The buttons for the form (as a string).
+ *
  * @ingroup forms
  */
 function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, UcAddressesAddress $address) {
@@ -410,7 +425,10 @@ function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, U
  *   The form.
  * @param array $form_state
  *   The form state.
+ *
  * @return void
+ *
+ * @see uc_addresses_delete_address_confirm_form()
  */
 function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
   $address_user = $form['stored_values']['#value']['user'];

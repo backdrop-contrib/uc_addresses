@@ -1,5 +1,17 @@
 Ubercart Addresses 6.x-2.x, xxxx-xx-xx
 ------------------------------
+- Issue #660376 by MegaChriz: Implemented user tokens for
+    default addresses.
+- Documented used variables in templates.
+- Issue #1305348 by gease, MegaChriz: prevent address being saved as user
+  data in the user table.
+- Issue #1307896 by MegaChriz: implemented default values for fields.
+- by MegaChriz: added more documentation.
+- Issue #396342 by MegaChriz: Implemented address book in
+    admin order interface (partly done).
+
+Ubercart Addresses 6.x-2.x-dev, 2011-10-01
+------------------------------
 - by MegaChriz: Removed own checkout panes (due to 
     complexity with CA triggering)
 - by MegaChriz: Increased dependency of Ubercart to

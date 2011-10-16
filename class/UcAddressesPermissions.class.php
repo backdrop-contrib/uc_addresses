@@ -4,6 +4,22 @@
  * Permission class
  */
 
+/**
+ * The permission class: UcAddressesPermissions
+ *
+ * This class checks for view, edit and delete access for a single address. So
+ * whenever you want to check permissions for address access, you should not call
+ * user_access(), but call the appropiate method in this class. Call
+ * canViewAddress() for view access, canEditAddress() for edit access and
+ * canDeleteAddress() for delete access. The class will then take care for calling
+ * user_access() itself.
+ *
+ * If the permissions defined by Ubercart Addresses do not fit your needs, you are
+ * able to get further control about address access by implementing
+ * hook_uc_addresses_may_view(), hook_uc_addresses_may_edit() or
+ * hook_uc_addresses_may_delete(). See uc_addresses.api.php - included with the
+ * module - for more information.
+ */
 class UcAddressesPermissions {
   // -----------------------------------------------------------------------------
   // CONSTANTS
@@ -201,6 +217,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may view it's own default address
+   *
    * @access public
    * @static
    * @return boolean
@@ -213,6 +230,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may view it's own addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -227,6 +245,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may view all default addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -239,6 +258,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may view all addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -252,6 +272,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may edit own addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -264,6 +285,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may edit all addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -275,6 +297,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may delete own addresses
+   *
    * @access public
    * @static
    * @return boolean
@@ -287,6 +310,7 @@ class UcAddressesPermissions {
 
   /**
    * If the logged in user may delete all addresses
+   *
    * @access public
    * @static
    * @return boolean

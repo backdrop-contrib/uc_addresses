@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * In this file fields and field handlers for Ubercart Addresses will be registered.
+ * In this file fields and field handlers for Ubercart Addresses are registered.
  */
 
 // ---------------------------------------------------------------------------
@@ -84,6 +84,22 @@ function uc_addresses_uc_addresses_field_handlers() {
       'path' => $path,
     ),
   );
+  $info['UcAddressesDateFieldHandler'] = array(
+    'handler' => array(
+      'parent' => 'UcAddressesFieldHandler',
+      'class' => 'UcAddressesDateFieldHandler',
+      'file' => $file,
+      'path' => $path,
+    ),
+  );
+  $info['UcAddressesHiddenFieldHandler'] = array(
+    'handler' => array(
+      'parent' => 'UcAddressesFieldHandler',
+      'class' => 'UcAddressesHiddenFieldHandler',
+      'file' => $file,
+      'path' => $path,
+    ),
+  );
 
   return $info;
 }
@@ -157,6 +173,7 @@ function uc_addresses_uc_addresses_fields() {
       'order_form' => FALSE,
       'order_view' => FALSE,
     ),
+    'compare' => FALSE,
   );
   $data['default_shipping'] = array(
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
@@ -173,6 +190,7 @@ function uc_addresses_uc_addresses_fields() {
       'suffix' => t('Use as my default shipping address'),
       'type' => 'shipping', // String is used internally only, so no translation is needed here
     ),
+    'compare' => FALSE,
   );
   $data['default_billing'] = array(
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
@@ -189,6 +207,48 @@ function uc_addresses_uc_addresses_fields() {
       'suffix' => t('Use as my default billing address'),
       'type' => 'billing', // String is used internally only, so no translation is needed here
     ),
+    'compare' => FALSE,
+  );
+  // Non editable fields
+  $data['aid'] = array(
+    'handler' => 'UcAddressesHiddenFieldHandler',
+    'display_settings' => array(
+      'default' => FALSE,
+    ),
+    'strings' => array(
+      'title' => t('Address ID'),
+    ),
+    'compare' => FALSE,
+  );
+  $data['uid'] = array(
+    'handler' => 'UcAddressesHiddenFieldHandler',
+    'display_settings' => array(
+      'default' => FALSE,
+    ),
+    'strings' => array(
+      'title' => t('User ID'),
+    ),
+    'compare' => FALSE,
+  );
+  $data['created'] = array(
+    'handler' => 'UcAddressesDateFieldHandler',
+    'display_settings' => array(
+      'default' => FALSE,
+    ),
+    'strings' => array(
+      'title' => t('Created'),
+    ),
+    'compare' => FALSE,
+  );
+  $data['modified'] = array(
+    'handler' => 'UcAddressesDateFieldHandler',
+    'display_settings' => array(
+      'default' => FALSE,
+    ),
+    'strings' => array(
+      'title' => t('Modified'),
+    ),
+    'compare' => FALSE,
   );
 
   return $data;

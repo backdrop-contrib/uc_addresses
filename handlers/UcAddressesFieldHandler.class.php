@@ -1,9 +1,17 @@
 <?php
 /**
  * @file
- * Base class for form fields used in Ubercart Addresses
+ * Contains the UcAddressesFieldHandler class.
  */
 
+/**
+ * Base class for fields used in Ubercart Addresses
+ *
+ * The field handler API is designed to add extra address fields, such as a gender
+ * field. To add extra address fields, you'll need to declare a "field handler" in
+ * your module and implement this handler. You will also need to declare one or
+ * more "fields" that will be using that handler.
+ */
 abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
   // PROPERTIES
@@ -143,6 +151,19 @@ abstract class UcAddressesFieldHandler {
     return NULL;
   }
 
+  /**
+   * Returns a default value for this field.
+   *
+   * Subclasses can override this method to provide a default
+   * value for their field.
+   *
+   * @access public
+   * @return string
+   */
+  public function getDefaultValue() {
+    return '';
+  }
+
   // -----------------------------------------------------------------------------
   // ABSTRACT METHODS
   // -----------------------------------------------------------------------------
@@ -233,7 +254,7 @@ abstract class UcAddressesFieldHandler {
     $fields = uc_addresses_get_address_fields();
     if (isset($fields[$this->name])) {
       $display_settings = $fields[$this->name]['display_settings'];
-      if (!isset($display_settings[$this->context]) || $display_settings[$this->context] == TRUE) {
+      if (!isset($display_settings[$this->context]) && $display_settings['default'] || $display_settings[$this->context] == TRUE) {
         return TRUE;
       }
       return FALSE;

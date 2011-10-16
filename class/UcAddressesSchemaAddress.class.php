@@ -1,14 +1,23 @@
 <?php
 /**
  * @file
- * The schema address class.
- *
- * This class creates an interface between the address data used by
- * Ubercart and the rest of uc_addresses. If the address model changes
- * in the future, our hope is that only this class will need to
- * change.
+ * Contains the UcAddressesSchemaAddress class.
  */
 
+/**
+ * The schema address class.
+ *
+ * This is the base class for addresses. It's goal is to provide functionality
+ * for address fields. You can get and set address field values. For this it's
+ * connected with the field handler system. Unlike the UcAddressesAddress class
+ * it's not connected with the address book class, which means you *could* use
+ * this class if you want to make use of the field handler system and you want to
+ * bypass any restrictions implied with UcAddressesAddress (such as having unique
+ * nicknames), but in most cases you should not interact with this class directly.
+ *
+ * The class doesn't interact with the database itself: this should be done in
+ * subclasses (such as UcAddressesAddress).
+ */
 class UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
   // PROPERTIES
@@ -33,7 +42,7 @@ class UcAddressesSchemaAddress {
   private $dirty = FALSE;
 
   /**
-   * A variable that's used to keep data when the address object
+   * A variable that's used to keep data when the address object.
    * is being serialized.
    *
    * @var array
@@ -63,13 +72,15 @@ class UcAddressesSchemaAddress {
     $fields = uc_addresses_get_address_fields();
     foreach ($fields as $fieldname => $fielddata) {
       if (!isset($this->schemaAddress->$fieldname)) {
-        $this->schemaAddress->$fieldname = '';
+        $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fielddata['handler'], 'handler');
+        $instance = new $class($fieldname, $this);
+        $this->schemaAddress->$fieldname = $instance->getDefaultValue();
       }
     }
   }
 
   /**
-   * Tells which members may be kept when the address is being serialized
+   * Tells which members may be kept when the address is being serialized.
    *
    * @access public
    * @return array
@@ -87,7 +98,7 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Restore variables when the address is unserialized
+   * Restore variables when the address is unserialized.
    *
    * @access public
    * @return array
@@ -136,7 +147,7 @@ class UcAddressesSchemaAddress {
    *
    * @access protected
    * @return boolean
-   *	TRUE if the address needs to be saved to the database.
+   *	 TRUE if the address needs to be saved to the database.
    */
   protected function isDirty() {
     return $this->dirty;
@@ -150,10 +161,10 @@ class UcAddressesSchemaAddress {
    * Get a field's value.
    *
    * @param string $fieldName
-   *	The name of the field whose value we want.
+   *	 The name of the field whose value we want.
    * @access public
    * @return mixed
-   *	The field value.
+   *	 The field value.
    * @throws UcAddressInvalidFieldException
    */
   public function getField($fieldName) {
@@ -181,7 +192,7 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns TRUE if field is registered through the API
+   * Returns TRUE if field is registered through the API.
    *
    * @param string $fieldName
    *	 The name of the field whose existence we want to check.
@@ -211,7 +222,7 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns "safe" field data
+   * Returns "safe" field data.
    *
    * @access public
    * @return array
@@ -229,7 +240,7 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns "raw" field data (contents of the schema address object)
+   * Returns "raw" field data (contents of the schema address object).
    *
    * @access public
    * @return array
@@ -246,8 +257,8 @@ class UcAddressesSchemaAddress {
    * Get the aggregated schema address.
    *
    * @access protected
-   * @return UcAddress
-   *	The aggregated UcAddress.
+   * @return object
+   *	 The aggregated address object.
    */
   protected function getSchemaAddress() {
     return $this->schemaAddress;
@@ -257,7 +268,7 @@ class UcAddressesSchemaAddress {
    * Set the aggregated schema address.
    *
    * @param object $address
-   *	The address object to wrap.
+   *	 The address object to wrap.
    * @access protected
    * @return void
    */
@@ -269,14 +280,14 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns TRUE if field is part of the schema
+   * Returns TRUE if field is part of the schema.
    *
    * @param string $fieldName
-   *	The name of the field whose existence we want to check.
+   *	 The name of the field whose existence we want to check.
    * @access public
    * @static
    * @return boolean
-   *	TRUE if addresses have a field with the given name.
+   *	 TRUE if addresses have a field with the given name.
    */
   static public function schemaFieldExists($fieldName) {
     $schema = drupal_get_schema('uc_addresses');
@@ -299,5 +310,42 @@ class UcAddressesSchemaAddress {
     if (!self::schemaFieldExists($fieldName)) {
       throw new UcAddressesInvalidFieldException(t('Invalid schema field name %name', array('%name' => $fieldName)));
     }
+  }
+
+  /**
+   * Checks if the schema address of the given address
+   * is equal to the schema address of this.
+   *
+   * @param UcAddressesSchemaAddress $address
+   * @access public
+   * @return boolean
+   */
+  public function compareAddress(UcAddressesSchemaAddress $address) {
+    static $fields_to_compare = array();
+
+    if ($address === $this) {
+      // No comparison needed. Given address object is exactly the same.
+      return TRUE;
+    }
+
+    $fieldsDataThisAddress = $this->getRawFieldData();
+    $fieldsDataOtherAddress = $address->getRawFieldData();
+
+    // Find out which field to compare
+    if (count($fields_to_compare) < 1) {
+      $fields_data = uc_addresses_get_address_fields();
+      foreach ($fields_data as $fieldname => $field_data) {
+        if ($field_data['compare']) {
+          $fields_to_compare[] = $fieldname;
+        }
+      }
+    }
+
+    foreach ($fields_to_compare as $fieldname) {
+      if ($fieldsDataThisAddress[$fieldname] != $fieldsDataOtherAddress[$fieldname]) {
+        return FALSE;
+      }
+    }
+    return TRUE;
   }
 }

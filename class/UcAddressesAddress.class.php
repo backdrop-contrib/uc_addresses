@@ -1,9 +1,21 @@
 <?php
 /**
  * @file
- * The main address class used by uc_addresses (and extension modules).
+ * Contains the UcAddressesAddress class.
  */
 
+/**
+ * The main address class used by uc_addresses (and extension modules).
+ *
+ * This is the main address class used by Ubercart Addresses. It's goal is to
+ * provide specific address book features, such as an address nickname and flags
+ * for being the default shipping and/or the default billing address.
+ *
+ * Each instance is created through the address book, so the address book is able
+ * to keep track of all the addresses it contains.
+ *
+ * The class extends UcAddressesSchemaAddress.
+ */
 class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
   // STATIC PROPERTIES
@@ -11,6 +23,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
 
   /**
    * Which ID a new address will get when constructed.
+   *
    * This value will be decreased with 1 every time
    * a new address is constructed.
    * A new address in this case is an address not coming
@@ -39,7 +52,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * UcAddressesAddress object constructor
+   * UcAddressesAddress object constructor.
    *
    * @param UcAddressesAddressBook $addressBook
    * @param object $schemaAddress
@@ -72,7 +85,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Tells which members may kept when the address is being serialized
+   * Tells which members may kept when the address is being serialized.
    *
    * @access public
    * @return array
@@ -100,7 +113,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Create a new unowned address
+   * Create a new unowned address.
    *
    * This method will create an empty address without an owner.
    * This is useful when you want to ask an anonymous user for an address
@@ -117,7 +130,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Make a copy of this address
+   * Make a copy of this address.
    *
    * This method only copies the aggregrated schema object over.
    * The fields aid, address_name, default_shipping and default_billing
@@ -162,7 +175,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns address ID
+   * Returns address ID.
    *
    * @access public
    * @return int
@@ -172,7 +185,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns owner of this address
+   * Returns owner of this address.
    *
    * @access public
    * @return int
@@ -182,7 +195,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Checks if the address is owned by an user
+   * Checks if the address is owned by an user.
    *
    * An address is owned by an user if the owner's user id
    * is not zero (= anonymous user).
@@ -205,47 +218,6 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    */
   public function isNew() {
     return ($this->getId() < 1);
-  }
-
-  /**
-   * Checks if the schema address of the given address
-   * is equal to the schema address of this
-   *
-   * Does not look to address ID, name and if it is a default address
-   *
-   * @param UcAddressesAddress $address
-   * @access public
-   * @return boolean
-   */
-  public function compareAddress(UcAddressesAddress $address) {
-    if ($address === $this) {
-      // No comparison needed. Given address object is exactly the same.
-      return NULL;
-    }
-
-    $fieldsDataThisAddress = $this->getRawFieldData();
-    $fieldsDataOtherAddress = $address->getRawFieldData();
-
-    // Exclude these fields from the comparison
-    $unset = array(
-      'aid',
-      'uid',
-      'address_name',
-      'default_shipping',
-      'default_billing',
-      'created',
-      'modified',
-    );
-    foreach ($unset as $fieldToUnset) {
-      unset($fieldsDataThisAddress[$fieldToUnset]);
-      unset($fieldsDataOtherAddress[$fieldToUnset]);
-    }
-
-    // Sort arrays
-    ksort($fieldsDataThisAddress);
-    ksort($fieldsDataOtherAddress);
-
-    return ($fieldsDataThisAddress == $fieldsDataOtherAddress);
   }
 
   // -----------------------------------------------------------------------------
@@ -291,7 +263,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Returns the nickname of the address
+   * Returns the nickname of the address.
    *
    * @access public
    * @return string
@@ -321,7 +293,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Tells if the address is a default address of type $type
+   * Tells if the address is a default address of type $type.
    *
    * @param string $type
    *   The type of default
@@ -384,7 +356,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * Saves address if address is marked as 'dirty'
+   * Saves address if address is marked as 'dirty'.
    *
    * @access public
    * @return void
@@ -431,7 +403,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns address html
+   * Returns address html.
    *
    * @access public
    * @return string
@@ -446,7 +418,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * Sets a private variable
+   * Sets a private variable.
    *
    * This method should only be called by the address book.
    *
@@ -474,7 +446,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Modify the address book of this address
+   * Modify the address book of this address.
    *
    * This can only be done if the address book already accepted
    * the address as one of it's addresses.

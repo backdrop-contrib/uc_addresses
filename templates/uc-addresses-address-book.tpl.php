@@ -1,7 +1,30 @@
 <?php
 /**
  * @file
- * Template file for address book, listing all addresses
+ * Displays all addresses from a single address book.
+ *
+ * Available variables:
+ * - $addresses: An array of all addresses of the user themed with
+ *   theme_uc_addresses_list_address().
+ * - $default_shipping_address: The default shipping address themed with
+ *   theme_uc_addresses_list_address(). Only exists if the user has a default
+ *   shipping address.
+ * - $default_billing_address: The default billing address themed with
+ *   theme_uc_addresses_list_address(). Only exists if the user has a default
+ *   billing address.
+ * - $other_addresses: An array of addresses of the user that are not a default
+ *   address themed with theme_uc_addresses_list_address().
+ * - $add_address_link: Link for adding a new address, only exists if
+ *   $options['add_link'] is TRUE.
+ *
+ * Other variables:
+ * - $address_book: The address book object, instance of UcAddressesAddressBook.
+ * - $options: An array of options for how the variables should be set:
+ *   - $add_link: if the add address link may be printed.
+ *
+ * @see template_preprocess_uc_addresses_address_book()
+ *
+ * @ingroup themeable
  */
 ?>
 <div class="address-book">

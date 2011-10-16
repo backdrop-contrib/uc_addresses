@@ -1,29 +1,38 @@
 <?php
 /**
  * @file
- * Template for address form
+ * Displays the address edit form
+ *
+ * Available variables:
+ * - $form: The complete address edit form array, not yet rendered.
+ * - $req: A span for required fields:
+ *   <span class="form-required">*</span>
+ *
+ * @see template_preprocess_uc_addresses_pane()
+ *
+ * @ingroup themeable
  */
 ?>
 <div class="address-pane-table">
   <table>
-    <?php foreach (element_children($form) as $field): ?>
-      <?php if ($form[$field]['#access'] !== FALSE): ?>
-        <tr class="field-<?php print $field; ?>">
-          <?php if ($form[$field]['#title']): ?>
+    <?php foreach (element_children($form) as $fieldname): ?>
+      <?php if ($form[$fieldname]['#access'] !== FALSE): ?>
+        <tr class="field-<?php print $fieldname; ?>">
+          <?php if ($form[$fieldname]['#title']): ?>
             <td class="field-label">
-              <?php if ($form[$field]['#required']): ?>
+              <?php if ($form[$fieldname]['#required']): ?>
                 <?php print $req; ?>
               <?php endif; ?>
-              <?php print $form[$field]['#title']; ?>:
+              <?php print $form[$fieldname]['#title']; ?>:
             </td>
-          <?php unset($form[$field]['#title']); ?>
+          <?php unset($form[$fieldname]['#title']); ?>
           <?php else: ?>
             <td class="field-label"></td>
           <?php endif; ?>
-          <td class="field-field"><?php print drupal_render($form[$field]); ?></td>
+          <td class="field-field"><?php print drupal_render($form[$fieldname]); ?></td>
         </tr>
       <?php endif; ?>
     <?php endforeach; ?>
   </table>
 </div>
-<div class="checkout-form-bottom"><?php print drupal_render($form); ?></div>
+<div class="address-form-bottom"><?php print drupal_render($form); ?></div>

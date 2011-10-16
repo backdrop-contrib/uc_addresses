@@ -124,6 +124,19 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
+   * Returns a default value for this field.
+   *
+   * Subclasses can override this method to provide a default
+   * value for their field.
+   *
+   * @access public
+   * @return int
+   */
+  public function getDefaultValue() {
+    return 0;
+  }
+
+  /**
    * Returns an array of output formats for the zone field.
    *
    * @access public
@@ -173,7 +186,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
 class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   /**
    * @var array $countries
-   *   Array of alle loaded countries
+   *   An array of all loaded countries
    * @access private
    * @static
    */
@@ -224,6 +237,19 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         '#default_value' => empty($default) ? uc_store_default_country() : $default,
       ),
     );
+  }
+
+  /**
+   * Returns a default value for this field.
+   *
+   * Subclasses can override this method to provide a default
+   * value for their field.
+   *
+   * @access public
+   * @return int
+   */
+  public function getDefaultValue() {
+    return variable_get('uc_store_country', 840);
   }
 
   /**

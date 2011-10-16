@@ -1,10 +1,20 @@
 <?php
 /**
  * @file
- * The address book class
- * @todo description needed
+ * Contains the UcAddressesAddressBook class.
  */
 
+/**
+ * The address book class
+ *
+ * The goal of the address book class is to hold a list of addresses that are
+ * currently loaded or added during the request. It is designed so that when
+ * the address book is asked for the same address twice during one request,
+ * it doesn't need to look it up in the database again.
+ *
+ * Each instance of the address book class belongs to one user and each user can
+ * only have one address book.
+ */
 class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
   // CONSTANTS
@@ -24,6 +34,7 @@ class UcAddressesAddressBook {
 
   /**
    * An array of UcAddressesAddressBook objects
+   *
    * Holds all constructed address books
    *
    * @var array
@@ -72,6 +83,14 @@ class UcAddressesAddressBook {
    * @access private
    */
   private $defaultAddresses = array();
+
+  /**
+   * Whether or not the default addresses for this address book are loaded
+   *
+   * @var boolean
+   * @access private
+   */
+  private $defaultsLoaded = FALSE;
 
   /**
    * Whether or not all addresses for this address book are loaded
@@ -569,8 +588,8 @@ class UcAddressesAddressBook {
     if (isset($this->defaultAddresses[$type])) {
       return $this->defaultAddresses[$type];
     }
-    if (!$this->allLoaded) {
-      $this->loadAll();
+    if (!$this->defaultsLoaded) {
+      $this->loadDefaults();
     }
     if (isset($this->defaultAddresses[$type])) {
       return $this->defaultAddresses[$type];
@@ -719,6 +738,43 @@ class UcAddressesAddressBook {
    * @access private
    * @return void
    */
+  private function loadDefaults() {
+    // Reason to skip out early
+    if ($this->defaultsLoaded) {
+      return;
+    }
+    if ($this->allLoaded) {
+      return;
+    }
+    if (!$this->isOwned()) {
+      return;
+    }
+
+    // If the performance hint is set to load all addresses,
+    // load all addresses instead.
+    if ($this->performanceHint == self::PERF_HINT_LOAD_ALL) {
+      $this->loadAll();
+      return;
+    }
+
+    // Get all addresses for this user
+    $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d AND (default_shipping = 1 OR default_billing = 1) ORDER BY created", $this->uid);
+    if ($result === FALSE) {
+      throw new UcAddressesDbException(t('Failed to read from database table uc_addresses'));
+    }
+
+    // Set flag that default addresses are loaded
+    $this->defaultsLoaded = TRUE;
+
+    $this->dbResultToAddresses($result);
+  }
+
+  /**
+   * Loads all addresses from database when they not already loaded
+   *
+   * @access private
+   * @return void
+   */
   private function loadAll() {
     // Reason to skip out early
     if ($this->allLoaded) {
@@ -739,6 +795,8 @@ class UcAddressesAddressBook {
 
     // Set flag that all addresses are loaded
     $this->allLoaded = TRUE;
+    // Set flag that default addresses are loaded
+    $this->defaultsLoaded = TRUE;
 
     $this->dbResultToAddresses($result);
   }
