@@ -150,6 +150,10 @@ function uc_addresses_uc_addresses_fields() {
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
+  $data['country'] = array(
+    'handler' => 'UcAddressesUcCountryFieldHandler',
+    'display_settings' => $ubercart_display_settings,
+  );
   $data['zone'] = array(
     'handler' => 'UcAddressesUcZoneFieldHandler',
     'display_settings' => $ubercart_display_settings,
@@ -158,13 +162,10 @@ function uc_addresses_uc_addresses_fields() {
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
-  $data['country'] = array(
-    'handler' => 'UcAddressesUcCountryFieldHandler',
-    'display_settings' => $ubercart_display_settings,
-  );
 
   // Ubercart Addresses fields
   $data['address_name'] = array(
+    'title' => t('Name'),
     'handler' => 'UcAddressesAddressNameFieldHandler',
     'display_settings' => array(
       'default' => TRUE,
@@ -176,6 +177,7 @@ function uc_addresses_uc_addresses_fields() {
     'compare' => FALSE,
   );
   $data['default_shipping'] = array(
+    'title' => t('Default shipping address'),
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
     'display_settings' => array(
       'default' => TRUE,
@@ -185,14 +187,12 @@ function uc_addresses_uc_addresses_fields() {
       'order_form' => FALSE,
       'order_view' => FALSE,
     ),
-    'strings' => array(
-      'title' => t('Default shipping address'),
-      'suffix' => t('Use as my default shipping address'),
-      'type' => 'shipping', // String is used internally only, so no translation is needed here
-    ),
     'compare' => FALSE,
+    'suffix' => t('Use as my default shipping address'),
+    'default_type' => 'shipping',
   );
   $data['default_billing'] = array(
+    'title' => t('Default billing address'),
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
     'display_settings' => array(
       'default' => TRUE,
@@ -202,54 +202,95 @@ function uc_addresses_uc_addresses_fields() {
       'order_form' => FALSE,
       'order_view' => FALSE,
     ),
-    'strings' => array(
-      'title' => t('Default billing address'),
-      'suffix' => t('Use as my default billing address'),
-      'type' => 'billing', // String is used internally only, so no translation is needed here
-    ),
     'compare' => FALSE,
+    'suffix' => t('Use as my default billing address'),
+    'default_type' => 'billing',
   );
   // Non editable fields
   $data['aid'] = array(
+    'title' => t('Address ID'),
     'handler' => 'UcAddressesHiddenFieldHandler',
     'display_settings' => array(
       'default' => FALSE,
-    ),
-    'strings' => array(
-      'title' => t('Address ID'),
     ),
     'compare' => FALSE,
   );
   $data['uid'] = array(
+    'title' => t('User ID'),
     'handler' => 'UcAddressesHiddenFieldHandler',
     'display_settings' => array(
       'default' => FALSE,
     ),
-    'strings' => array(
-      'title' => t('User ID'),
-    ),
     'compare' => FALSE,
   );
   $data['created'] = array(
+    'title' => t('Created'),
     'handler' => 'UcAddressesDateFieldHandler',
     'display_settings' => array(
       'default' => FALSE,
-    ),
-    'strings' => array(
-      'title' => t('Created'),
     ),
     'compare' => FALSE,
   );
   $data['modified'] = array(
+    'title' => t('Modified'),
     'handler' => 'UcAddressesDateFieldHandler',
     'display_settings' => array(
       'default' => FALSE,
-    ),
-    'strings' => array(
-      'title' => t('Modified'),
     ),
     'compare' => FALSE,
   );
 
   return $data;
+}
+
+/**
+ * Implementation of hook_uc_addresses_select_addresses().
+ *
+ * @param int $uid
+ *   The user ID to select addresses for
+ * @param string $context
+ *   The context in which the addresses are used:
+ *   - checkout_form
+ *   - order_form
+ * @param string $type
+ *   The type of address to select addresses for (shipping or billing)
+ *
+ * @return array
+ *   An array of UcAddressesAddress objects.
+ *   Or an array of address arrays.
+ * @todo Add setting to say if addresses may come from previous orders or not.
+ */
+function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
+  static $addresses = array();
+
+  if (count($addresses) > 0) {
+    return $addresses;
+  }
+
+  // Address book selecting
+  $uc_addresses = UcAddressesAddressBook::get($uid)->getAddresses();
+  if (count($uc_addresses) > 0) {
+    foreach ($uc_addresses as $address) {
+      if ($address->isNew()) {
+        // Skip unsaved addresses
+        continue;
+      }
+      if (!UcAddressesPermissions::canViewAddress($address->getUserId(), $address)) {
+        // Skip addresses that the currently logged in user may not view.
+        continue;
+      }
+      $addresses[] = $address;
+    }
+  }
+
+  // If there no addresses in the address book, try to select addresses from
+  // previous orders.
+  if (count($addresses) < 1) {
+    $addresses = uc_get_addresses($uid, $type);
+    foreach ($addresses as $index => $address) {
+      // Set source module manually this time.
+      $addresses[$index]['module'] = 'uc_order';
+    }
+  }
+  return $addresses;
 }

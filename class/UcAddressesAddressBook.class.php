@@ -140,9 +140,11 @@ class UcAddressesAddressBook {
     if (is_object($user)) {
       $user = $user->uid;
     }
-    $instance = self::$singleton[$user];
-    if ($instance) {
-      return $instance;
+    if (isset(self::$singleton[$user])) {
+      $instance = self::$singleton[$user];
+      if ($instance) {
+        return $instance;
+      }
     }
     $singleton = self::$singleton[$user] = new UcAddressesAddressBook($user);
     return $singleton;
@@ -534,6 +536,28 @@ class UcAddressesAddressBook {
    */
   public function isOwned() {
     return ($this->getUserId() > 0);
+  }
+
+  /**
+   * Reconstructs the address book completely.
+   *
+   * This will remove all addresses currently tracked by the address
+   * book. All the properties will be set back to the default
+   * values.
+   *
+   * Calling this method is bad for performance as it will force to
+   * reload addresses from the database, so use it with caution.
+   *
+   * This method is generally only of use within automated tests.
+   *
+   * @access public
+   * @return void
+   */
+  public function reset() {
+    $this->addresses = array();
+    $this->defaultAddresses = array();
+    $this->defaultsLoaded = FALSE;
+    $this->allLoaded = FALSE;
   }
 
   // -----------------------------------------------------------------------------
@@ -948,7 +972,7 @@ class UcAddressesAddressBook {
   private function findByName($name) {
     if ($name) {
       foreach ($this->addresses as $address) {
-        if ($address->name && $address->name == $name) {
+        if ($address->getName() && $address->getName() == $name) {
           return $address;
         }
       }

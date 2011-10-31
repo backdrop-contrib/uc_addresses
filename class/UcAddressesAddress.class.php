@@ -63,7 +63,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     parent::__construct($schemaAddress);
     $this->addressBook = $addressBook;
 
-    if (!$schemaAddress->aid) {
+    if (!is_object($schemaAddress) || !$schemaAddress->aid) {
       // We always need an ID
       $this->getSchemaAddress()->aid = self::$nextNewAid--;
     }

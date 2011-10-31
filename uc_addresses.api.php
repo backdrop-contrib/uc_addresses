@@ -25,10 +25,9 @@
  */
 function hook_uc_addresses_field_handlers() {
   $path = drupal_get_path('module', 'mymodule') .'/handlers';
-
   $info = array();
+
   $info['MyCustomFieldHandler'] = array(
-    'hidden' => FALSE,
     'handler' => array(
       'parent' => 'UcAddressesFieldHandler',
       'class' => 'MyCustomFieldHandler',
@@ -36,6 +35,8 @@ function hook_uc_addresses_field_handlers() {
       'path' => $path,
     ),
   );
+
+  return $info;
 }
 
 /**
@@ -47,6 +48,7 @@ function hook_uc_addresses_field_handlers() {
  *
  * @return array
  *   An associarive array containing:
+ *   - title: the title of the field, safe for output.
  *   - handler: handler class, registered through hook_uc_addresses_field_handlers().
  *   - display_settings: (optional) An array of contexts to show or hide the
  *     field on:
@@ -61,13 +63,15 @@ function hook_uc_addresses_field_handlers() {
  *     Adding display settings to the field definition is optional.
  *     If you don't set this, assumed is that the field may be showed
  *     everywhere.
- *   - strings: (optional) An array of strings to be used in the field handler.
- *     Define the strings array only if you have multiple fields using
- *     the same handler, but with slighty different texts.
  *   - compare: (optional) boolean, may this field be used in address
  *     comparisons?
  *     An address comparison is done to avoid having double addresses in the
  *     address book.
+ *
+ * Optionally you can define extra properties in the definition. Properties can be
+ * reached from within the handler by calling getProperty(). When a handler uses extra
+ * properties, these properties will be required. Check the documentation of the handler
+ * to see which extra properties it requires.
  *
  * @see hook_uc_addresses_field_handlers()
  */
@@ -75,6 +79,7 @@ function hook_uc_addresses_fields() {
   // Example: register my own field
   return array(
     'myfield' => array(
+      'title' => t('My field'),
       'handler' => 'MyCustomFieldHandler',
       'display_settings' => array(
         'default' => TRUE, // Display it by default
@@ -85,7 +90,6 @@ function hook_uc_addresses_fields() {
         'order_form' => TRUE, // Display on order edit forms
         'order_view' => TRUE, // Display on order view pages
       ),
-      'strings' => array(), // This field does not need specific strings
       'compare' => TRUE, // Field is used in address comparisons
     );
   );
@@ -332,6 +336,130 @@ function hook_uc_addresses_may_edit($address_user, $address) {
 function hook_uc_addresses_may_delete($address_user, $address) {
   // No specific restrictions for deleting addresses
   return TRUE;
+}
+
+/**
+ * With this hook you can deliver an array of addresses on which the user
+ * can select one at checkout or when editing the order, depending on the
+ * context $context.
+ *
+ * You can return an array of address arrays or an array of UcAddressesAddress
+ * instances.
+ *
+ * @param int $uid
+ *   The user ID to select addresses for
+ * @param string $context
+ *   The context in which the addresses are used:
+ *   - checkout_form
+ *   - order_form
+ * @param string $type
+ *   The type of address to select addresses for (shipping or billing)
+ *
+ * @return array
+ *   An array of address arrays or an array of UcAddressesAddress instances.
+ */
+function hook_uc_addresses_select_addresses($uid, $context, $type) {
+  // Create and fill an UcAddressesAddress instance.
+  $address = UcAddressesAddressBook::newAddress();
+  $address->setMultipleFields(
+    array(
+      'first_name' => '',
+      'last_name' => '',
+      'phone' => '',
+      'company' => '',
+      'street1' => '',
+      'street2' => '',
+      'city' => '',
+      'zone' => 0,
+      'country' => variable_get('uc_store_country', 840),
+      'postal_code' => '',
+    )
+  );
+
+  // Return an array of address arrays or an array of UcAddressesAddress instances.
+  return array(
+    // Example: an UcAddressesAddress instance (created earlier)
+    $address,
+    // Example: an address array
+    array(
+      'first_name' => '',
+      'last_name' => '',
+      'phone' => '',
+      'company' => '',
+      'street1' => '',
+      'street2' => '',
+      'city' => '',
+      'zone' => 0,
+      'country' => variable_get('uc_store_country', 840),
+      'postal_code' => '',
+    ),
+  );
+}
+
+/**
+ * This hook allows you to alter the addresses that the user can choose from
+ * at checkout or when editing the order, depending on the context $context.
+ *
+ * You will get an array of UcAddressesAddress instances where some of them
+ * may be saved in the user's address book and others come from other sources
+ * (such as previous orders). Which addresses you get depends on what addresses
+ * are delivered by modules that implement hook_uc_addresses_select_addresses()
+ * and if the user has any saved addresses in his/her address book.
+ *
+ * You can find out from which module the address came by checking $address->module.
+ * That property is only available in this context, normally UcAddressesAddress
+ * instances don't have that property set.
+ *
+ * This hook will only be invoked if the hook hook_uc_addresses_select_addresses()
+ * resulted in any addresses, so you have always at least one address in the addresses
+ * array.
+ *
+ * @param array $addresses
+ *   An array of UcAddressesAddress instances.
+ * @param int $uid
+ *   The user ID to select addresses for
+ * @param string $context
+ *   The context in which the addresses are used:
+ *   - checkout_form
+ *   - order_form
+ * @param string $type
+ *   The type of address to select addresses for (shipping or billing)
+ *
+ * @return void
+ */
+function hook_uc_addresses_select_addresses_alter(&$addresses, $uid, $context, $type) {
+  // Example 1: Don't let the user choose from addresses in Canada.
+  foreach ($addresses as $index => $address) {
+    if ($address->getField('country') == 124) {
+      // The addresses' country is Canada (124). Remove from the addresses
+      // array.
+      unset($addresses[$index]);
+    }
+  }
+
+  // Example 2: Don't let the user choose the default billing address if it
+  // should select an address for shipping.
+  if ($type == 'shipping') {
+    foreach ($addresses as $index => $address) {
+      if ($address->isDefault('billing') && !$address->isDefault('shipping')) {
+        // The address is the default billing address (and not the default
+        // shipping address). Remove from the addresses array.
+        unset($addresses[$index]);
+      }
+    }
+  }
+
+  // Example 3: At checkout, let the user select from his/her address book only
+  // (thus only saved addresses are allowed and not addresses from other sources).
+  if ($context == 'checkout_form') {
+    foreach ($addresses as $index => $address) {
+      if ($address->isNew()) {
+        // The address is new which means it's not saved in the address book.
+        // Remove from the addresses array.
+        unset($addresses[$index]);
+      }
+    }
+  }
 }
 
 /**

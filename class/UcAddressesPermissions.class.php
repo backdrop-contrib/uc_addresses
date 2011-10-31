@@ -28,7 +28,7 @@ class UcAddressesPermissions {
   /**
    * Give users permissiony to view their default address
    */
-  const VIEW_OWN_DEFAULT = 'view own default address';
+  const VIEW_OWN_DEFAULT = 'view own default addresses';
 
   /**
    * Give users permission to view all of their own addresses
@@ -40,13 +40,13 @@ class UcAddressesPermissions {
    * Give users the ability to view anyone's default address.
    * Implies VIEW_OWN_DEFAULT.
    */
-  const VIEW_ALL_DEFAULTS = 'view default addresses';
+  const VIEW_ALL_DEFAULTS = "view everyone's default addresses";
 
   /**
    * Give users the ability to view anyone's addresses.
    * Implies VIEW_OWN, VIEW_ALL_DEFAULTS.
    */
-  const VIEW_ALL = 'view everyone\'s addresses';
+  const VIEW_ALL = "view everyone's addresses";
 
   /**
    * Give users the ability to add or edit their own addresses.
@@ -58,7 +58,7 @@ class UcAddressesPermissions {
    * Give users the ability to add or edit anyone's addresses.
    * Implies VIEW_ALL, EDIT_OWN.
    */
-  const EDIT_ALL = 'add/edit everyone\'s addresses';
+  const EDIT_ALL = "add/edit everyone's addresses";
 
   /**
    * Give users the ability to delete their own addresses.
@@ -70,7 +70,7 @@ class UcAddressesPermissions {
    * Give users the ability to delete anyone's addresses.
    * Implies VIEW_ALL, DELETE_OWN.
    */
-  const DELETE_ALL = 'delete everyone\'s addresses';
+  const DELETE_ALL = "delete everyone's addresses";
 
   // -----------------------------------------------------------------------------
   // METHODS
@@ -225,6 +225,7 @@ class UcAddressesPermissions {
   static public function canViewOwnDefault() {
     return
       user_access(self::VIEW_OWN_DEFAULT) ||
+      self::canViewAllDefaults() ||
       self::canViewOwn();
   }
 

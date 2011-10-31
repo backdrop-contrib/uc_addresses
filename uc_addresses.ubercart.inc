@@ -124,7 +124,7 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
           '#title' => $copy_address_title,
           '#attributes' => array(
             'class' => 'uc_addresses_copy_address',
-            'onclick' => "uc_addresses_copy_address(this.checked, '$other_type', '$uc_type');",
+            'onclick' => "uc_addresses_copy_address_checkout(this.checked, '$other_type', '$uc_type');",
           ),
           '#weight' => -5,
           '#default_value' => ($address->copy_address)? TRUE:FALSE,
@@ -132,7 +132,7 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
       }
 
       // Address book selecting
-      if ($select = uc_addresses_select_address($user->uid, $uc_type, $form['uc_addresses_address']['#value'])) {
+      if ($select = uc_addresses_select_address($user->uid, 'checkout_form', $uc_type, $form['uc_addresses_address']['#value'])) {
         $description =
           (
             ($auto_fill_address)?
@@ -236,6 +236,7 @@ function uc_addresses_order_pane_ship_to($op, $order, $values = array()) {
 function uc_addresses_order_pane_address($type, $op, $order, $values = array()) {
   global $user;
   drupal_add_js(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.js');
+  drupal_add_js(drupal_get_path('module', 'uc_order') . '/uc_order.js');
 
   if ($type == 'shipping') {
     $other_type = 'billing';
@@ -300,9 +301,21 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
       return $form;
 
     case 'edit-title':
+      switch ($type) {
+        case 'shipping':
+          $copy_text = t("Copy billing information.");
+          break;
+        case 'billing':
+          $copy_text = t("Copy shipping information.");
+          break;
+      }
       $output = ' <img src="'. base_path() . drupal_get_path('module', 'uc_store')
         . '/images/address_book.gif" alt="'. t('Select from address book.') .'" '
         . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $order['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
+        . 'style="position: relative; top: 2px; cursor: pointer;" />';
+      $output .= ' <img src="'. base_path() . drupal_get_path('module', 'uc_store')
+        . '/images/copy.gif" alt="' . $copy_text . '" title="'
+        . $copy_text . '" onclick="uc_addresses_copy_address_order(\'' . $other_type . '\', \'' . $uc_type . '\');" '
         . 'style="position: relative; top: 2px; cursor: pointer;" />';
       return $output;
 

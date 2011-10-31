@@ -20,14 +20,14 @@ With this module installed, user addresses are stored in a new
 database table, one that the user can manipulate as part of the user
 profile.
 
+
 Module overview:
 ---------------------
-
 When users create an account, you can request that they be asked to
 provide contact information. This initial entry can be edited later.
 
 When users visit their "My account" page, a new tab will be present:
-Addresses. They will be able to:
+"Address Book". They will be able to:
 
   * Add a new address
   * Edit an existing address
@@ -62,14 +62,33 @@ when users have no addresses.
 
 Note: when a user is deleted, all their addresses are also deleted.
 
+
+Ubercart Addresses country formats 
+---------------------
+Ubercart Addresses comes with it's own address formats that are build
+by using tokens, rather than the predefined set of variables Ubercart
+uses. This way it's possible to add any extra address values to the
+address format. Only addresses used by Ubercart Addresses are
+formatted using Ubercart Addresses' address formats.
+
+The following addresses are formatted by Ubercart Addresses:
+
+  * Address book addresses
+  * Delivery and billing addresses on the checkout page, the order
+    review page and the order pages.
+
+You can configure the address formats for Ubercart Addresses at the
+Ubercart Addresses country formats page:
+admin/store/settings/countries/edit/uc_addresses_formats
+
+
 Dependencies
 ------------
-
 This module requires uc_store, ctools and token.
+
 
 Installation
 ------------
-
   * Copy the uc_addresses module's directory to your modules directory
     and activate it. I have mine in /sites/all/modules/uc_addresses.
   * Activate the module, set up permissions and go to your account
@@ -78,14 +97,13 @@ Installation
 
 Permissions
 -----------
-
-- view own default address:
+- view own default addresses:
     Roles with this permission can view their own default addresses in 
     their address book.
 - view own addresses:
     Roles with this permission can view all own addresses in their address
     book, *including* the default addresses.
-- view default addresses
+- view everyone's default addresses
     Roles with this permission can view all default addresses of all
     users, *including* their own default addresses.
 - view everyone's addresses

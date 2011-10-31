@@ -42,12 +42,12 @@ abstract class UcAddressesFieldHandler {
   private $context;
 
   /**
-   * Strings defined in field definition.
+   * The declared field definition.
    *
    * @var array
    * @access private
    */
-  private $strings;
+  private $definition;
 
   // -----------------------------------------------------------------------------
   // CONSTRUCT
@@ -75,6 +75,17 @@ abstract class UcAddressesFieldHandler {
     else {
       $this->context = 'default';
     }
+
+    // Load the definition for this field
+    $fields = uc_addresses_get_address_fields();
+    if (isset($fields[$this->name])) {
+      $this->definition = $fields[$this->name];
+    }
+    else {
+      $this->definition = array();
+    }
+
+    // Perform eventually further initialization.
     $this->init();
   }
 
@@ -103,7 +114,7 @@ abstract class UcAddressesFieldHandler {
   }
 
   /**
-   * Returns the address attached to this field
+   * Returns the address attached to this field.
    * Generally used by subclasses to get the necessary address data
    *
    * @access public
@@ -115,7 +126,7 @@ abstract class UcAddressesFieldHandler {
   }
 
   /**
-   * Returns the context in which this field is used
+   * Returns the context in which this field is used.
    *
    * @access public
    * @final
@@ -126,29 +137,31 @@ abstract class UcAddressesFieldHandler {
   }
 
   /**
-   * Returns a string from the string field definition (if set)
+   * Returns a property from the field definition.
+   *
+   * If the property doesn't exists an exception will be thrown.
    *
    * @access public
-   * @return
-   *   string if the string is found
-   *   NULL if no string is found
+   * @return mixed
+   * @throws UcAddressesInvalidParameterException
    */
-  final public function getString($name) {
-    // Initialize first if not already done
-    if (!is_array($this->strings)) {
-      $this->strings = array();
-
-      // Load the strings from the field definition
-      $fields = uc_addresses_get_address_fields();
-      if (isset($fields[$this->name]['strings'])) {
-        $this->strings = $fields[$this->name]['strings'];
-      }
+  final public function getProperty($name) {
+    if (!isset($this->definition[$name])) {
+      throw new UcAddressesInvalidParameterException(t('Property %property not found in the field definition for field %field.', array('%property' => $name, '%field' => $this->name)));
     }
+    return $this->definition[$name];
+  }
 
-    if (isset($this->strings[$name])) {
-      return $this->strings[$name];
-    }
-    return NULL;
+  /**
+   * Returns the title to use when displaying a field.
+   *
+   * @access public
+   * @abstract
+   * @return string
+   *	 The field title.
+   */
+  public function getFieldTitle() {
+    return $this->getProperty('title');
   }
 
   /**
@@ -178,17 +191,6 @@ abstract class UcAddressesFieldHandler {
    * @return array
    */
   abstract public function getFormField($form, $form_state);
-
-  /**
-   * Returns the title to use when displaying a field.
-   *
-   * @access public
-   * @abstract
-   * @return string
-   *	 The field title.
-   * @throws UcAddressInvalidFieldException
-   */
-  abstract public function getFieldTitle();
 
   /**
    * Check to see if a field is enabled.
@@ -242,7 +244,7 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @return void
    */
-  public function validateValue($value) {}
+  public function validateValue(&$value) {}
 
   /**
    * Checks if field passes the context
@@ -254,7 +256,7 @@ abstract class UcAddressesFieldHandler {
     $fields = uc_addresses_get_address_fields();
     if (isset($fields[$this->name])) {
       $display_settings = $fields[$this->name]['display_settings'];
-      if (!isset($display_settings[$this->context]) && $display_settings['default'] || $display_settings[$this->context] == TRUE) {
+      if ((!isset($display_settings[$this->context]) && $display_settings['default']) || (isset($display_settings[$this->context]) && $display_settings[$this->context] == TRUE)) {
         return TRUE;
       }
       return FALSE;

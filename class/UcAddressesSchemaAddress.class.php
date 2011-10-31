@@ -192,6 +192,30 @@ class UcAddressesSchemaAddress {
   }
 
   /**
+   * Set multiple fields at once.
+   *
+   * @param array $fields
+   *   An array of fields with $fieldName => $value.
+   * @param boolean $fieldsMustExist
+   *   (optional) If TRUE, every field in the array must exists.
+   *   If there are fields in the array that do not exists an
+   *   UcAddressInvalidFieldException will be thrown.
+   *   Defaults to FALSE (no exceptions will be thrown).
+   *
+   * @access public
+   * @return void
+   * @throws UcAddressInvalidFieldException
+   */
+  public function setMultipleFields($fields, $fieldsMustExist = FALSE) {
+    foreach ($fields as $fieldName => $value) {
+      if (!$fieldsMustExist && !self::fieldExists($fieldName)) {
+        continue;
+      }
+      $this->setField($fieldName, $value);
+    }
+  }
+
+  /**
    * Returns TRUE if field is registered through the API.
    *
    * @param string $fieldName

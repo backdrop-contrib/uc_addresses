@@ -35,17 +35,6 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Returns the title to use when displaying the field.
-   *
-   * @access public
-   * @return string
-   *	 The field title.
-   */
-  public function getFieldTitle() {
-    return t('Name');
-  }
-
-  /**
    * Check to see if the field is enabled.
    *
    * @access public
@@ -74,7 +63,7 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
    * @access public
    * @return void
    */
-  public function validateValue($value) {
+  public function validateValue(&$value) {
     $fieldName = $this->getFieldName();
     if ($value) {
       if (!$this->getAddress()->setName($value)) {
@@ -85,7 +74,11 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
 }
 
 /**
- * Class for default address field
+ * Class for default address field.
+ *
+ * This class requires extra properties in the field definition:
+ * - default_type: lowercase string that specifies the kind of default address (e.g. shipping)
+ * - suffix: used as a suffix to the form field in address edit forms.
  */
 class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
   /**
@@ -101,17 +94,17 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
     $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
-    $type = $this->getString('type');
+    $default_type = $this->getProperty('default_type');
 
     // Check if user already has a default address of type $type
-    $default_address = $this->getAddress()->getAddressBook()->getDefaultAddress($type);
+    $default_address = $this->getAddress()->getAddressBook()->getDefaultAddress($default_type);
 
     if (!is_null($default_address)) {
       return array(
         $fieldName => array(
           '#type' => 'checkbox',
           '#title' => $this->getFieldTitle(),
-          '#suffix' => $this->getString('suffix'),
+          '#suffix' => $this->getProperty('suffix'),
           '#default_value' => $default,
           '#disabled' => $fieldValue,
           '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
@@ -130,17 +123,6 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Returns the title to use when displaying the field.
-   *
-   * @access public
-   * @return string
-   *	 The field title.
-   */
-  public function getFieldTitle() {
-    return $this->getString('title');
-  }
-
-  /**
    * Check to see if the field is enabled.
    *
    * @access public
@@ -148,7 +130,7 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
    *	 TRUE if the field is enabled.
    */
   public function isFieldEnabled() {
-    return variable_get('uc_addresses_use_default_' . $this->getString('type'), TRUE);
+    return variable_get('uc_addresses_use_default_' . $this->getProperty('default_type'), TRUE);
   }
 
   /**
@@ -209,17 +191,6 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
         '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
       ),
     );
-  }
-
-  /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
-   */
-  public function getFieldTitle() {
-    return $this->getString('title');
   }
 
   /**
@@ -310,17 +281,6 @@ class UcAddressesHiddenFieldHandler extends UcAddressesFieldHandler {
         '#value' => $default,
       ),
     );
-  }
-
-  /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
-   */
-  public function getFieldTitle() {
-    return $this->getString('title');
   }
 
   /**

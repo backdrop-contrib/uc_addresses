@@ -10,6 +10,8 @@
  */
 abstract class UcAddressesUcFieldHandler extends UcAddressesFieldHandler {
   /**
+   * Override of UcAddressesFieldHandler::getFieldTitle().
+   *
    * Returns the title to use when displaying the field.
    *
    * @access public
@@ -150,7 +152,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Output zone name
+   * Output zone name.
    *
    * @param mixed $value
    *   The value to output
@@ -211,7 +213,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     $options = array();
     while ($country = db_fetch_object($result)) {
       // Create option
-      $options[$country->country_id] = $country->country_name;
+      $options[$country->country_id] = t($country->country_name);
       // Save for later use
       self::$countries[$country->country_id] = $country;
     }
@@ -312,7 +314,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     switch ($format) {
       case 'country_name':
       case 'country_name_if':
-        return $country->country_name;
+        return t($country->country_name);
       case 'country_code2':
       case 'country_code2_if':
         return $country->country_iso_code_2;
@@ -322,7 +324,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     }
 
     // If no format is specified, return country name
-    return $country->country_name;
+    return t($country->country_name);
   }
 
   /**
