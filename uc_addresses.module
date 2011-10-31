@@ -799,16 +799,17 @@ function uc_addresses_token_values($type, $object = NULL) {
         'billing',
       );
       foreach ($default_types as $default_type) {
-        $address = UcAddressesAddressBook::get($object->uid)->getDefaultAddress($default_type);
-        $address_tokens = uc_addresses_token_values('uc_addresses', $address);
-        foreach ($address_tokens as $token => $value) {
-          if (strpos($token, 'uc_addresses_default_') === FALSE) {
-            $user_token = str_replace('uc_addresses', 'uc_addresses-' . $default_type, $token);
-            $values[$user_token] = $value;
+        if ($address = UcAddressesAddressBook::get($object->uid)->getDefaultAddress($default_type)) {
+          $address_tokens = uc_addresses_token_values('uc_addresses', $address);
+          foreach ($address_tokens as $token => $value) {
+            if (strpos($token, 'uc_addresses_default_') === FALSE) {
+              $user_token = str_replace('uc_addresses', 'uc_addresses-' . $default_type, $token);
+              $values[$user_token] = $value;
+            }
           }
+          // Address display
+          $values['uc-addresses-' . $default_type . '-address'] = uc_addresses_format_address($address, 'token');
         }
-        // Address display
-        $values['uc-addresses-' . $default_type . '-address'] = uc_addresses_format_address($address, 'token');
       }
       break;
   }
