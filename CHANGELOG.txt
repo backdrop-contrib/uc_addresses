@@ -1,4 +1,9 @@
 Ubercart Addresses 6.x-2.x, xxxx-xx-xx
+- by MegaChriz: fixed PHP foreach warning on checkout page (forgot to test
+  anonymous checkout).
+- by MegaChriz: fixed minor bugs in the API.
+
+Ubercart Addresses 6.x-2.x, 2011-10-31
 ------------------------------
 - Issue #1327148 by MegaChriz: fixed a bug that could result in a fatal
   error when trying to save an user with no addresses.

@@ -220,10 +220,9 @@ class UcAddressesAddressBook {
   /**
    * Returns the performance hint setting
    *
-   * @param int $hint
-   * @return void
+   * @return int
    */
-  public function getPerformanceHint($hint) {
+  public function getPerformanceHint() {
     return $this->performanceHint;
   }
 
@@ -901,7 +900,7 @@ class UcAddressesAddressBook {
   private function deleteOne($type, $arg) {
     // Reasons to skip out early
     if (!$this->isOwned()) {
-      return;
+      return FALSE;
     }
 
     // We can't delete an address that is a default address, so
@@ -920,10 +919,12 @@ class UcAddressesAddressBook {
       return FALSE;
     }
 
-    // Delete the address
-    $result = db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $address->getId());
-    if ($result === FALSE || db_affected_rows() == 0) {
-      throw new UcAddressesDbException(t('Failed to delete an address from database table uc_addresses'));
+    // Delete the address from the database only if it is not new (else it won't exist in the db).
+    if (!$address->isNew()) {
+      $result = db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $address->getId());
+      if ($result === FALSE || db_affected_rows() == 0) {
+        throw new UcAddressesDbException(t('Failed to delete an address from database table uc_addresses'));
+      }
     }
 
     // Remove from address book object

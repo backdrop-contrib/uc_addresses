@@ -22,7 +22,7 @@
  */
 function uc_addresses_address_book($address_user) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
-  drupal_set_title(t('Address Book'));
+  drupal_set_title(t('Address book'));
 
   // Initialize addresses array used for in the template.
   $addresses = array();
@@ -132,25 +132,25 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
   $vars['fields'] = uc_addresses_preprocess_address($vars['address'], 'address_view');
 
   // Setup admin links
-  if ($vars['options']['edit_link']) {
+  if (isset($vars['options']['edit_link']) && $vars['options']['edit_link']) {
     $link_options = array(
       'attributes' => array('class' => 'address-link edit-address-link'),
     );
-    if ($vars['options']['destination']) {
+    if (isset($vars['options']['destination']) && $vars['options']['destination']) {
       $link_options['query'] = array('destination' => $vars['options']['destination']);
     }
-    $vars['edit_address_link'] = l(t('Edit address'), 'user/'. $vars['uid'] .'/addresses/' . $vars['aid'] . '/edit', $link_options);
+    $vars['edit_address_link'] = l(t('Edit address'), 'user/' . $vars['uid'] . '/addresses/' . $vars['aid'] . '/edit', $link_options);
     $vars['admin_links'] = $vars['edit_address_link'];
   }
-  if ($vars['options']['delete_link']) {
+  if (isset($vars['options']['delete_link']) && $vars['options']['delete_link']) {
     $link_options = array(
       'attributes' => array('class' => 'address-link delete-address-link'),
     );
-    if ($vars['options']['destination']) {
+    if (isset($vars['options']['destination']) && $vars['options']['destination']) {
       $link_options['query'] = array('destination' => $vars['options']['destination']);
     }
-    $vars['delete_address_link'] = l(t('Delete address'), 'user/'. $vars['uid'] .'/addresses/' . $vars['aid'] . '/delete', $link_options);
-    if ($vars['options']['edit_link']) {
+    $vars['delete_address_link'] = l(t('Delete address'), 'user/' . $vars['uid'] . '/addresses/' . $vars['aid'] . '/delete', $link_options);
+    if (isset($vars['options']['edit_link']) && $vars['options']['edit_link']) {
       $vars['admin_links'] .= ' <span class="separator">|</span> ' . $vars['delete_address_link'];
     }
     else {
@@ -160,11 +160,11 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
 
   // CSS classes
   $vars['classes_array'] = array();
-  if ($vars['default_shipping']) {
+  if (isset($vars['default_shipping']) && $vars['default_shipping']) {
     $vars['classes_array'][] = 'addresses-default-address';
     $vars['classes_array'][] = 'addresses-default-shipping-address';
   }
-  if ($vars['default_billing']) {
+  if (isset($vars['default_billing']) && $vars['default_billing']) {
     $vars['classes_array'][] = 'addresses-default-address';
     $vars['classes_array'][] = 'addresses-default-billing-address';
   }

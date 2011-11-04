@@ -15,6 +15,7 @@
 function uc_addresses_token_replace($text, UcAddressesAddress $address) {
   $type = 'uc_addresses';
   $object = $address;
+  $options = array();
 
   token_include();
 

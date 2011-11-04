@@ -335,8 +335,8 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
    *   Data of country
    */
   private function getCountry($country_id) {
-    if (isset(self::$countries[$country->country_id])) {
-      return self::$countries[$country->country_id];
+    if (isset(self::$countries[$country_id])) {
+      return self::$countries[$country_id];
     }
 
     $result = db_query("SELECT * FROM {uc_countries} WHERE country_id = %d", $country_id);

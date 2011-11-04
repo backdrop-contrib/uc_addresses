@@ -55,7 +55,7 @@ function uc_addresses_help($path, $arg = array()) {
 
       $output .= '<h2>' . t('Module overview') . '</h2>';
       $output .= '<p>' . t('When users create an account, you can request that they be asked to provide contact information. This initial entry can be edited later.') . '</p>';
-      $output .= '<p>' . t('When users visit their <a href="!my-account-link">!my-account-page-title</a> page, a new tab will be present: <a href="!address-book-link">!address-book-page-title</a>. They will be able to:', array('!my-account-link' => url('user/' . $user->uid), '!my-account-page-title' => t('My account'), '!address-book-link' => url('user/' . $user->uid . '/addresses'), '!address-book-page-title' => t('Address Book'))) . '</p>';
+      $output .= '<p>' . t('When users visit their <a href="!my-account-link">!my-account-page-title</a> page, a new tab will be present: <a href="!address-book-link">!address-book-page-title</a>. They will be able to:', array('!my-account-link' => url('user/' . $user->uid), '!my-account-page-title' => t('My account'), '!address-book-link' => url('user/' . $user->uid . '/addresses'), '!address-book-page-title' => t('Address book'))) . '</p>';
       $output .= '<ul>';
       $output .= '<li>' . t('Add a new address') . '</li>';
       $output .= '<li>' . t('Edit an existing address') . '</li>';
@@ -130,7 +130,7 @@ function uc_addresses_menu() {
 
   // Address book
   $items['user/%user_uid_optional/addresses'] = array(
-    'title' => 'Address Book',
+    'title' => 'Address book',
     'description' => 'Manage your addresses',
     'page callback' => 'uc_addresses_address_book',
     'page arguments' => array(1, NULL),
@@ -876,10 +876,10 @@ function uc_addresses_token_values($type, $object = NULL) {
       }
       break;
     case 'order':
-      if ($object->uc_addresses['shipping'] instanceof UcAddressesAddress) {
+      if (isset($object->uc_addresses['shipping']) && $object->uc_addresses['shipping'] instanceof UcAddressesAddress) {
         $values['uc-addresses-shipping-address'] = uc_addresses_format_address($object->uc_addresses['shipping'], 'token');
       }
-      if ($object->uc_addresses['billing'] instanceof UcAddressesAddress) {
+      if (isset($object->uc_addresses['billing']) && $object->uc_addresses['billing'] instanceof UcAddressesAddress) {
         $values['uc-addresses-billing-address'] = uc_addresses_format_address($object->uc_addresses['billing'], 'token');
       }
       break;
@@ -967,7 +967,7 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
   $addresses = array();
   foreach (module_implements('uc_addresses_select_addresses') as $module) {
     $new_addresses = module_invoke($module, 'uc_addresses_select_addresses', $uid, $context, $type);
-    if (is_array($addresses)) {
+    if (is_array($new_addresses) && count($new_addresses) > 0) {
       // Save source of each address and convert addresses arrays to UcAddressesAddress
       foreach ($new_addresses as $index => $address) {
         $new_address = $address;
@@ -996,11 +996,10 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
           unset($new_addresses[$index]);
         }
       }
+      // Add to addresses array
+      $addresses = array_merge($addresses, $new_addresses);
     }
-    // Add to addresses array
-    $addresses = array_merge($addresses, $new_addresses);
   }
-  //$addresses = module_invoke_all('uc_addresses_select_addresses', $uid, $context, $type);
 
   if (count($addresses) < 1) {
     // No addresses found

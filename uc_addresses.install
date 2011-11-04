@@ -141,7 +141,7 @@ function uc_addresses_schema() {
  * as the table definitions may not be definitive.
  * @return array
  */
-function _uc_addresses_update_6200() {
+function uc_addresses_update_6200() {
   $ret = array();
 
   // Add 'default_shipping' and 'default_billing' fields

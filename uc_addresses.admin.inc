@@ -46,7 +46,7 @@ function uc_addresses_settings_form() {
   $form['uc_addresses']['uc_addresses_use_default_billing'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use default billing addresses'),
-    '#description' => t('Note that addresses that are currently marked as default billing can still not be deleted.'),
+    '#description' => t('Note that addresses marked as default billing cannot be deleted.'),
     '#default_value' => variable_get('uc_addresses_use_default_billing', TRUE),
     '#summary callback' => 'summarize_checkbox',
     '#summary arguments' => array(
@@ -57,7 +57,7 @@ function uc_addresses_settings_form() {
   $form['uc_addresses']['uc_addresses_use_default_shipping'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use default shipping addresses'),
-    '#description' => t('Note that addresses that are currently marked as default shipping can still not be deleted.'),
+    '#description' => t('Note that addresses marked as default shipping cannot be deleted.'),
     '#default_value' => variable_get('uc_addresses_use_default_shipping', TRUE),
     '#summary callback' => 'summarize_checkbox',
     '#summary arguments' => array(
@@ -120,8 +120,8 @@ function uc_addresses_settings_form() {
     '#default_value' => variable_get('uc_addresses_require_address_admin', TRUE),
     '#summary callback' => 'summarize_checkbox',
     '#summary arguments' => array(
-      t('Entering an address for admins is required.'),
-      t('Entering an address for admins is optional.'),
+      t('Admins are required to enter an address when they create a new user.'),
+      t("Admins don't have to enter an address when they create a new user."),
     ),
   );
 

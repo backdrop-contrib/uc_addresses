@@ -287,9 +287,14 @@ function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
   // previous orders.
   if (count($addresses) < 1) {
     $addresses = uc_get_addresses($uid, $type);
-    foreach ($addresses as $index => $address) {
-      // Set source module manually this time.
-      $addresses[$index]['module'] = 'uc_order';
+    if (is_array($addresses) && count($addresses) > 0) {
+      foreach ($addresses as $index => $address) {
+        // Set source module manually this time.
+        $addresses[$index]['module'] = 'uc_order';
+      }
+    }
+    else {
+      $addresses = array();
     }
   }
   return $addresses;

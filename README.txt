@@ -27,7 +27,7 @@ When users create an account, you can request that they be asked to
 provide contact information. This initial entry can be edited later.
 
 When users visit their "My account" page, a new tab will be present:
-"Address Book". They will be able to:
+"Address book". They will be able to:
 
   * Add a new address
   * Edit an existing address
