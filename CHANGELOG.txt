@@ -1,4 +1,18 @@
 Ubercart Addresses 6.x-2.x, xxxx-xx-xx
+- by MegaChriz: removed unused functions uc_addresses_get_field_handlers()
+  and uc_addresses_compare().
+- by MegaChriz: replaced property '#required' in the uc_addresses_address
+  form element with '#uc_addresses_required'. Setting this to FALSE makes
+  all address fields non-required (even if they are configured to be
+  required). The field handlers were adjusted to fit with this change.
+- by MegaChriz: setting a default value for the property
+  '#uc_addresses_address' for the uc_addresses_address form element is moved
+  to the process function. This is done to increase performance: CTools'
+  plugin system is no longer unnecessary invoked on every request with a
+  form.
+- by MegaChriz: other minor changes.
+
+Ubercart Addresses 6.x-2.x, 2011-11-04
 - by MegaChriz: fixed PHP foreach warning on checkout page (forgot to test
   anonymous checkout).
 - by MegaChriz: fixed minor bugs in the API.

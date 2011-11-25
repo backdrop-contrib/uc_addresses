@@ -70,7 +70,7 @@ class UcAddressesUcTextFieldHandler extends UcAddressesUcFieldHandler {
       $fieldName => array(
         '#type' => 'textfield',
         '#title' => $this->getFieldTitle(),
-        '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+        '#required' => $this->isFieldRequired(),
         '#default_value' => $default,
         '#size' => 32,
       ),
@@ -101,7 +101,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       $country_id = uc_store_default_country();
     }
 
-    $result = db_query("SELECT * FROM {uc_zones} WHERE zone_country_id = %d ORDER BY '%s'", $country_id, 'zone_name');
+    $result = db_query("SELECT * FROM {uc_zones} WHERE zone_country_id = %d ORDER BY zone_name", $country_id);
 
     $options[''] = t('Please select');
     while ($zone = db_fetch_object($result)) {
@@ -116,7 +116,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       $fieldName => array(
         '#type' => 'select',
         '#title' => $this->getFieldTitle(),
-        '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+        '#required' => $this->isFieldRequired(),
         '#options' => $options,
         '#default_value' => $default,
         '#prefix' => '<div id="uc-address-' . $this->getAddress()->getId() . '-zone">',
@@ -208,7 +208,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     $fieldValue = $this->getAddress()->getField($fieldName);
     $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
 
-    $result = db_query("SELECT * FROM {uc_countries} WHERE version > 0 ORDER BY '%s'", 'country_name');
+    $result = db_query("SELECT * FROM {uc_countries} WHERE version > 0 ORDER BY country_name");
 
     $options = array();
     while ($country = db_fetch_object($result)) {
@@ -235,7 +235,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         '#type' => 'select',
         '#title' => $this->getFieldTitle(),
         '#options' => $options,
-        '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+        '#required' => $this->isFieldRequired(),
         '#default_value' => empty($default) ? uc_store_default_country() : $default,
       ),
     );

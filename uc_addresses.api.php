@@ -13,7 +13,7 @@
 
 /**
  * With this hook you can register new field handlers that can be
- * used with address edit forms.
+ * used by fields in address edit forms.
  *
  * A field handler is a class that extends UcAddressesFormFieldHandler.
  * The declaration of field handlers is based on the CTools plugin API.
@@ -257,7 +257,7 @@ function hook_uc_addresses_address_delete($address) {
 }
 
 /**
- * This hooks allows you to prevent a certain address from being viewed.
+ * This hook allows you to prevent a certain address from being viewed.
  *
  * Don't use this hook if you want to prevent viewing addresses for users
  * with a certain role. You can use the permission settings for that.
@@ -282,7 +282,7 @@ function hook_uc_addresses_may_view($address_user, $address) {
 }
 
 /**
- * This hooks allows you to prevent a certain address from being edited.
+ * This hook allows you to prevent a certain address from being edited.
  *
  * Don't use this hook if you want to prevent editing addresses for users
  * with a certain role. You can use the permission settings for that.
@@ -313,7 +313,7 @@ function hook_uc_addresses_may_edit($address_user, $address) {
 }
 
 /**
- * This hooks allows you to prevent a certain address from being deleted.
+ * This hook allows you to prevent a certain address from being deleted.
  *
  * Don't use this hook if you want to prevent deleting addresses for users
  * with a certain role. You can use the permission settings for that.

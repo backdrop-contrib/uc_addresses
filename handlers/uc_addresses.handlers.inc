@@ -28,7 +28,7 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
         '#title' => t('Save as'),
         '#description' => t('Enter a name for this address (e.g. Home or Work)'),
         '#default_value' => $default,
-        '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+        '#required' => $this->isFieldRequired(),
         '#maxlength' => 20,
       ),
     );
@@ -107,7 +107,7 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
           '#suffix' => $this->getProperty('suffix'),
           '#default_value' => $default,
           '#disabled' => $fieldValue,
-          '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+          '#required' => $this->isFieldRequired(),
         ),
       );
     }
@@ -188,7 +188,7 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
         '#type' => 'date',
         '#title' => $this->getFieldTitle(),
         '#default_value' => $default,
-        '#required' => ($form['#required'] === FALSE)? FALSE:$this->isFieldRequired(),
+        '#required' => $this->isFieldRequired(),
       ),
     );
   }
