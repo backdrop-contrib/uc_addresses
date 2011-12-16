@@ -96,7 +96,7 @@ abstract class UcAddressesFieldHandler {
    * @access protected
    * @return void
    */
-  protected function init() {}
+  protected function init() { }
 
   // -----------------------------------------------------------------------------
   // GETTERS
@@ -244,7 +244,7 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @return void
    */
-  public function validateValue(&$value) {}
+  public function validateValue(&$value) { }
 
   /**
    * Checks if field passes the context

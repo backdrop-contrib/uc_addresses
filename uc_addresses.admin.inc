@@ -51,7 +51,7 @@ function uc_addresses_settings_form() {
     '#summary callback' => 'summarize_checkbox',
     '#summary arguments' => array(
       t('Users can mark an address as default billing.'),
-      t('Users can not mark an addresses as default billing.'),
+      t('Users can not mark an address as default billing.'),
     ),
   );
   $form['uc_addresses']['uc_addresses_use_default_shipping'] = array(
@@ -62,7 +62,7 @@ function uc_addresses_settings_form() {
     '#summary callback' => 'summarize_checkbox',
     '#summary arguments' => array(
       t('Users can mark an address as default shipping.'),
-      t('Users can not mark an addresses as default shipping.'),
+      t('Users can not mark an address as default shipping.'),
     ),
   );
 
@@ -156,7 +156,7 @@ function uc_addresses_country_formats_page($country_id = NULL) {
   while ($country = db_fetch_object($result)) {
     $rows[] = array(
       l($country->country_name, $path . '/' . $country->country_id),
-      (variable_get('uc_addresses_address_format_' . $country->country_id, NULL)? t('Overridden'):t('Ubercart default')),
+      (variable_get('uc_addresses_address_format_' . $country->country_id, NULL) ? t('Overridden') : t('Ubercart default')),
     );
   }
 

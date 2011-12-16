@@ -21,7 +21,7 @@
  *   The themed address book.
  */
 function uc_addresses_address_book($address_user) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   drupal_set_title(t('Address book'));
 
   // Initialize addresses array used for in the template.
@@ -77,9 +77,15 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
     }
   }
 
+  // Setup odd/even for the other addresses
+  $count = 0;
+  foreach ($vars['other_addresses'] as $num => $row) {
+    $vars['row_classes'][$num][] = ($count++ % 2 == 0) ? 'odd' : 'even';
+  }
+
   // Setup admin links
   if ($vars['options']['add_link']) {
-    $vars['add_address_link'] = l(t('Add a new address'), 'user/'. $address_book->getUserId() .'/addresses/add', array('attributes' => array('class' => 'address-link add-address-link')));
+    $vars['add_address_link'] = l(t('Add a new address'), 'user/' . $address_book->getUserId() . '/addresses/add', array('attributes' => array('class' => 'address-link add-address-link')));
   }
 }
 
@@ -99,7 +105,7 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
  *   The themed address.
  */
 function uc_addresses_list_one_address($address_user, UcAddressesAddress $address, $options = array()) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
 
   if (UcAddressesPermissions::canViewAddress($address_user, $address)) {
     // Check if address may be edited too.
@@ -197,7 +203,7 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address) {
 
   $form['uc_addresses'] = array(
     '#type' => 'fieldset',
-    '#title' => ($address->isNew())? t('Add an address'):t('Edit address information'),
+    '#title' => ($address->isNew()) ? t('Add an address') : t('Edit address information'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -237,7 +243,7 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address) {
   // Add cancel link
   $form['cancel'] = array(
     '#type' => 'markup',
-    '#value' => l(t('Cancel'), 'user/'. $address_user->uid .'/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
+    '#value' => l(t('Cancel'), 'user/' . $address_user->uid . '/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
   );
 
   return $form;
@@ -283,13 +289,13 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
 
     if ($form_state['clicked_button']['#value'] == variable_get('uc_addresses_delete_button', t('Delete address'))) {
       unset($form_state['storage']); // Storage must be cleared or else the redirect does not work.
-      $form_state['redirect'] = 'user/'. $address->getUserId() .'/addresses/' . $address->getId() . '/delete';
+      $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses/' . $address->getId() . '/delete';
     }
     elseif ($form_state['clicked_button']['#value']) {
       $address->getAddressBook()->save();
-      drupal_set_message(t('Address saved'));
+      drupal_set_message(t('The address is saved.'));
       unset($form_state['storage']); // Storage must be cleared or else the redirect does not work.
-      $form_state['redirect'] = 'user/'. $address->getUserId() .'/addresses';
+      $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses';
     }
   }
   catch (Exception $e) {
@@ -308,7 +314,7 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
  * @ingroup themeable
  */
 function theme_uc_addresses_get_address_form($form) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   return drupal_render($form);
 }
 
@@ -322,7 +328,7 @@ function theme_uc_addresses_get_address_form($form) {
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_pane(&$vars) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   $vars['req'] = '<span class="form-required">*</span>';
 }
 
@@ -377,9 +383,9 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
  * @todo Move to template?
  */
 function theme_uc_addresses_address_delete_confirm($help, $form) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') .'/uc_addresses.css');
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
 
-  $output = '<p>'. $help .'</p>';
+  $output = '<p>' . $help . '</p>';
   $output .= $form;
   return $output;
 }
@@ -411,7 +417,7 @@ function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, U
   return confirm_form(
     $form,
     t('Delete address'),
-      'user/'. $address_user->uid .'/addresses/',
+      'user/' . $address_user->uid . '/addresses/',
     (string) $address,
     variable_get('uc_addresses_delete_button', t('Delete address')),
     t('Cancel')
@@ -446,5 +452,5 @@ function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
     drupal_set_message($e->getMessage(), 'error');
   }
 
-  $form_state['redirect'] = array('user/'. $address_user->uid .'/addresses');
+  $form_state['redirect'] = array('user/' . $address_user->uid . '/addresses');
 }

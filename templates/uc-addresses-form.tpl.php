@@ -16,7 +16,7 @@
 <div class="address-pane-table">
   <table>
     <?php foreach (element_children($form) as $fieldname): ?>
-      <?php if ($form[$fieldname]['#access'] !== FALSE): ?>
+      <?php if (!isset($form[$fieldname]['#access']) || $form[$fieldname]['#access'] !== FALSE): ?>
         <tr class="field-<?php print $fieldname; ?>">
           <?php if ($form[$fieldname]['#title']): ?>
             <td class="field-label">

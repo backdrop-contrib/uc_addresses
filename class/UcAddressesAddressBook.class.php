@@ -125,7 +125,7 @@ class UcAddressesAddressBook {
    * @access private
    * @return void
    */
-  private function __clone() {}
+  private function __clone() { }
 
   /**
    * Returns address book for the given user

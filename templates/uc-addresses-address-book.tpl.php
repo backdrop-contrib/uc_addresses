@@ -14,6 +14,8 @@
  *   billing address.
  * - $other_addresses: An array of addresses of the user that are not a default
  *   address themed with theme_uc_addresses_list_address().
+ * - $row_classes: An array of classes to apply to each row, indexed by address ID.
+ *   This matches the index in $other_addresses.
  * - $add_address_link: Link for adding a new address, only exists if
  *   $options['add_link'] is TRUE.
  *
@@ -54,7 +56,7 @@
           <h2><?php print t('Other addresses'); ?></h2>
           <ol>
           <?php foreach ($other_addresses as $aid => $address): ?>
-            <li class="address-item">
+            <li class="address-item <?php print implode(' ', $row_classes[$aid]); ?>">
               <?php print $address; ?>
             </li>
           <?php endforeach; ?>
@@ -68,7 +70,7 @@
           <h2><?php print t('Addresses'); ?></h2>
           <ol>
           <?php foreach ($other_addresses as $aid => $address): ?>
-            <li class="address-item">
+            <li class="address-item <?php print implode(' ', $row_classes[$aid]); ?>">
               <?php print $address; ?>
             </li>
           <?php endforeach; ?>

@@ -24,7 +24,7 @@
  * @return array
  */
 function hook_uc_addresses_field_handlers() {
-  $path = drupal_get_path('module', 'mymodule') .'/handlers';
+  $path = drupal_get_path('module', 'mymodule') . '/handlers';
   $info = array();
 
   $info['MyCustomFieldHandler'] = array(
@@ -91,7 +91,7 @@ function hook_uc_addresses_fields() {
         'order_view' => TRUE, // Display on order view pages
       ),
       'compare' => TRUE, // Field is used in address comparisons
-    );
+    ),
   );
 }
 

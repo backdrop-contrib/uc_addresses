@@ -150,6 +150,7 @@ function uc_addresses_update_6200() {
       'type' => 'int',
       'size' => 'tiny',
       'not null' => TRUE,
+      'default' => 0,
     )
   );
   db_add_field($ret, 'uc_addresses', 'default_billing', array(
@@ -157,6 +158,7 @@ function uc_addresses_update_6200() {
       'type' => 'int',
       'size' => 'tiny',
       'not null' => TRUE,
+      'default' => 0,
     )
   );
 

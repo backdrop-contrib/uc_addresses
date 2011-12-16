@@ -20,7 +20,7 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
 
     return array(
       $fieldName => array(
@@ -93,7 +93,7 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
     $default_type = $this->getProperty('default_type');
 
     // Check if user already has a default address of type $type
@@ -171,7 +171,7 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
     if (is_numeric($default)) {
       $default = array(
         'hour' => date('H', $default),
@@ -237,6 +237,16 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
+   * Returns an array of output formats for the date field.
+   *
+   * @access public
+   * @return array
+   */
+  public function getOutputFormats() {
+    return token_get_date_token_info($this->getProperty('description') . ',', $this->getFieldName() . '-');
+  }
+
+  /**
    * Output a fields value
    *
    * @param mixed $value
@@ -249,10 +259,17 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
    * @see getOutputFormats()
    */
   public function outputValue($value = '', $format = '') {
+    static $values = array();
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }
-    return format_date($value);
+    if (isset($values[$value][$format])) {
+      return $values[$value][$format];
+    }
+    $values[$value] = token_get_date_token_values($value, $this->getFieldName() . '-');
+    if (isset($values[$value][$format])) {
+      return $values[$value][$format];
+    }
   }
 }
 
@@ -272,7 +289,7 @@ class UcAddressesHiddenFieldHandler extends UcAddressesFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
 
     return array(
       $fieldName => array(

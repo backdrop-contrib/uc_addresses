@@ -178,7 +178,7 @@ function uc_addresses_apply_address(type, address_str) {
 
       if (fieldname != 'country' && fieldname != 'zone' && address[fieldname] != undefined) {
         if (this.type == 'checkbox') {
-          $(this).attr('checked', (address[fieldname] == 1)? true:false).trigger('change');
+          $(this).attr('checked', (address[fieldname] == 1) ? true : false).trigger('change');
         }
         else {
           $(this).val(address[fieldname]).trigger('change');

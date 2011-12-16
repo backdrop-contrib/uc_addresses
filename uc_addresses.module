@@ -44,13 +44,12 @@ spl_autoload_register('uc_addresses_load_class');
  * @param array $arg
  *
  * @return string
- * @todo Add help text for country format settings
  */
 function uc_addresses_help($path, $arg = array()) {
   global $user;
   switch ($path) {
     case 'admin/help#uc_addresses':
-      $output = '<p>' . t("The Ubercart Addresses module adds an address book to the user's profile. In the address book users can manage their addresses: add new addresses and edit or delete existing addresses. One address must be designated as the default billing address and one must be designated as the default shipping address. This may be the same address. The default addresses cannot be deleted (but they can be edited).") . '</p>';
+      $output = '<p>' . t("The Ubercart Addresses module adds an address book to the user's profile. In the address book users can manage their addresses: add new addresses and edit or delete existing addresses. One address must be designated as the default billing address and one address must be designated as the default shipping address. This may be the same address. The default addresses cannot be deleted (but they can be edited).") . '</p>';
       $output .= '<p>' . t("The module changes the way Ubercart handles addresses. By default, Ubercart looks at a customer's previous orders and finds all unique addresses. It displays these in a select box, using the Street Address as a label. A customer who has registered but never ordered will have no contact information other than an e-mail address.") . '</p>';
 
       $output .= '<h2>' . t('Module overview') . '</h2>';
@@ -58,7 +57,7 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<h3>' . t('Address book') . '</h3>';
       $output .= '<p>' . t('When users visit their <a href="!my-account-link">!my-account-page-title</a> page, a new tab will be present: <a href="!address-book-link">!address-book-page-title</a>. They will be able to:', array('!my-account-link' => url('user/' . $user->uid), '!my-account-page-title' => t('My account'), '!address-book-link' => url('user/' . $user->uid . '/addresses'), '!address-book-page-title' => t('Address book'))) . '</p>';
       $output .= '<ul>';
-      $output .= '<li>' . t('Add a new address') . '</li>';
+      $output .= '<li>' . t('Add new addresses') . '</li>';
       $output .= '<li>' . t('Edit an existing address') . '</li>';
       $output .= '<li>' . t('Mark one address as their default shipping address') . '</li>';
       $output .= '<li>' . t('Mark one address as their default billing address') . '</li>';
@@ -69,8 +68,8 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<h3>' . t('Checkout') . '</h3>';
       $output .= '<p>' . t('When placing an order, users will be able to:') . '</p>';
       $output .= '<ul>';
-      $output .= '<li>' . t('Select an address from the set that appears in their profile') . '</li>';
-      $output .= '<li>' . t('Modify the address for the order and save it as another address in their profile') . '</li>';
+      $output .= '<li>' . t('Select an address from their address book') . '</li>';
+      $output .= '<li>' . t('Modify the address for the order and save it as another address in their address book') . '</li>';
       $output .= '</ul>';
       $output .= '<p>' . t('The delivery and billing addresses can be prefilled with the customer\'s default shipping and default billing addresses. This is the default behaviour. You can change this behaviour at the <a href="!address-settings-link">!address-settings-page-title</a> page.', array('!address-settings-link' => url('admin/store/settings/addresses'), '!address-settings-page-title' => t('Address settings'))) . '</p>';
       $output .= '<p>' . t("Instead of selecting an address by street name, the selector will display the address's nickname or else the entire address: Name, street1, street2, city, etc.") . '</p>';
@@ -89,8 +88,8 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<p>' . t('The following changes are made to Drupal and Ubercart to provide the functionality:') . '</p>';
       $output .= '<ul>';
       $output .= '<li>' . t('A tab called <a href="!address-book-link">!address-book-page-title</a> is added to the <a href="!my-account-link">user\'s profile</a>.', array('!my-account-link' => url('user/' . $user->uid), '!address-book-link' => url('user/' . $user->uid . '/addresses'), '!address-book-page-title' => t('Address book'))) . '</li>';
-      $output .= '<li>' . t('The delivery and billing checkout panes provided by Ubercart are overriden.') . '</li>';
-      $output .= '<li>' . t('The "ship to" and "bill to" order panes provided by Ubercart are overriden.') . '</li>';
+      $output .= '<li>' . t('The delivery and billing checkout panes provided by Ubercart are overridden.') . '</li>';
+      $output .= '<li>' . t('The "ship to" and "bill to" order panes provided by Ubercart are overridden.') . '</li>';
       $output .= '<li>' . t('Delivery and billing addresses are formatted with Ubercart Addresses address formats.') . '</li>';
       $output .= '<li>' . t('On the user register form an address form is present.') . '</li>';
       $output .= '<li>' . t('A page to <a href="!address-settings-link">configure the module</a> is added.', array('!address-settings-link' => url('admin/store/settings/addresses'))) . '</li>';
@@ -112,7 +111,7 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<dt>' . t('view own default addresses') . '</dt>';
       $output .= '<dd>' . t('Roles with this permission can view their own default addresses in their address book.') . '</dd>';
       $output .= '<dt>' . t('view own addresses') . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can view all own addresses in their address book, <em>including</em> the default addresses.') . '</dd>';
+      $output .= '<dd>' . t('Roles with this permission can view all own addresses in their address book, <em>including</em> their default addresses.') . '</dd>';
       $output .= '<dt>' . t("view everyone's default addresses") . '</dt>';
       $output .= '<dd>' . t('Roles with this permission can view all default addresses of all users, <em>including</em> their own default addresses.') . '</dd>';
       $output .= '<dt>' . t("view everyone's addresses") . '</dt>';
@@ -420,7 +419,7 @@ function uc_addresses_process_address_field(&$element, $form_state) {
   if ($prefix) {
     foreach ($values as $fieldname => $fieldvalue) {
       if (strpos($fieldname, $prefix) === 0) {
-        $fixed_fieldname = substr($fieldname, drupal_strlen($prefix));
+        $fixed_fieldname = drupal_substr($fieldname, drupal_strlen($prefix));
         $values[$fixed_fieldname] = $fieldvalue;
         unset($values[$fieldname]);
       }
@@ -441,6 +440,14 @@ function uc_addresses_process_address_field(&$element, $form_state) {
   if ($element['#uc_addresses_required'] === FALSE) {
     foreach (element_children($element) as $fieldname) {
       $element[$fieldname]['#required'] = FALSE;
+    }
+  }
+  // Change the requirement setting for some fields if property "uc_addresses_required" is an array.
+  elseif (is_array($element['#uc_addresses_required'])) {
+    foreach ($element['#uc_addresses_required'] as $fieldname => $required) {
+      if (isset($element[$fieldname])) {
+        $element[$fieldname]['#required'] = ($required) ? TRUE : FALSE;
+      }
     }
   }
 
@@ -730,6 +737,10 @@ function uc_addresses_get_address_fields() {
       if (!isset($fielddata['title'])) {
         $fields[$fieldname]['title'] = check_plain($fieldname);
       }
+      // Add description if not set.
+      if (!isset($fielddata['description'])) {
+        $fields[$fieldname]['description'] = '';
+      }
       // Add display settings array
       if (!isset($fielddata['display_settings'])) {
         $fields[$fieldname]['display_settings'] = array();
@@ -915,10 +926,10 @@ function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state
   $select = uc_addresses_select_address($uid, 'order_form', $type);
 
   if ($uid == 0) {
-    $form['desc'] = array('#value' => '<br />'. t('You must select a customer before address<br />information is available.<br />') .'<br />');
+    $form['desc'] = array('#value' => '<br />' . t('You must select a customer before address<br />information is available.<br />') . '<br />');
   }
   elseif (is_null($select)) {
-    $form['desc'] = array('#value' => '<br />'. t('No addresses found for customer.') .'<br />');
+    $form['desc'] = array('#value' => '<br />' . t('No addresses found for customer.') . '<br />');
     $form['addresses']['#access'] = FALSE;
   }
   else {

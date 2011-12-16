@@ -376,6 +376,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       $address->modified = time();
       $address->uid = $this->getUserId();
       if ($address->aid < 0) {
+        unset($address->aid);
         $address->created = time();
         $result = drupal_write_record('uc_addresses', $address);
         $hook = 'uc_addresses_address_insert';
@@ -435,12 +436,12 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
         break;
       case 'shipping':
       case 'default_shipping':
-        $this->getSchemaAddress()->default_shipping = ($value) ? TRUE:FALSE;;
+        $this->getSchemaAddress()->default_shipping = ($value) ? TRUE : FALSE;
         break;
       case 'billing':
       case 'default_billing':
-        $this->getSchemaAddress()->default_billing = ($value) ? TRUE:FALSE;;
-      break;
+        $this->getSchemaAddress()->default_billing = ($value) ? TRUE : FALSE;
+        break;
     }
     $this->setDirty();
   }

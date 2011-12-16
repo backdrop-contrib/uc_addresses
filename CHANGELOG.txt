@@ -1,4 +1,18 @@
-Ubercart Addresses 6.x-2.x, xxxx-xx-xx
+Ubercart Addresses 6.x-2.0-alpha1, 2011-12-16
+- by MegaChriz: little correction in upgrade script.
+- Issue #1368162 by MegaChriz: added odd/even classes for "other addresses"
+  in the address book.
+- by MegaChriz: the property '#uc_addresses_required' of the
+  uc_addresses_address now accept arrays, the required-setting of address
+  fields can now be overridden before the uc_addresses_address element
+  is processed.
+- by MegaChriz: added date tokens for "created" and "modified".
+- by MegaChriz: minor coding standards fixes.
+- by MegaChriz: minor text strings fixes.
+- by MegaChriz: added descriptions for address fields.
+
+Ubercart Addresses 6.x-2.x-dev, 2011-11-25
+------------------------------
 - by MegaChriz: removed unused functions uc_addresses_get_field_handlers()
   and uc_addresses_compare().
 - by MegaChriz: replaced property '#required' in the uc_addresses_address
@@ -12,12 +26,13 @@ Ubercart Addresses 6.x-2.x, xxxx-xx-xx
   form.
 - by MegaChriz: other minor changes.
 
-Ubercart Addresses 6.x-2.x, 2011-11-04
+Ubercart Addresses 6.x-2.x-dev, 2011-11-04
+------------------------------
 - by MegaChriz: fixed PHP foreach warning on checkout page (forgot to test
   anonymous checkout).
 - by MegaChriz: fixed minor bugs in the API.
 
-Ubercart Addresses 6.x-2.x, 2011-10-31
+Ubercart Addresses 6.x-2.x-dev, 2011-10-31
 ------------------------------
 - Issue #1327148 by MegaChriz: fixed a bug that could result in a fatal
   error when trying to save an user with no addresses.
@@ -33,7 +48,7 @@ Ubercart Addresses 6.x-2.x, 2011-10-31
   - hook_uc_addresses_select_addresses_alter()
 - by MegaChriz: added help via hook_help().
 
-Ubercart Addresses 6.x-2.x, 2011-10-16
+Ubercart Addresses 6.x-2.x-dev, 2011-10-16
 ------------------------------
 - Issue #660376 by MegaChriz: Implemented user tokens for default
   addresses.

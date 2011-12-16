@@ -64,7 +64,7 @@ class UcAddressesUcTextFieldHandler extends UcAddressesUcFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
 
     return array(
       $fieldName => array(
@@ -94,8 +94,8 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
-    $country_id = (isset($form_values['country']))? $form_values['country']:$this->getAddress()->getField('country');
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
+    $country_id = (isset($form_values['country'])) ? $form_values['country'] : $this->getAddress()->getField('country');
 
     if (empty($country_id)) {
       $country_id = uc_store_default_country();
@@ -105,7 +105,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
 
     $options[''] = t('Please select');
     while ($zone = db_fetch_object($result)) {
-      $options[$zone->zone_id] = ($display == 'code') ? $zone->zone_code : $zone->zone_name;
+      $options[$zone->zone_id] = $zone->zone_name;
     }
 
     if (count($options) == 1) {
@@ -206,7 +206,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
     $fieldValue = $this->getAddress()->getField($fieldName);
-    $default = (isset($form_values[$fieldName]))? $form_values[$fieldName]:$fieldValue;
+    $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
 
     $result = db_query("SELECT * FROM {uc_countries} WHERE version > 0 ORDER BY country_name");
 

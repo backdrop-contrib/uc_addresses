@@ -64,7 +64,7 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
     $other_type = 'delivery';
     $uc_type = 'billing';
   }
-  $copy_address_title = ($type == 'shipping')? t('My delivery information is the same as my billing information.'):t('My billing information is the same as my delivery information.');
+  $copy_address_title = ($type == 'shipping') ? t('My delivery information is the same as my billing information.') : t('My billing information is the same as my delivery information.');
 
   switch ($op) {
     case 'view':
@@ -127,7 +127,7 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
             'onclick' => "uc_addresses_copy_address_checkout(this.checked, '$other_type', '$uc_type');",
           ),
           '#weight' => -5,
-          '#default_value' => ($address->copy_address)? TRUE:FALSE,
+          '#default_value' => ($address->copy_address) ? TRUE : FALSE,
         );
       }
 
@@ -135,12 +135,12 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
       if ($select = uc_addresses_select_address($user->uid, 'checkout_form', $uc_type, $form['uc_addresses_address']['#value'])) {
         $description =
           (
-            ($auto_fill_address)?
+            ($auto_fill_address) ?
             t('Edit the address below or select an address from the list.') :
             t('Enter an address below or select an address from the list.')
           )
           . ' '
-          . t('Go to your <a href="@address-book">address book</a> to manage your saved addresses.', array('@address-book' => url('user/'. $user->uid . '/addresses')))
+          . t('Go to your <a href="@address-book">address book</a> to manage your saved addresses.', array('@address-book' => url('user/' . $user->uid . '/addresses')))
         ;
         $form['addresses']['#title'] = t('Saved addresses');
         $form[$uc_type]['addressbook'] = $select;
@@ -309,11 +309,11 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
           $copy_text = t("Copy shipping information.");
           break;
       }
-      $output = ' <img src="'. base_path() . drupal_get_path('module', 'uc_store')
-        . '/images/address_book.gif" alt="'. t('Select from address book.') .'" '
+      $output = ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
+        . '/images/address_book.gif" alt="' . t('Select from address book.') . '" '
         . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $order['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
         . 'style="position: relative; top: 2px; cursor: pointer;" />';
-      $output .= ' <img src="'. base_path() . drupal_get_path('module', 'uc_store')
+      $output .= ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
         . '/images/copy.gif" alt="' . $copy_text . '" title="'
         . $copy_text . '" onclick="uc_addresses_copy_address_order(\'' . $other_type . '\', \'' . $uc_type . '\');" '
         . 'style="position: relative; top: 2px; cursor: pointer;" />';
@@ -334,7 +334,7 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
         $order_values[$key] = $value;
 
         // Check if the value was changed
-        $fieldname = substr($key, strlen($uc_type)+ 1);
+        $fieldname = substr($key, strlen($uc_type) + 1);
         try {
           if ($address->getField($fieldname) != $value) {
             $changes[$key] = $value;
