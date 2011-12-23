@@ -2,6 +2,7 @@ Ubercart Addresses 6.x-2.x, xxxx-xx-xx
 ------------------------------
 - Issue #1381120 by MegaChriz: fixed foreach warning in address book when
   user has no addresses.
+- Issue #1382088 by MegaChriz: added automated tests.
 
 Ubercart Addresses 6.x-2.0-alpha1, 2011-12-16
 ------------------------------

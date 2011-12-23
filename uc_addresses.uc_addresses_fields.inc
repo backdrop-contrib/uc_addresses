@@ -292,7 +292,7 @@ function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
         // Skip unsaved addresses
         continue;
       }
-      if (!UcAddressesPermissions::canViewAddress($address->getUserId(), $address)) {
+      if (!UcAddressesPermissions::canViewAddress(user_load($address->getUserId()), $address)) {
         // Skip addresses that the currently logged in user may not view.
         continue;
       }

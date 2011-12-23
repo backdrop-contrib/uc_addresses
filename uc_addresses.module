@@ -1101,7 +1101,9 @@ function uc_addresses_theme() {
       'arguments' => array(
         'addresses' => array(),
         'address_book' => new stdClass(),
-        'options' => array('add_link' => FALSE),
+        'options' => array(
+          'add_link' => FALSE
+        ),
       ),
       'template' => 'templates/uc-addresses-address-book',
       'file' => 'uc_addresses.pages.inc',

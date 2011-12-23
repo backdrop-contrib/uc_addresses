@@ -18,7 +18,7 @@
     <?php foreach (element_children($form) as $fieldname): ?>
       <?php if (!isset($form[$fieldname]['#access']) || $form[$fieldname]['#access'] !== FALSE): ?>
         <tr class="field-<?php print $fieldname; ?>">
-          <?php if ($form[$fieldname]['#title']): ?>
+          <?php if (isset($form[$fieldname]['#title']) && $form[$fieldname]['#title']): ?>
             <td class="field-label">
               <?php if ($form[$fieldname]['#required']): ?>
                 <?php print $req; ?>

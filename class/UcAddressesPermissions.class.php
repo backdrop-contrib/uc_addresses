@@ -81,8 +81,9 @@ class UcAddressesPermissions {
    *
    * @param object $address_user
    *   User object
-   * @param UcAddressesAddress
-   *   The address object, optional
+   * @param UcAddressesAddress|NULL $address
+   *   (optional) The address object
+   *
    * @access public
    * @static
    * @return boolean
