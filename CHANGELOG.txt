@@ -1,4 +1,10 @@
+Ubercart Addresses 6.x-2.x, xxxx-xx-xx
+------------------------------
+- Issue #1381120 by MegaChriz: fixed foreach warning in address book when
+  user has no addresses.
+
 Ubercart Addresses 6.x-2.0-alpha1, 2011-12-16
+------------------------------
 - by MegaChriz: little correction in upgrade script.
 - Issue #1368162 by MegaChriz: added odd/even classes for "other addresses"
   in the address book.

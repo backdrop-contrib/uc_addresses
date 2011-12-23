@@ -63,6 +63,9 @@ function uc_addresses_address_book($address_user) {
 function template_preprocess_uc_addresses_address_book(&$vars) {
   // Find out which addresses are default addresses and which are not.
   $address_book = $vars['address_book'];
+  $vars['other_addresses'] = array();
+  $vars['default_billing_address'] = NULL;
+  $vars['default_shipping_address'] = NULL;
   foreach ($vars['addresses'] as $aid => $themed_address) {
     if ($address_object = $address_book->getAddressById($aid)) {
       $vars['other_addresses'][$aid] = $themed_address;
