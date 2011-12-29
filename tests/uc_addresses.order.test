@@ -6,8 +6,6 @@
 
 // Ensure UcAddressesTestCase is available.
 require_once 'UcAddressesTestCase.class.php';
-// Ensure UbercartOrderTestCase is available.
-module_load_include('test', 'uc_order', 'uc_order');
 
 /**
  * Test cases order administration.

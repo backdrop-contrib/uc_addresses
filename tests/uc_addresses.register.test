@@ -38,7 +38,7 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $this->drupalGet('user/register');
 
     $address_name = $this->randomName();
-    $values = $this->getEditAddressValues(array('address'), array('address_name' => $address_name), 'register');
+    $values = $this->getEditAddressValues(array(), array('address_name' => $address_name), 'register');
     $edit = $values['form_values'];
     $edit['name'] = $name = $this->randomName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
@@ -46,7 +46,7 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $edit['pass[pass2]'] = $new_pass;
     $this->drupalPost(NULL, $edit, t('Create new account'));
 
-    $uid = db_result(db_query("SELECT uid FROM {users} WHERE name = '%s' AND mail = '%s'", $name, $mail));
+    $uid = db_query("SELECT uid FROM {users} WHERE name = :name AND mail = :mail", array(':name' => $name, ':mail' => $mail))->fetchField();
     $new_user = user_load($uid);
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
 

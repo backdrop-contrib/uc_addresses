@@ -36,8 +36,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
     UcAddressesAddressBook::get($account->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
     // Check if this user has any addresses, if not create one.
-    $query = "SELECT COUNT(aid) FROM {uc_addresses} WHERE uid=%d";
-    $number_of_addresses = db_result(db_query($query, $account->uid));
+    $number_of_addresses = db_query("SELECT COUNT(aid) FROM {uc_addresses} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
     if ($number_of_addresses < 1) {
       $this->drupalLogin($this->adminUser);
       $this->viewAddressBook($this->adminUser, TRUE);
@@ -101,7 +100,9 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
 
     // Setup
     $this->drupalLogin($this->adminUser);
-    db_query("DELETE FROM {uc_addresses} WHERE uid = %d", $this->basicUser->uid);
+    db_delete('uc_addresses')
+      ->condition('uid', $this->basicUser->uid)
+      ->execute();
     // Create an address named 'temp_name'.
     $temp_name_aid = $this->createAddress($this->basicUser, TRUE, array('address_name' => 'temp_name'));
     // Create default billing/shipping addresses.

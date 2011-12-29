@@ -35,4 +35,4 @@
     <?php endforeach; ?>
   </table>
 </div>
-<div class="address-form-bottom"><?php print drupal_render($form); ?></div>
+<div class="address-form-bottom"><?php print drupal_render_children($form); ?></div>

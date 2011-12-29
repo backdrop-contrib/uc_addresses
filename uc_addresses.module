@@ -29,16 +29,13 @@
  *
  * @ingroup uc_addresses
  */
-
-// Register autoloader
-spl_autoload_register('uc_addresses_load_class');
-
+ 
 // -----------------------------------------------------------------------------
 // DRUPAL HOOKS
 // -----------------------------------------------------------------------------
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  *
  * @param string $path
  * @param array $arg
@@ -106,24 +103,6 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<p>' . t('Address format example:') . '</p>';
       $output .= "<code>[uc_addresses_company]<br />[uc_addresses_first_name] [uc_addresses_last_name]<br />[uc_addresses_street1]<br />[uc_addresses_street2]<br />[uc_addresses_city], [uc_addresses_zone_code] [uc_addresses_postal_code]<br />[uc_addresses_country_name_if]</code>";
       $output .= '<p>' . t('Configure the address formats for Ubercart Addresses at the <a href="!uc-addresses-country-settings-link">!uc-addresses-country-settings-page-title</a> page.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/edit/uc_addresses_formats'), '!uc-addresses-country-settings-page-title' => t('Ubercart Addresses country formats'))) . '</p>';
-
-      $output .= '<h2>' . t('Permissions') . '</h2>';
-      $output .= '<dt>' . t('view own default addresses') . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can view their own default addresses in their address book.') . '</dd>';
-      $output .= '<dt>' . t('view own addresses') . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can view all own addresses in their address book, <em>including</em> their default addresses.') . '</dd>';
-      $output .= '<dt>' . t("view everyone's default addresses") . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can view all default addresses of all users, <em>including</em> their own default addresses.') . '</dd>';
-      $output .= '<dt>' . t("view everyone's addresses") . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can view all addresses of all users, including addresses of their own.') . '</dd>';
-      $output .= '<dt>' . t('add/edit own addresses') . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can add addresses to their own address book and edit own addresses. They are also able to view their own addresses.') . '</dd>';
-      $output .= '<dt>' . t("add/edit everyone's addresses") . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can add addresses to address books of any user and edit addresses of all users. They are also be able to view all addresses.') . '</dd>';
-      $output .= '<dt>' . t('delete own addresses') . '</dt>';
-      $output .= '<dd>' . t("Roles with this permission can delete own addresses that are not marked as the default shipping or the default billing address. (Ubercart Addresses doesn't allow anyone to delete default addresses, including the superuser. This is by design.)") . '</dd>';
-      $output .= '<dt>' . t("delete everyone's addresses") . '</dt>';
-      $output .= '<dd>' . t('Roles with this permission can delete all addresses of all users, except addresses that are marked as default shipping or default billing.') . '</dd>';
       return $output;
 
     case 'admin/store/settings/addresses/edit':
@@ -142,7 +121,7 @@ function uc_addresses_help($path, $arg = array()) {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  *
  * @return array
  */
@@ -155,16 +134,16 @@ function uc_addresses_menu() {
     'description' => 'Manage your addresses',
     'page callback' => 'uc_addresses_address_book',
     'page arguments' => array(1, NULL),
-    'access callback' => 'UcAddressesPermissions::canViewAddress',
-    'access arguments' => array(1),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canViewAddress', 1),
     'type' => MENU_LOCAL_TASK,
     'file' => 'uc_addresses.pages.inc',
   );
   $items['user/%user_uid_optional/addresses/list'] = array(
     'title' => 'Address list',
     'description' => 'Manage your addresses',
-    'access callback' => 'UcAddressesPermissions::canViewAddress',
-    'access arguments' => array(1),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canViewAddress', 1),
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
@@ -173,8 +152,8 @@ function uc_addresses_menu() {
     'description' => 'Add a new address.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('uc_addresses_get_address_form', 1, NULL),
-    'access callback' => 'UcAddressesPermissions::canEditAddress',
-    'access arguments' => array(1),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canEditAddress', 1),
     'type' => MENU_LOCAL_TASK,
     'weight' => 3,
     'file' => 'uc_addresses.pages.inc',
@@ -185,8 +164,8 @@ function uc_addresses_menu() {
     'load arguments' => array(1),
     'page callback' => 'uc_addresses_list_one_address',
     'page arguments' => array(1, 3),
-    'access callback' => 'UcAddressesPermissions::canViewAddress',
-    'access arguments' => array(1, 3),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canViewAddress', 1, 3),
     'type' => MENU_CALLBACK,
     'file' => 'uc_addresses.pages.inc',
   );
@@ -195,8 +174,8 @@ function uc_addresses_menu() {
     'load arguments' => array(1),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('uc_addresses_get_address_form', 1, 3),
-    'access callback' => 'UcAddressesPermissions::canEditAddress',
-    'access arguments' => array(1, 3),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canEditAddress', 1, 3),
     'type' => MENU_CALLBACK,
     'file' => 'uc_addresses.pages.inc',
   );
@@ -205,8 +184,8 @@ function uc_addresses_menu() {
     'load arguments' => array(1),
     'page callback' => 'uc_addresses_delete_address_confirm',
     'page arguments' => array(1, 3),
-    'access callback' => 'UcAddressesPermissions::canDeleteAddress',
-    'access arguments' => array(1, 3),
+    'access callback' => 'uc_addresses_access',
+    'access arguments' => array('canDeleteAddress', 1, 3),
     'type' => MENU_CALLBACK,
     'file' => 'uc_addresses.pages.inc',
   );
@@ -215,30 +194,15 @@ function uc_addresses_menu() {
   $items['admin/store/settings/addresses'] = array(
     'title' => 'Address settings',
     'description' => 'Configure the address settings.',
-    'page callback' => 'uc_addresses_settings_overview',
-    'access arguments' => array('administer store'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'uc_addresses.admin.inc',
-  );
-  $items['admin/store/settings/addresses/overview'] = array(
-    'title' => 'Overview',
-    'access arguments' => array('administer store'),
-    'description' => 'View the address settings.',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-  $items['admin/store/settings/addresses/edit'] = array(
-    'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('uc_addresses_settings_form'),
     'access arguments' => array('administer store'),
-    'description' => 'Edit the address settings.',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_NORMAL_ITEM,
     'weight' => -5,
     'file' => 'uc_addresses.admin.inc',
   );
-  $items['admin/store/settings/countries/edit/uc_addresses_formats'] = array(
-    'title' => 'Ubercart Addresses country formats',
+  $items['admin/store/settings/countries/uc_addresses_formats'] = array(
+    'title' => 'Ubercart Addresses address formats',
     'description' => 'Edit the country specific format settings for Ubercart Addresses.',
     'page callback' => 'uc_addresses_country_formats_page',
     'access arguments' => array('administer store'),
@@ -251,87 +215,74 @@ function uc_addresses_menu() {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  * @return array
  */
-function uc_addresses_perm() {
+function uc_addresses_permission() {
   return array(
-    'view own default addresses',
-    'view own addresses',
-    "view everyone's default addresses",
-    "view everyone's addresses",
-    'add/edit own addresses',
-    "add/edit everyone's addresses",
-    'delete own addresses',
-    "delete everyone's addresses",
+    'view own default addresses' => array(
+      'title' => t('view own default addresses'),
+      'description' => t('Roles with this permission can view their own default addresses in their address book.'),
+    ),
+    'view own addresses' => array(
+      'title' => t('view own addresses'),
+      'description' => t('Roles with this permission can view all own addresses in their address book, <em>including</em> their default addresses.'),
+    ),
+    "view everyone's default addresses" => array(
+      'title' => t("view everyone's default addresses"),
+      'description' => t('Roles with this permission can view all default addresses of all users, <em>including</em> their own default addresses.'),
+    ),
+    "view everyone's addresses" => array(
+      'title' => t("view everyone's addresses"),
+      'description' => t('Roles with this permission can view all addresses of all users, including addresses of their own.'),
+    ),
+    'add/edit own addresses' => array(
+      'title' => t('add/edit own addresses'),
+      'description' => t('Roles with this permission can add addresses to their own address book and edit own addresses. They are also able to view their own addresses.'),
+    ),
+    "add/edit everyone's addresses" => array(
+      'title' => t("add/edit everyone's addresses"),
+      'description' => t('Roles with this permission can add addresses to address books of any user and edit addresses of all users. They are also be able to view all addresses.'),
+    ),
+    'delete own addresses' => array(
+      'title' => t('delete own addresses'),
+      'description' => t("Roles with this permission can delete own addresses that are not marked as the default shipping or the default billing address. (Ubercart Addresses doesn't allow anyone to delete default addresses, including the superuser. This is by design.)"),
+    ),
+    "delete everyone's addresses" => array(
+      'title' => t("delete everyone's addresses"),
+      'description' => t('Roles with this permission can delete all addresses of all users, except addresses that are marked as default shipping or default billing.'),
+    ),
   );
 }
 
 /**
- * Implementation of hook_user().
- *
- * @param string $op
- *   The action being performed.
- * @param array $edit
- *   Form values submitted by the user.
- * @param object $account
- *   The user on which the operation is being performed.
- * @param string $category
- *   The active category of user information being edited.
- *
- * @return
- *   A form array in case the operation is 'register'.
- *   void otherwise.
+ * Implements hook_user_insert().
  */
-function uc_addresses_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'register':
-      // Check if we need to ask for an address upon registering
-      if (user_access('administer users')) {
-        // User is admin
-        $require_address = variable_get('uc_addresses_require_address_admin', TRUE);
-      }
-      else {
-        $require_address = variable_get('uc_addresses_require_address', TRUE);
-      }
-
-      if ($require_address) {
-        $address = UcAddressesAddressBook::newAddress();
-        $form['uc_addresses'] = array(
-          '#type' => 'fieldset',
-          '#title' => t('Address'),
-        );
-        $form['uc_addresses']['address'] = array(
-          '#type' => 'uc_addresses_address',
-          '#uc_addresses_address' => $address,
-          '#uc_addresses_context' => 'register',
-        );
-        $form['uc_addresses']['uc_addresses_address'] = array(
-          '#type' => 'value',
-          '#value' => $address,
-        );
-        return $form;
-      }
-      break;
-    case 'insert':
-      // Save the address the user entered during registering.
-      if (isset($edit['uc_addresses_address']) && $edit['uc_addresses_address'] instanceof UcAddressesAddress) {
-        $address = $edit['uc_addresses_address'];
-        $address->setOwner($account->uid);
-        // Mark this address as both the default shipping and billing address.
-        $address->setAsDefault('shipping');
-        $address->setAsDefault('billing');
-        $address->save();
-        // Unset address from $edit to prevent it from being saved as user data in the user table.
-        unset($edit['address']);
-        unset($edit['uc_addresses_address']);
-      }
-      return;
-    case 'delete':
-      // We're deleting the user, so delete all his/her addresses as well.
-      db_query("DELETE FROM {uc_addresses} WHERE uid = %d", $account->uid);
-      return;
+function uc_addresses_user_insert(&$edit, $account, $category = NULL) {
+  // Save the address the user entered during registering.
+  if (isset($edit['uc_addresses_address']) && $edit['uc_addresses_address'] instanceof UcAddressesAddress) {
+    $address = $edit['uc_addresses_address'];
+    $address->setOwner($account->uid);
+    // Mark this address as both the default shipping and billing address.
+    $address->setAsDefault('shipping');
+    $address->setAsDefault('billing');
+    $address->save();
+    // Unset address from $edit to prevent it from being saved as user data in the user table.
+    unset($edit['address']);
+    unset($edit['uc_addresses_address']);
   }
+  return;
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function uc_addresses_user_cancel($edit, $account, $method) {
+  // We're deleting the user, so delete all his/her addresses as well.
+  db_delete('uc_addresses')
+    ->condition('uid', $account->uid)
+    ->execute();
+  return;
 }
 
 /**
@@ -356,7 +307,7 @@ function uc_addresses_address_load($aid, $uid) {
 }
 
 /**
- * Implementation of hook_elements().
+ * Implements hook_element_info().
  *
  * Register address field type, just as in Ubercart 7.x-3.x
  *
@@ -364,7 +315,7 @@ function uc_addresses_address_load($aid, $uid) {
  * @see uc_addresses_process_address_field()
  * @see uc_addresses_validate_address_field()
  */
-function uc_addresses_elements() {
+function uc_addresses_element_info() {
   $types = array();
 
   $types['uc_addresses_address'] = array(
@@ -373,13 +324,35 @@ function uc_addresses_elements() {
     '#process' => array('uc_addresses_process_address_field'),
     '#element_validate' => array('uc_addresses_validate_address_field'),
     '#theme' => 'uc_addresses_pane',
-    '#uc_addresses_address' => NULL, // Will get a default value in uc_addresses_process_address_field().
+    '#uc_addresses_address' => NULL,
     '#uc_addresses_context' => 'default',
     '#uc_addresses_required' => TRUE,
     '#key_prefix' => '',
+    '#hidden' => FALSE,
   );
 
   return $types;
+}
+
+/**
+ * Check address access.
+ *
+ * Wrapper function for permissions class
+ *
+ * @param string $method
+ *   The method to call in UcAddressesPermissions
+ * @param object $address_user
+ *   (optional) User object
+ *   For the common methods this paramater is required.
+ * @param UcAddressesAddress
+ *   (optional) The address object
+ *
+ * @return boolean
+ *
+ * @see UcAddressesPermissions
+ */
+function uc_addresses_access($method, $address_user = NULL, UcAddressesAddress $address = NULL) {
+  return UcAddressesPermissions::$method($address_user, $address);
 }
 
 // -----------------------------------------------------------------------------
@@ -393,7 +366,7 @@ function uc_addresses_elements() {
  * @param array $form_state
  *
  * @return array
- * @see uc_addresses_elements()
+ * @see uc_addresses_element_info()
  * @see uc_addresses_validate_address_field()
  */
 function uc_addresses_process_address_field(&$element, $form_state) {
@@ -402,6 +375,9 @@ function uc_addresses_process_address_field(&$element, $form_state) {
   }
   $element['#tree'] = TRUE;
   $prefix = $element['#key_prefix'] ? ($element['#key_prefix'] . '_') : '';
+
+  // Ensure we working with the right address (sometimes we caught two address objects where on of them was serialized).
+  $element['#uc_addresses_address'] = $element['#uc_addresses_address']->getAddressBook()->getAddressById($element['#uc_addresses_address']->getId());
 
   if (isset($form_state['uc_addresses_address'])) {
     // Use submitted Ajax values.
@@ -436,18 +412,25 @@ function uc_addresses_process_address_field(&$element, $form_state) {
   // Allow other modules to alter the element
   drupal_alter('uc_addresses_address_field', $element);
 
-  // Make all fields non-required if property "uc_addresses_required" is set to FALSE.
-  if ($element['#uc_addresses_required'] === FALSE) {
-    foreach (element_children($element) as $fieldname) {
+  // Set common values for all address fields.
+  foreach (element_children($element) as $fieldname) {
+    $element[$fieldname] += array(
+      '#parents' => array_merge(array_slice($element['#parents'], 0, -1), array($fieldname)),
+      '#access' => $element['#hidden'] ? FALSE : TRUE,
+    );
+    
+    // Make all fields non-required if property "uc_addresses_required" is set to FALSE.
+    if ($element['#uc_addresses_required'] === FALSE) {
       $element[$fieldname]['#required'] = FALSE;
     }
-  }
-  // Change the requirement setting for some fields if property "uc_addresses_required" is an array.
-  elseif (is_array($element['#uc_addresses_required'])) {
-    foreach ($element['#uc_addresses_required'] as $fieldname => $required) {
-      if (isset($element[$fieldname])) {
-        $element[$fieldname]['#required'] = ($required) ? TRUE : FALSE;
-      }
+    // Change the requirement setting for some fields if property "uc_addresses_required" is an array.
+    elseif (is_array($element['#uc_addresses_required']) && isset($element['#uc_addresses_required'][$fieldname])) {
+      $element[$fieldname]['#required'] = ($element['#uc_addresses_required'][$fieldname]) ? TRUE : FALSE;
+    }
+
+    // Copy JavaScript states from the parent element.
+    if (isset($element['#states'])) {
+      $element[$fieldname]['#states'] = $element['#states'];
     }
   }
 
@@ -471,7 +454,7 @@ function uc_addresses_process_address_field(&$element, $form_state) {
  * @param array $form_state
  *
  * @return void
- * @see uc_addresses_elements()
+ * @see uc_addresses_element_info()
  * @see uc_addresses_process_address_field()
  */
 function uc_addresses_validate_address_field(&$element, $form_state) {
@@ -548,12 +531,22 @@ function uc_addresses_preprocess_address(UcAddressesSchemaAddress $address, $con
   return $fields;
 }
 
+/**
+ * Element validation callback for country field.
+ *
+ * Store the current address for use when rebuilding the form.
+ */
+function uc_addresses_validate_address_field_country($element, &$form_state) {
+  $address = drupal_array_get_nested_value($form_state['values'], array_slice($element['#parents'], 0, -1));
+  $form_state['uc_addresses_address'] = isset($form_state['uc_addresses_address']) ? array_merge($form_state['uc_addresses_address'], $address) : $address;
+}
+
 // ---------------------------------------------------------------------------
 // UBERCART HOOKS
 // ---------------------------------------------------------------------------
 
 /**
- * Implementation of hook_checkout_pane_alter().
+ * Implements hook_checkout_pane_alter().
  *
  * Alters delivery and billing pane
  *
@@ -578,7 +571,7 @@ function uc_addresses_checkout_pane_alter(&$panes) {
 }
 
 /**
- * Implementation of hook_order_pane_alter().
+ * Implements hook_order_pane_alter().
  *
  * Alters delivery and billing pane
  *
@@ -603,7 +596,7 @@ function uc_addresses_order_pane_alter(&$panes) {
 }
 
 /**
- * Implementation of hook_order().
+ * Implements hook_order().
  *
  * @param string $op
  * @param object $order
@@ -636,7 +629,7 @@ function uc_addresses_order($op, &$order, $arg2) {
           foreach ($order as $fieldname => $fieldvalue) {
             if (strpos($fieldname, $order_type) === 0) {
               // Get substracted fieldname
-              $address_fieldname = substr($fieldname, strlen($order_type) +1);
+              $address_fieldname = substr($fieldname, strlen($order_type) + 1);
               $address->setField($address_fieldname, $fieldvalue);
             }
           }
@@ -648,7 +641,7 @@ function uc_addresses_order($op, &$order, $arg2) {
 }
 
 /**
- * Implementation of hook_uc_checkout_complete().
+ * Implements hook_uc_checkout_complete().
  *
  * Saves any new addresses to the address book.
  *
@@ -693,7 +686,7 @@ function uc_addresses_uc_checkout_complete($order, $user) {
 // ---------------------------------------------------------------------------
 
 /**
- * Implementation of hook_ctools_plugin_api().
+ * Implements hook_ctools_plugin_api().
  */
 function uc_addresses_ctools_plugin_api($owner, $api) {
   if ($owner == 'uc_addresses' && $api == 'uc_addresses_fields') {
@@ -704,14 +697,13 @@ function uc_addresses_ctools_plugin_api($owner, $api) {
 }
 
 /**
- * Psuedo hook definition plugin system options and defaults.
- *
- * @return array
+ * Implements hook_ctools_plugin_type().
  */
-function uc_addresses_ctools_plugin_field_handlers() {
+function uc_addresses_ctools_plugin_type() {
   return array(
-    'cache' => FALSE,
-    'use hooks' => TRUE,
+    'field_handlers' => array(
+      'use hooks' => TRUE,
+    ),
   );
 }
 
@@ -779,132 +771,27 @@ function uc_addresses_get_address_field_handler_instances(UcAddressesSchemaAddre
   return $handlers;
 }
 
-// ---------------------------------------------------------------------------
-// TOKEN HOOKS
-// ---------------------------------------------------------------------------
-
 /**
- * Implementation of hook_token_list().
+ * Returns a specific handler instance of a field.
  *
- * @param string $type
+ * @param UcAddressesSchemaAddress $address
+ *   An address object
+ * @param string $fieldname
+ *   The field name to get a handler for
+ * @param string $context
+ *   The context where the fields are used for
  *
- * @return array
+ * @return UcAddressesFieldHandler
  */
-function uc_addresses_token_list($type = 'all') {
-  $tokens = array();
-  // Ubercart Addresses tokens
-  if ($type == 'uc_addresses' || $type == 'all') {
-    $address = UcAddressesAddress::newAddress();
-    $fields = uc_addresses_get_address_field_handler_instances($address, 'token');
-    foreach ($fields as $fieldname => $handler) {
-      // Check if handler supports multiple output formats
-      $formats = $handler->getOutputFormats();
-      if (count($formats) > 0) {
-        foreach ($formats as $format => $label) {
-          $tokens['uc_addresses']['uc_addresses_' . $format] = $label;
-        }
-      }
-      else {
-        // Only a single format is supported
-        $tokens['uc_addresses']['uc_addresses_' . $fieldname] = t('!name, formatted', array('!name' => $handler->getFieldTitle()));
-      }
-      $tokens['uc_addresses']['uc_addresses_' . $fieldname . '-raw'] = t('!name, raw', array('!name' => $handler->getFieldTitle()));
-    }
+function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $address, $fieldname, $context = 'default') {
+  ctools_include('plugins');
+  ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
+  $fields_data = uc_addresses_get_address_fields();
+  if (isset($fields_data[$fieldname])) {
+    $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler');
+    return new $class($fieldname, $address, $context);
   }
-  // Ubercart order tokens
-  if ($type == 'order' || $type == 'all') {
-    $tokens['order']['uc-addresses-shipping-address'] = t('The order shipping address, formatted with the Ubercart Addresses module.');
-    $tokens['order']['uc-addresses-billing-address'] = t('The order billing address, formatted with the Ubercart Addresses module.');
-  }
-  // User tokens
-  if ($type == 'user' || $type == 'all') {
-    $address_tokens = uc_addresses_token_list('uc_addresses');
-    foreach ($address_tokens['uc_addresses'] as $token => $description) {
-      if (strpos($token, 'uc_addresses_default_') === FALSE) {
-        $user_token = str_replace('uc_addresses', 'uc_addresses-shipping', $token);
-        $tokens[t('Ubercart Addresses') . ' - ' . t('Default shipping address')][$user_token] = t('Default shipping address') . ': ' . $description;
-        $user_token = str_replace('uc_addresses', 'uc_addresses-billing', $token);
-        $tokens[t('Ubercart Addresses') . ' - ' . t('Default billing address')][$user_token] = t('Default billing address') . ': ' . $description;
-      }
-      $tokens[t('Ubercart Addresses') . ' - ' . t('Default shipping address')]['uc-addresses-shipping-address'] = t('The default shipping address, formatted with the Ubercart Addresses module.');
-      $tokens[t('Ubercart Addresses') . ' - ' . t('Default billing address')]['uc-addresses-billing-address'] = t('The default billing address, formatted with the Ubercart Addresses module.');
-    }
-  }
-  return $tokens;
-}
-
-/**
- * Implementation of hook_token_values().
- *
- * @param string $type
- * @param object $object
- *
- * @return array
- */
-function uc_addresses_token_values($type, $object = NULL) {
-  $values = array();
-  switch ($type) {
-    case 'uc_addresses':
-      if ($object instanceof UcAddressesAddress) {
-        $address = $object;
-        $fields = uc_addresses_get_address_field_handler_instances($address, 'token');
-        foreach ($fields as $fieldname => $handler) {
-          $value = $address->getField($fieldname);
-
-          // Check if handler supports multiple output formats
-          $formats = $handler->getOutputFormats();
-          if (count($formats) > 0) {
-            foreach ($formats as $format => $label) {
-              if ($value != '') {
-                $values['uc_addresses_' . $format] = $handler->outputValue($value, $format);
-              }
-              else {
-                $values['uc_addresses_' . $format] = '';
-              }
-            }
-          }
-          else {
-            // Only a single format is supported
-            if ($value != '') {
-              $values['uc_addresses_' . $fieldname] = $handler->outputValue($value);
-            }
-            else {
-              $values['uc_addresses_' . $fieldname] = '';
-            }
-          }
-          $values['uc_addresses_' . $fieldname . '-raw'] = $value;
-        }
-      }
-      break;
-    case 'order':
-      if (isset($object->uc_addresses['shipping']) && $object->uc_addresses['shipping'] instanceof UcAddressesAddress) {
-        $values['uc-addresses-shipping-address'] = uc_addresses_format_address($object->uc_addresses['shipping'], 'token');
-      }
-      if (isset($object->uc_addresses['billing']) && $object->uc_addresses['billing'] instanceof UcAddressesAddress) {
-        $values['uc-addresses-billing-address'] = uc_addresses_format_address($object->uc_addresses['billing'], 'token');
-      }
-      break;
-    case 'user':
-      $default_types = array(
-        'shipping',
-        'billing',
-      );
-      foreach ($default_types as $default_type) {
-        if ($address = UcAddressesAddressBook::get($object->uid)->getDefaultAddress($default_type)) {
-          $address_tokens = uc_addresses_token_values('uc_addresses', $address);
-          foreach ($address_tokens as $token => $value) {
-            if (strpos($token, 'uc_addresses_default_') === FALSE) {
-              $user_token = str_replace('uc_addresses', 'uc_addresses-' . $default_type, $token);
-              $values[$user_token] = $value;
-            }
-          }
-          // Address display
-          $values['uc-addresses-' . $default_type . '-address'] = uc_addresses_format_address($address, 'token');
-        }
-      }
-      break;
-  }
-  return $values;
+  return NULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -912,7 +799,49 @@ function uc_addresses_token_values($type, $object = NULL) {
 // -----------------------------------------------------------------------------
 
 /**
- * Implementation of hook_form_FORM_ID_alter() for form uc_order_address_book_form.
+ * Implements hook_form_FORM_ID_alter() for form user_register_form().
+ *
+ * @param array $form
+ * @param array $form_state
+ *
+ * @return void
+ */
+function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
+  // Check if we need to ask for an address upon registering
+  if (user_access('administer users')) {
+    // User is admin
+    $require_address = variable_get('uc_addresses_require_address_admin', TRUE);
+  }
+  else {
+    $require_address = variable_get('uc_addresses_require_address', TRUE);
+  }
+
+  if ($require_address) {
+    if (isset($form_state['values']['uc_addresses_address']) && $form_state['values']['uc_addresses_address'] instanceof UcAddressesAddress) {
+      $address = $form_state['values']['uc_addresses_address'];
+    }
+    else {
+      $address = UcAddressesAddressBook::newAddress();
+    }
+    $form['uc_addresses'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Address'),
+    );
+    $form['uc_addresses']['address'] = array(
+      '#type' => 'uc_addresses_address',
+      '#uc_addresses_address' => $address,
+      '#uc_addresses_context' => 'register',
+    );
+    $form['uc_addresses']['uc_addresses_address'] = array(
+      '#type' => 'value',
+      '#value' => $address,
+    );
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for form uc_order_address_book_form().
  *
  * @param array $form
  * @param array $form_state
@@ -1056,17 +985,17 @@ function uc_addresses_select_address($uid, $context = 'default', $type = 'billin
       $data[$fieldname_with_hyphens] = $value;
     }
     if ($address_name = $address->getName()) {
-      $options[drupal_to_js($data)] = $address_name;
+      $options[drupal_json_encode($data)] = $address_name;
     }
     else {
-      $options[drupal_to_js($data)] = preg_replace('/<.*?>/', ', ', uc_addresses_format_address($address));
+      $options[drupal_json_encode($data)] = preg_replace('/<.*?>/', ', ', uc_addresses_format_address($address));
     }
 
     // Check if this address is equal to given default value
     if ($default_value && !$address_book_default_value) {
       if ($address->compareAddress($default_value)) {
         // Default value found! Save it for later.
-        $address_book_default_value = drupal_to_js($data);
+        $address_book_default_value = drupal_json_encode($data);
       }
     }
   }
@@ -1091,14 +1020,14 @@ function uc_addresses_select_address($uid, $context = 'default', $type = 'billin
 // -----------------------------------------------------------------------------
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  *
  * @return array
  */
 function uc_addresses_theme() {
   return array(
     'uc_addresses_address_book' => array(
-      'arguments' => array(
+      'variables' => array(
         'addresses' => array(),
         'address_book' => new stdClass(),
         'options' => array(
@@ -1109,7 +1038,7 @@ function uc_addresses_theme() {
       'file' => 'uc_addresses.pages.inc',
     ),
     'uc_addresses_list_address' => array(
-      'arguments' => array(
+      'variables' => array(
         'address' => new stdClass(),
         'options' => array(
           'edit_link' => FALSE,
@@ -1121,33 +1050,36 @@ function uc_addresses_theme() {
       'file' => 'uc_addresses.pages.inc',
     ),
     'uc_addresses_get_address_form' => array(
-      'arguments' => array('form' => NULL),
+      'render element' => 'form',
       'file' => 'uc_addresses.pages.inc',
     ),
     'uc_addresses_address_delete_confirm' => array(
-      'arguments' => array('help' => '', 'form' => NULL),
+      'variables' => array(
+        'help' => '',
+        'form' => NULL,
+      ),
       'file' => 'uc_addresses.pages.inc',
     ),
     'uc_addresses_pane' => array(
-      'arguments' => array('form' => NULL),
+      'render element' => 'form',
       'template' => 'templates/uc-addresses-form',
       'file' => 'uc_addresses.pages.inc',
     ),
-    'uc_addresses_address' => array(
-      'arguments' => array('element' => NULL),
+    'uc_addresses_default_address_checkbox' => array(
+      'render element' => 'element',
     ),
   );
 }
 
 /**
- * Theme the address form element.
+ * Theme the default address checkbox in address forms.
  *
- * @param array $element
+ * @param array $variables
  *
  * @return string
  */
-function theme_uc_addresses_address($element) {
-  return theme('form_element', $element, (!empty($element['#children']) ? $element['#children'] : ''));
+function theme_uc_addresses_default_address_checkbox($variables) {
+  return theme('checkbox', $variables) . ' ' . $variables['element']['#uc_addresses_default_address_suffix'];
 }
 
 /**
@@ -1191,7 +1123,7 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
   else {
     // In other cases the token replacement can be handled by the
     // token module itself.
-    $address_string = token_replace($format, 'uc_addresses', $address);
+    $address_string = token_replace($format, array('uc_addresses' => $address));
   }
 
   // Clean-up address string
@@ -1250,33 +1182,11 @@ function uc_addresses_get_address_format($country_id) {
   }
   if ($format = variable_get('uc_address_format_' . $country_id, NULL)) {
     // Convert format to tokens
-    $match = array('/\!([a-z\_0-9]+)/');
-    $replace = array('[uc_addresses_${1}]');
+    $match = array('/\!([a-z\_0-9]+)/', '/country\_/', '/zone\_/');
+    $replace = array('[uc_addresses:${1}]', 'country:country_', 'zone:zone_');
     $format = preg_replace($match, $replace, $format);
     $formats[$country_id] = $format;
     return $format;
   }
   return '';
-}
-
-/**
- * Automatically load classes from Ubercart Addresses.
- *
- * @param string $class
- *   The class file to be loaded
- *
- * @return boolean
- */
-function uc_addresses_load_class($class) {
-  if (strpos($class, 'UcAddress') !== FALSE) {
-    if (strpos($class, 'Exception') !== FALSE) {
-      // Load the Exception classes
-      return module_load_include('inc', 'uc_addresses', 'class/Exceptions');
-    }
-    else {
-      // Load an UcAddresses class
-      return module_load_include('class.php', 'uc_addresses', 'class/' . $class);
-    }
-  }
-  return FALSE;
 }

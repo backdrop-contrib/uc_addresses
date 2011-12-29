@@ -5,91 +5,91 @@
  */
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  * @return array
  */
 function uc_addresses_schema() {
   $schema['uc_addresses'] = array(
-    'description' => t('Ubercart customer addresses'),
+    'description' => 'Ubercart customer addresses',
     'fields' => array(
       'aid' => array(
-        'description' => t('The address ID'),
+        'description' => 'The address ID',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'uid' => array(
-        'description' => t('The ID of the user who owns this address'),
+        'description' => 'The ID of the user who owns this address',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
       ),
       'first_name' => array(
-        'description' => t('The addressee\'s first name'),
+        'description' => 'The addressee\'s first name',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'last_name' => array(
-        'description' => t('The addressee\'s last name'),
+        'description' => 'The addressee\'s last name',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'phone' => array(
-        'description' => t('The addressee\'s phone number'),
+        'description' => 'The addressee\'s phone number',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'company' => array(
-        'description' => t('The addressee\'s company name'),
+        'description' => 'The addressee\'s company name',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'street1' => array(
-        'description' => t('The addressee\'s residence number and street'),
+        'description' => 'The addressee\'s residence number and street',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'street2' => array(
-        'description' => t('The addressee\'s residence number and street (continued)'),
+        'description' => 'The addressee\'s residence number and street (continued)',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'city' => array(
-        'description' => t('The addressee\'s city of residence'),
+        'description' => 'The addressee\'s city of residence',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'zone' => array(
-        'description' => t('The addressee\'s zone of residence'),
+        'description' => 'The addressee\'s zone of residence',
         'type' => 'int',
         'size' => 'medium',
         'not null' => TRUE,
         'default' => 0,
       ),
       'postal_code' => array(
-        'description' => t('The addressee\'s postal code'),
+        'description' => 'The addressee\'s postal code',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
       'country' => array(
-        'description' => t('The addressee\'s country of residence'),
+        'description' => 'The addressee\'s country of residence',
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -97,31 +97,31 @@ function uc_addresses_schema() {
         'default' => 0,
       ),
       'address_name' => array(
-        'description' => t('The name used to access this address'),
+        'description' => 'The name used to access this address',
         'type' => 'varchar',
         'length' => 20,
         'not null' => FALSE,
       ),
       'default_shipping' => array(
-        'description' => t('If the address is the default shipping address'),
+        'description' => 'If the address is the default shipping address',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
       ),
       'default_billing' => array(
-        'description' => t('If the address is the default billing address'),
+        'description' => 'If the address is the default billing address',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
       ),
       'created' => array(
-        'description' => t('The date this address was created'),
+        'description' => 'The date this address was created',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
       'modified' => array(
-        'description' => t('The date this address was last modified'),
+        'description' => 'The date this address was last modified',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
@@ -145,7 +145,7 @@ function uc_addresses_update_6200() {
   $ret = array();
 
   // Add 'default_shipping' and 'default_billing' fields
-  db_add_field($ret, 'uc_addresses', 'default_shipping', array(
+  db_add_field('uc_addresses', 'default_shipping', array(
       'description' => t('If the address is the default shipping address'),
       'type' => 'int',
       'size' => 'tiny',
@@ -153,7 +153,7 @@ function uc_addresses_update_6200() {
       'default' => 0,
     )
   );
-  db_add_field($ret, 'uc_addresses', 'default_billing', array(
+  db_add_field('uc_addresses', 'default_billing', array(
       'description' => t('If the address is the default billing address'),
       'type' => 'int',
       'size' => 'tiny',
@@ -175,32 +175,31 @@ function uc_addresses_update_6200() {
     SET default_shipping = 1, default_billing = 1
     WHERE aid in(" . implode(",", $default_aids) . ")
     ";
-    $ret[] = update_sql($query);
+    // TODO update_sql has been removed. Use the database API for any schema or data changes.
+    $ret[] = array() /* update_sql($query) */;
   }
 
   // Drop table uc_addresses_defaults
-  db_drop_table($ret, 'uc_addresses_defaults');
+  db_drop_table('uc_addresses_defaults');
 
   return $ret;
 }
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  * @return void
  */
 function uc_addresses_install() {
-  drupal_install_schema('uc_addresses');
-
   // Setup default permissions.
   // If the module 'permissions_api' is enabled, the authencated user will
   // automatically be granted with the permissions 'view own addresses' and
   // 'add/edit own addresses'.
   if (module_exists('permissions_api')) {
     permissions_grant_permissions('authenticated user', array(
-        'view own addresses',
-        'add/edit own addresses',
-        'delete own addresses',
-      )
+      'view own addresses',
+      'add/edit own addresses',
+      'delete own addresses',
+    )
     );
     drupal_set_message(st("Ubercart Addresses is installed. Since you had the module 'Permissions API' enabled, the authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => st('view own addresses'), '%edit_own' => st('add/edit own addresses'), '%delete_own' => st('delete own addresses'))), 'status');
   }
@@ -210,11 +209,16 @@ function uc_addresses_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  * @return void
  */
 function uc_addresses_uninstall() {
-  drupal_uninstall_schema('uc_addresses');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_uninstall_schema('uc_addresses')
 
-  db_query("DELETE FROM {variable} WHERE name LIKE 'uc_addresses%'");
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query("DELETE FROM {variable} WHERE name LIKE 'uc_addresses%'") */
+  db_delete('variable')
+  ->condition('name', 'uc_addresses%', 'LIKE')
+  ->execute();
 }

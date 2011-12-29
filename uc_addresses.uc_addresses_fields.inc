@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Implementation of hook_uc_addresses_field_handlers().
+ * Implements hook_uc_addresses_field_handlers().
  *
  * Register form fields and their definitions.
  *
@@ -105,7 +105,7 @@ function uc_addresses_uc_addresses_field_handlers() {
 }
 
 /**
- * Implementation of hook_uc_addresses_fields().
+ * Implements hook_uc_addresses_fields().
  *
  * Register all address fields used by Ubercart Addresses.
  *
@@ -261,7 +261,7 @@ function uc_addresses_uc_addresses_fields() {
 }
 
 /**
- * Implementation of hook_uc_addresses_select_addresses().
+ * Implements hook_uc_addresses_select_addresses().
  *
  * @param int $uid
  *   The user ID to select addresses for

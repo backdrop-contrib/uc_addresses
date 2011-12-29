@@ -30,6 +30,7 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
         '#default_value' => $default,
         '#required' => $this->isFieldRequired(),
         '#maxlength' => 20,
+        '#size' => 32,
       ),
     );
   }
@@ -104,10 +105,11 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
         $fieldName => array(
           '#type' => 'checkbox',
           '#title' => $this->getFieldTitle(),
-          '#suffix' => $this->getProperty('suffix'),
+          '#uc_addresses_default_address_suffix' => $this->getProperty('suffix'),
           '#default_value' => $default,
           '#disabled' => $fieldValue,
           '#required' => $this->isFieldRequired(),
+          '#theme' => 'uc_addresses_default_address_checkbox',
         ),
       );
     }
@@ -117,6 +119,15 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
         $fieldName => array(
           '#type' => 'value',
           '#value' => 1,
+        ),
+        $fieldName . '_item' => array(
+          '#type' => 'checkbox',
+          '#title' => $this->getFieldTitle(),
+          '#uc_addresses_default_address_suffix' => $this->getProperty('suffix'),
+          '#default_value' => 1,
+          '#disabled' => TRUE,
+          '#required' => $this->isFieldRequired(),
+          '#theme' => 'uc_addresses_default_address_checkbox',
         ),
       );
     }
@@ -237,13 +248,20 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns an array of output formats for the date field.
+   * Returns supported tokens
    *
-   * @access public
    * @return array
    */
-  public function getOutputFormats() {
-    return token_get_date_token_info($this->getProperty('description') . ',', $this->getFieldName() . '-');
+  public function getTokenInfo() {
+    $fieldname = $this->getFieldName();
+    $tokens = parent::getTokenInfo();
+
+    $tokens[$fieldname] = array(
+      'name' => $this->getFieldTitle(),
+      'description' => $this->getProperty('description'),
+      'type' => 'date',
+    );
+    return $tokens;
   }
 
   /**
@@ -259,17 +277,10 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
    * @see getOutputFormats()
    */
   public function outputValue($value = '', $format = '') {
-    static $values = array();
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }
-    if (isset($values[$value][$format])) {
-      return $values[$value][$format];
-    }
-    $values[$value] = token_get_date_token_values($value, $this->getFieldName() . '-');
-    if (isset($values[$value][$format])) {
-      return $values[$value][$format];
-    }
+    return format_date($value);
   }
 }
 

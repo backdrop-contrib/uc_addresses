@@ -116,16 +116,15 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function createAddress($account, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
+      $values = $this->getEditAddressValues(array(), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account) . 'add', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
       // Lookup address to find out ID.
-      $query = "SELECT aid FROM {uc_addresses}
-      WHERE uid=%d
+      $aid = db_query("SELECT aid FROM {uc_addresses}
+      WHERE uid = :uid
       ORDER BY aid DESC
-      ";
-      $aid = db_result(db_query($query, $account->uid));
+      ", array(':uid' => $account->uid))->fetchField();
 
       // Ensure any given values exists based on whether they should be displayed.
       $this->viewAddress($account, $aid);
@@ -160,7 +159,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function editAddress($account, $aid, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
+      $values = $this->getEditAddressValues(array(), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account, $aid) . 'edit', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
@@ -282,11 +281,16 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       }
     }
 
-    $query = "SELECT COUNT(aid) FROM {uc_addresses} WHERE ";
-    $query .= implode(" = '%s' AND ", array_keys($schema_values)) . " = '%s'";
-    $result = db_result(db_query($query, $schema_values));
+    $query = db_select('uc_addresses');
+    $query->addExpression('COUNT(aid)');
+    foreach ($schema_values as $fieldname => $value) {
+      $query->condition($fieldname, $value);
+    }
+    $sQuery = (string) $query;
+    $this->verbose($sQuery);
+    $result = $query->execute();
 
-    return ($result) ? TRUE : FALSE;
+    return ($result->fetchField()) ? TRUE : FALSE;
   }
 
   // -----------------------------------------------------------------------------
@@ -415,7 +419,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
         if (!isset($values['country'])) {
           $values['country'] = $this->generateAddressFieldValue('country', &$values);
         }
-        return db_result(db_query("SELECT zone_id FROM {uc_zones} WHERE zone_country_id = %d ORDER BY rand()", $values['country']));
+        return db_query("SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :zone_country_id ORDER BY rand()", array(':zone_country_id' => $values['country']))->fetchField();
       default:
         // In all other cases it is assummed that it's a textfield that needs to be filled in.
         return self::randomString(12);

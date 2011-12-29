@@ -694,7 +694,7 @@ class UcAddressesAddressBook {
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
     }
-    return theme('uc_addresses_address_book', $addresses, $this);
+    return theme('uc_addresses_address_book', array('addresses' => $addresses, 'address_book' => $this));
   }
 
   // -----------------------------------------------------------------------------
@@ -743,13 +743,18 @@ class UcAddressesAddressBook {
     // address is in this address book by including $uid in the
     // query
     if ($type == self::BY_AID) {
-      $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d AND aid = %d", $this->uid, $arg);
-    }
+      $result = db_select('uc_addresses')
+        ->condition('uid', $this->uid)
+        ->condition('aid', $arg)
+        ->fields('uc_addresses')
+        ->execute();
+    }    
     else {
-      $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d AND address_name = '%s'", $this->uid, $arg);
-    }
-    if ($result === FALSE) {
-      throw new UcAddressesDbException(t('Failed to read from database table uc_addresses'));
+      $result = db_select('uc_addresses')
+        ->condition('uid', $this->uid)
+        ->condition('address_name', $arg)        
+        ->fields('uc_addresses')
+        ->execute();
     }
 
     $this->dbResultToAddresses($result);
@@ -781,10 +786,15 @@ class UcAddressesAddressBook {
     }
 
     // Get all addresses for this user
-    $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d AND (default_shipping = 1 OR default_billing = 1) ORDER BY created", $this->uid);
-    if ($result === FALSE) {
-      throw new UcAddressesDbException(t('Failed to read from database table uc_addresses'));
-    }
+    $result = db_select('uc_addresses')
+      ->condition('uid', $this->uid)
+      ->condition(db_or()
+        ->condition('default_shipping', 1)
+        ->condition('default_billing', 1)
+      )
+      ->fields('uc_addresses')
+      ->orderBy('created', 'ASC')
+      ->execute();
 
     // Set flag that default addresses are loaded
     $this->defaultsLoaded = TRUE;
@@ -811,10 +821,11 @@ class UcAddressesAddressBook {
     $this->performanceHint = self::PERF_HINT_LOAD_ALL;
 
     // Get all addresses for this user
-    $result = db_query("SELECT * FROM {uc_addresses} WHERE uid = %d ORDER BY created", $this->uid);
-    if ($result === FALSE) {
-      throw new UcAddressesDbException(t('Failed to read from database table uc_addresses'));
-    }
+    $result = db_select('uc_addresses')
+      ->condition('uid', $this->uid)
+      ->fields('uc_addresses')
+      ->orderBy('created', 'ASC')
+      ->execute();
 
     // Set flag that all addresses are loaded
     $this->allLoaded = TRUE;
@@ -841,13 +852,14 @@ class UcAddressesAddressBook {
       }
     }
 
-    $result = db_query("SELECT * FROM {uc_addresses} WHERE aid = %d", $aid);
-    if ($result === FALSE) {
-      throw new UcAddressesDbException(t('Failed to read from database table uc_addresses'));
-    }
+    $result = db_select('uc_addresses')
+      ->condition('aid', $aid)
+      ->fields('uc_addresses')
+      ->orderBy('created', 'ASC')
+      ->execute();
 
     // Create an object from the database record
-    $obj = db_fetch_object($result);
+    $obj = $result->fetch();
 
     // Get address book for loaded user
     $addressbook = self::get($obj->uid);
@@ -869,7 +881,7 @@ class UcAddressesAddressBook {
    */
   private function dbResultToAddresses($result) {
     // Create each UcAddressesAddress object from the database record
-    while ($obj = db_fetch_object($result)) {
+    foreach ($result as $obj) {
       // Skip addresses that have already been loaded (and perhaps modified)
       if (!isset($this->addresses[$obj->aid])) {
         $address = new UcAddressesAddress($this, $obj);
@@ -921,11 +933,10 @@ class UcAddressesAddressBook {
 
     // Delete the address from the database only if it is not new (else it won't exist in the db).
     if (!$address->isNew()) {
-      $result = db_query("DELETE FROM {uc_addresses} WHERE aid = %d", $address->getId());
-      if ($result === FALSE || db_affected_rows() == 0) {
-        throw new UcAddressesDbException(t('Failed to delete an address from database table uc_addresses'));
-      }
-    }
+      db_delete('uc_addresses')
+        ->condition('aid', $address->getId())
+        ->execute();
+     }
 
     // Remove from address book object
     $this->removeAddressFromAddressBook($address);

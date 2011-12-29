@@ -101,10 +101,14 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       $country_id = uc_store_default_country();
     }
 
-    $result = db_query("SELECT * FROM {uc_zones} WHERE zone_country_id = %d ORDER BY zone_name", $country_id);
+    $result = db_select('uc_zones')
+      ->condition('zone_country_id', $country_id)
+      ->fields('uc_zones')
+      ->orderBy('zone_name')
+      ->execute();
 
     $options[''] = t('Please select');
-    while ($zone = db_fetch_object($result)) {
+    foreach ($result as $zone) {
       $options[$zone->zone_id] = $zone->zone_name;
     }
 
@@ -119,8 +123,9 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
         '#required' => $this->isFieldRequired(),
         '#options' => $options,
         '#default_value' => $default,
-        '#prefix' => '<div id="uc-address-' . $this->getAddress()->getId() . '-zone">',
-        '#suffix' => '<span class="zone-throbber"></span></div>',
+        '#prefix' => '<div id="uc-address' . $this->getAddress()->getId() . '-zone-wrapper">',
+        '#suffix' => '</div>',
+        '#empty_value' => 0,
       ),
     );
   }
@@ -168,9 +173,22 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
     }
 
     // Get zone data
-    $result = db_query("SELECT * FROM {uc_zones} WHERE zone_id = %d", $value);
-    if (!($zone_data = db_fetch_array($result))) {
-      $zone_data = array('zone_code' => t('N/A'), 'zone_name' => t('Unknown'));
+    $result = db_select('uc_zones')
+      ->condition('zone_id', $value)
+      ->fields('uc_zones')
+      ->execute();
+    
+    if ($row = $result->fetch()) {
+      $zone_data = array(
+        'zone_code' => $row->zone_code,
+        'zone_name' => $row->zone_name,
+      );
+    }
+    else {
+      $zone_data = array(
+        'zone_code' => t('N/A'),
+        'zone_name' => t('Unknown'),
+      );
     }
 
     if (isset($zone_data[$format])) {
@@ -208,10 +226,14 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     $fieldValue = $this->getAddress()->getField($fieldName);
     $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
 
-    $result = db_query("SELECT * FROM {uc_countries} WHERE version > 0 ORDER BY country_name");
+    $result = db_select('uc_countries')
+      ->condition('version', 0, '>')
+      ->fields('uc_countries')
+      ->orderBy('country_name', 'ASC')
+      ->execute();
 
     $options = array();
-    while ($country = db_fetch_object($result)) {
+    foreach ($result as $country) {
       // Create option
       $options[$country->country_id] = t($country->country_name);
       // Save for later use
@@ -221,15 +243,6 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       $options[] = t('No countries found.');
     }
 
-    drupal_add_js(drupal_get_path('module', 'uc_store') .'/uc_country_select.js');
-
-    // Ensure the path setting only gets added once.
-    static $added = FALSE;
-    if (!$added) {
-      drupal_add_js(array('ucURL' => array('zoneSelect' => url('uc_js_util/zone_select'))), 'setting');
-      $added = TRUE;
-    }
-
     return array(
       $fieldName => array(
         '#type' => 'select',
@@ -237,6 +250,15 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         '#options' => $options,
         '#required' => $this->isFieldRequired(),
         '#default_value' => empty($default) ? uc_store_default_country() : $default,
+        '#ajax' => array(
+          'callback' => 'uc_store_update_address_field_zones',
+          'wrapper' => 'uc-address' . $this->getAddress()->getId() . '-zone-wrapper',
+          'progress' => array(
+            'type' => 'throbber',
+          ),
+        ),
+        '#element_validate' => array('uc_addresses_validate_address_field_country'),
+        '#key_prefix' => $form['#key_prefix'],
       ),
     );
   }
@@ -339,8 +361,12 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       return self::$countries[$country_id];
     }
 
-    $result = db_query("SELECT * FROM {uc_countries} WHERE country_id = %d", $country_id);
-    if ($country = db_fetch_object($result)) {
+    $result = db_select('uc_countries')
+      ->condition('country_id', $country_id)
+      ->fields('uc_countries')
+      ->execute();
+
+    if ($country = $result->fetch()) {
       self::$countries[$country->country_id] = $country;
       return $country;
     }

@@ -69,6 +69,10 @@
 /* @end */
 
 /* @group Address form */
+.address-pane-table .field-field .form-item label {
+  display: none;
+}
+
 .address-pane-table tbody {
   border-top: 0px;
 }

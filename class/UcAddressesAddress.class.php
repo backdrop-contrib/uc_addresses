@@ -373,11 +373,11 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       module_invoke_all('uc_addresses_address_presave', $this);
 
       $address = $this->getSchemaAddress();
-      $address->modified = time();
+      $address->modified = REQUEST_TIME;
       $address->uid = $this->getUserId();
       if ($address->aid < 0) {
         unset($address->aid);
-        $address->created = time();
+        $address->created = REQUEST_TIME;
         $result = drupal_write_record('uc_addresses', $address);
         $hook = 'uc_addresses_address_insert';
 
@@ -411,7 +411,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * @todo Should maybe return "address display" instead.
    */
   public function __toString() {
-    return theme('uc_addresses_list_address', $this);
+    return theme('uc_addresses_list_address', array('address' => $this));
   }
 
   // -----------------------------------------------------------------------------

@@ -63,7 +63,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $addressBook->setAddressAsDefault($address, 'billing');
     $addressBook->save();
     // Ensure that the address is the default billing address.
-    $default_billing_aid = db_result(db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = 1"));
+    $default_billing_aid = db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = :default_billing", array(':default_billing' => 1))->fetchField();
     $this->assertEqual($address->getId(), $default_billing_aid, t('The address is the default billing address.'));
 
     // Reset the address book.
@@ -84,7 +84,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $addressBook->setAddressAsDefault($address2, 'billing');
     $this->assertTrue($addressBook->deleteAddressById($address->getId()), t('Address %aid is deleted.', array('%aid' => $address->getId())));
     // Ensure the database table is empty now ($address2 is not yet saved).
-    $number_of_addresses = db_result(db_query("SELECT COUNT(aid) AS number_of_addresses FROM {uc_addresses}"));
+    $number_of_addresses = db_query("SELECT COUNT(aid) AS number_of_addresses FROM {uc_addresses}")->fetchField();
     $this->assertEqual($number_of_addresses, 0, t('There no addresses in the uc_addresses table'));
 
     // -----------------------------
@@ -161,6 +161,19 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     foreach ($addresses as $address) {
       // Each address should be loaded.
       $this->assertTrue($addressBook->addressExists($address->getId()), t('Address %aid is loaded.', array('%aid' => $address->getId())));
+    }
+
+    // -----------------------------
+    // Test output (__toString())
+    // -----------------------------
+    $this->verbose(theme('uc_addresses_list_address', array('address' => $address)));
+    $this->verbose($address->__toString());
+    $output = (string) $addressBook;
+    $this->verbose($output);
+    
+    // Test if all addresses are displayed.
+    foreach ($addresses as $address) {
+      $this->doAddressValuesDisplayedTests($address->getRawFieldData(), 'address_view', $output);
     }
   }
 }

@@ -51,7 +51,7 @@ function uc_addresses_address_book($address_user) {
     $options['add_link'] = TRUE;
   }
 
-  return theme('uc_addresses_address_book', $addresses, $address_book, $options);
+  return theme('uc_addresses_address_book', array('addresses' => $addresses, 'address_book' => $address_book, 'options' => $options));
 }
 
 /**
@@ -133,7 +133,7 @@ function uc_addresses_list_one_address($address_user, UcAddressesAddress $addres
       // Show delete link
       $options['delete_link'] = TRUE;
     }
-    return theme('uc_addresses_list_address', $address, $options);
+    return theme('uc_addresses_list_address', array('address' => $address, 'options' => $options));
   }
 }
 
@@ -227,7 +227,7 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
  *
  * @ingroup forms
  */
-function uc_addresses_get_address_form(&$form_state, $address_user, $address = NULL) {
+function uc_addresses_get_address_form($form, &$form_state, $address_user, $address = NULL) {
   if (!($address instanceof UcAddressesAddress)) {
     $address = UcAddressesAddressBook::get($address_user)->addAddress();
   }
@@ -273,8 +273,7 @@ function uc_addresses_get_address_form(&$form_state, $address_user, $address = N
 
   // Add cancel link
   $form['cancel'] = array(
-    '#type' => 'markup',
-    '#value' => l(t('Cancel'), 'user/' . $address_user->uid . '/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
+    '#markup' => l(t('Cancel'), 'user/' . $address_user->uid . '/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
   );
 
   return $form;
@@ -299,8 +298,9 @@ function uc_addresses_get_address_form_validate(&$form, &$form_state) {
       unset($_SESSION['messages']['error']);
       $form_state['submitted'] = TRUE;
       form_set_error(NULL, '', TRUE);
-      break;
+      return;
   }
+  return TRUE;
 }
 
 /**
@@ -337,17 +337,19 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
 /**
  * Theme the add or edit address form.
  *
- * @param array $form
- *   The form array to theme.
+ * @param array $variables
+ *   An array containing:]
+ *   - form (array): The form array to theme.
  *
  * @return string
  *   The themed form.
  *
  * @ingroup themeable
  */
-function theme_uc_addresses_get_address_form($form) {
+function theme_uc_addresses_get_address_form($variables) {
+  $form = $variables['form'];
   drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
-  return drupal_render($form);
+  return drupal_render_children($form);
 }
 
 /**
@@ -393,7 +395,7 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
       )
   );
 
-  $output = theme('uc_addresses_address_delete_confirm', $help, $form);
+  $output = theme('uc_addresses_address_delete_confirm', array('help' => $help, 'form' => $form));
 
   return $output;
 }
@@ -414,11 +416,13 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
  * @ingroup themeable
  * @todo Move to template?
  */
-function theme_uc_addresses_address_delete_confirm($help, $form) {
+function theme_uc_addresses_address_delete_confirm($variables) {
+  $help = $variables['help'];
+  $form = $variables['form'];
   drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
 
   $output = '<p>' . $help . '</p>';
-  $output .= $form;
+  $output .= drupal_render($form);
   return $output;
 }
 
@@ -437,7 +441,7 @@ function theme_uc_addresses_address_delete_confirm($help, $form) {
  *
  * @ingroup forms
  */
-function uc_addresses_delete_address_confirm_form(&$form_state, $address_user, UcAddressesAddress $address) {
+function uc_addresses_delete_address_confirm_form($form, &$form_state, $address_user, UcAddressesAddress $address) {
   $form['stored_values'] = array(
     '#type' => 'value',
     '#value' => array(

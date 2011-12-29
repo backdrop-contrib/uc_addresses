@@ -253,7 +253,9 @@ function hook_uc_addresses_address_update($address) {
  */
 function hook_uc_addresses_address_delete($address) {
   // Example: delete the value from my table
-  db_query('DELETE FROM {mydbtable} WHERE aid = %d', $address->getId());
+  db_delete('mydbtable')
+    ->condition('aid', $address->getId())
+    ->execute();
 }
 
 /**

@@ -269,6 +269,32 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
+   * Returns supported tokens
+   *
+   * @return array
+   */
+  public function getTokenInfo() {
+    $fieldname = $this->getFieldName();
+    $tokens = array();
+
+    // Check if handler supports multiple output formats
+    $formats = $this->getOutputFormats();
+    if (count($formats) > 0) {
+      foreach ($formats as $format => $label) {
+        $tokens[$fieldname . ':' . $format] = array(
+          'name' => $format,
+          'description' => $label,
+        );
+      }
+    }
+    $tokens[$fieldname] = array(
+      'name' => $this->getFieldTitle(),
+      'description' => $this->getProperty('description'),
+    );
+    return $tokens;
+  }
+
+  /**
    * Returns an array of possible output formats the handler supports.
    *
    * Should be overriden by handlers who have more than one way of outputting
