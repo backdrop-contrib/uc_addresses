@@ -136,56 +136,6 @@ function uc_addresses_schema() {
 }
 
 /**
- * Upgrade from 6.x-1.x
- * Note that the contents of this function may change later,
- * as the table definitions may not be definitive.
- * @return array
- */
-function uc_addresses_update_6200() {
-  $ret = array();
-
-  // Add 'default_shipping' and 'default_billing' fields
-  db_add_field('uc_addresses', 'default_shipping', array(
-      'description' => t('If the address is the default shipping address'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    )
-  );
-  db_add_field('uc_addresses', 'default_billing', array(
-      'description' => t('If the address is the default billing address'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    )
-  );
-
-  // Get address defaults
-  $default_aids = array();
-  $result = db_query('SELECT aid FROM {uc_addresses_defaults}');
-  while ($default = db_fetch_array($result)) {
-    $default_aids[] = $default['aid'];
-  }
-
-  // Update defaults
-  if (count($default_aids) > 0) {
-    $query = "UPDATE {uc_addresses}
-    SET default_shipping = 1, default_billing = 1
-    WHERE aid in(" . implode(",", $default_aids) . ")
-    ";
-    // TODO update_sql has been removed. Use the database API for any schema or data changes.
-    $ret[] = array() /* update_sql($query) */;
-  }
-
-  // Drop table uc_addresses_defaults
-  db_drop_table('uc_addresses_defaults');
-
-  return $ret;
-}
-
-/**
  * Implements hook_install().
  * @return void
  */
@@ -210,7 +160,8 @@ function uc_addresses_install() {
 
 /**
  * Implements hook_uninstall().
- * @return void
+ *
+ * @todo delete variables explecit
  */
 function uc_addresses_uninstall() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
@@ -221,4 +172,57 @@ function uc_addresses_uninstall() {
   db_delete('variable')
   ->condition('name', 'uc_addresses%', 'LIKE')
   ->execute();
+}
+
+/**
+ * Upgrade from 6.x-1.x.
+ *
+ * The uc_addresses_defaults table will be removed. Two columns
+ * will be added to the uc_addresses table:<br />
+ * - default_shipping<br />
+ * - default_billing
+ */
+function uc_addresses_update_6200() {
+  // Add 'default_shipping' and 'default_billing' fields.
+  db_add_field('uc_addresses', 'default_shipping', array(
+      'description' => t('If the address is the default shipping address'),
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    )
+  );
+  db_add_field('uc_addresses', 'default_billing', array(
+      'description' => t('If the address is the default billing address'),
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    )
+  );
+
+  // Get address defaults
+  $default_aids = array();
+  $result = db_select('uc_addresses_defaults')
+    ->fields('uc_addresses_defaults', array('aid'))
+    ->execute();
+  foreach ($result as $default) {
+    $default_aids[] = $default->aid;
+  }
+
+  // Update defaults
+  if (count($default_aids) > 0) {
+    $query = db_update('uc_addresses')
+      ->fields(
+        array(
+          'default_shipping' => 1,
+          'default_billing' => 1,
+        )
+      )
+      ->condition('aid', $default_aids)
+      ->execute();
+  }
+
+  // Drop table uc_addresses_defaults
+  db_drop_table('uc_addresses_defaults');
 }

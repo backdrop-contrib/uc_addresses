@@ -277,10 +277,25 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
    * @see getOutputFormats()
    */
   public function outputValue($value = '', $format = '') {
+    static $values = array();
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }
-    return format_date($value);
+    if (isset($values[$value][$format])) {
+      return $values[$value][$format];
+    }
+    if ($format) {
+      $token = token_generate('date', array($format => $format), array('date' => $value));
+      if (isset($token[$format])) {
+        $values[$value][$format] = $token[$format];
+      }
+    }
+    else {
+      $values[$value][$format] = format_date($value);
+    }
+    if (isset($values[$value][$format])) {
+      return $values[$value][$format];
+    }
   }
 }
 

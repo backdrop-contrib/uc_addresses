@@ -104,6 +104,9 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   public function __wakeup() {
     parent::__wakeup();
     $this->addressBook = UcAddressesAddressBook::get($this->getSchemaAddress()->uid);
+    if ($this->getId() <= self::$nextNewAid) {
+      self::$nextNewAid = $this->getId() - 1;
+    }
     try {
       $this->addressBook->addAddress($this);
     }

@@ -10,79 +10,78 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Callback for the billing pane
+ * Gets the delivery information.
  *
- * @param string $op
- *   The operation that is being performed
- * @param array/object $order
- *   The Ubercart order
- * @param array $values
- *   The values from the checkout form
- * @return mixed
+ * Overrides uc_checkout_pane_delivery().
+ *
+ * @see uc_addresses_checkout_pane_address()
  */
-function uc_addresses_checkout_pane_billing($op, &$order, $values = array()) {
-  return uc_addresses_checkout_pane_address('billing', $op, $order, $values);
+function uc_addresses_checkout_pane_shipping($op, $order, $form = NULL, &$form_state = NULL) {
+  $description = t('Enter your delivery address and information here.');
+  $copy = t('My delivery information is the same as my billing information.');
+  return uc_addresses_checkout_pane_address('shipping', $op, $order, $form, $form_state, $description, $copy);
 }
 
 /**
- * Callback for the delivery pane
+ * Gets the billing information.
  *
- * @param string $op
- *   The operation that is being performed
- * @param array/object $order
- *   The Ubercart order
- * @param array $values
- *   The values from the checkout form
- * @return mixed
+ * Overrides uc_checkout_pane_billing().
+ *
+ * @see uc_addresses_checkout_pane_address()
  */
-function uc_addresses_checkout_pane_shipping($op, &$order, $values = array()) {
-  return uc_addresses_checkout_pane_address('shipping', $op, $order, $values);
+function uc_addresses_checkout_pane_billing($op, $order, $form = NULL, &$form_state = NULL) {
+  $description = t('Enter your billing address and information here.');
+  $copy = t('My billing information is the same as my delivery information.');
+  return uc_addresses_checkout_pane_address('billing', $op, $order, $form, $form_state, $description, $copy);
 }
 
 /**
- * Callback for an address checkout pane
+ * Generic address pane handler.
  *
  * @param string $type
  *   The address type: billing or shipping
  * @param string $op
  *   The operation that is being performed
- * @param array/object $order
+ * @param object $order
  *   The Ubercart order
- * @param array $values
- *   The values from the checkout form
+ * @param array $form
+ *   The checkout form
+ * @param array $form_state
+ *   The form state of the checkout form
+ * @param string $description
+ *   The help text shown above the form
+ * @param string $copy
+ *   The text shown for the "copy address" checkbox
+ *
  * @return mixed
  */
-function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array()) {
+function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_state, $description, $copy) {
   global $user;
-  drupal_add_js(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.js');
 
   if ($type == 'shipping') {
     $other_type = 'billing';
-    $uc_type = 'delivery';
+    $pane = 'delivery';
   }
   else {
     $other_type = 'delivery';
-    $uc_type = 'billing';
+    $pane = 'billing';
   }
-  $copy_address_title = ($type == 'shipping') ? t('My delivery information is the same as my billing information.') : t('My billing information is the same as my delivery information.');
+
+  // Source pane for "copy address" checkbox.
+  static $source;
+  if (!isset($source)) {
+    $source = $pane;
+  }
 
   switch ($op) {
     case 'view':
       // Tell addres book we want to get multiple addresses
+      $addressBook_0 = UcAddressesAddressBook::get(0);
+      $sess = $_SESSION;
       UcAddressesAddressBook::get($user->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
       // Initialize address variable
       $address = NULL;
-
-      // Initialize pane description
-      switch ($type) {
-        case 'shipping':
-          $description = t('Enter your delivery address and information here.');
-          break;
-        case 'billing':
-          $description = t('Enter your billing address and information here.');
-          break;
-      }
 
       // Check if address may be automatically filled in
       $auto_fill_address = (variable_get('uc_addresses_default_' . $type . '_address', TRUE) && variable_get('uc_addresses_use_default_' . $type, TRUE));
@@ -98,83 +97,143 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
           $address = $address->copyAddress(UcAddressesAddressBook::get(0));
         }
       }
-
-      // View the address form
-      $form[$uc_type] = array(
-        '#type' => 'uc_addresses_address',
-        '#uc_addresses_context' => 'checkout_form',
-        '#key_prefix' => $uc_type,
-      );
       if (!$address) {
         $address = UcAddressesAddress::newAddress();
       }
-      // Add address to the form
-      $form[$uc_type]['#uc_addresses_address'] = $address;
-      $form['uc_addresses_address'] = array(
-        '#type' => 'value',
-        '#value' => $address,
-      );
+      
+      // Check if address is copied from source pane
+      // (if the "copy address" checkbox was enabled)
+      if (
+        (isset($address->copy_address) && $address->copy_address)
+        || !empty($form_state['values']['panes'][$pane]['copy_address'])
+      ) {
+        $copy_address_checked = TRUE;
+      }
+      else {
+        $copy_address_checked = FALSE;
+      }
 
-      // Copy address checkbox
-      if ((uc_cart_is_shippable() || !variable_get('uc_cart_delivery_not_shippable', TRUE)) &&
-          _checkout_pane_data($other_type, 'weight') < _checkout_pane_data($uc_type, 'weight') &&
-          _checkout_pane_data($other_type, 'enabled')) {
-        $form['copy_address'] = array(
+      if ($source != $pane) {
+        $contents['copy_address'] = array(
           '#type' => 'checkbox',
-          '#title' => $copy_address_title,
-          '#attributes' => array(
-            'class' => 'uc_addresses_copy_address',
-            'onclick' => "uc_addresses_copy_address_checkout(this.checked, '$other_type', '$uc_type');",
+          '#title' => $copy,
+          '#ajax' => array(
+            'callback' => 'uc_checkout_pane_address_render',
+            'wrapper' => $pane . '-address-pane',
+            'progress' => array(
+              'type' => 'throbber',
+            ),
           ),
-          '#weight' => -5,
-          '#default_value' => ($address->copy_address) ? TRUE : FALSE,
+          '#default_value' => $copy_address_checked,
         );
       }
 
-      // Address book selecting
-      if ($select = uc_addresses_select_address($user->uid, 'checkout_form', $uc_type, $form['uc_addresses_address']['#value'])) {
-        $description =
-          (
-            ($auto_fill_address) ?
-            t('Edit the address below or select an address from the list.') :
-            t('Enter an address below or select an address from the list.')
-          )
-          . ' '
-          . t('Go to your <a href="@address-book">address book</a> to manage your saved addresses.', array('@address-book' => url('user/' . $user->uid . '/addresses')))
-        ;
-        $form['addresses']['#title'] = t('Saved addresses');
-        $form[$uc_type]['addressbook'] = $select;
+      if ($user->uid && $select = uc_addresses_select_addresses($user->uid, 'checkout_form', $pane, $address)) {
+        $contents['select_address'] = $select + array(
+          '#type' => 'select',
+          '#title' => t('Saved addresses'),
+          '#ajax' => array(
+            'callback' => 'uc_checkout_pane_address_render',
+            'wrapper' => $pane . '-address-pane',
+            'progress' => array(
+              'type' => 'throbber',
+            ),
+          ),
+          '#states' => array(
+            'invisible' => array(
+              'input[name="panes[' . $pane . '][copy_address]"]' => array('checked' => TRUE),
+            ),
+          ),
+        );
       }
 
-      return array(
-        'description' => $description,
-        'contents' => $form,
+      if (isset($form_state['triggering_element'])) {
+        $element = &$form_state['triggering_element'];
+
+        if ($element['#name'] == "panes[$pane][copy_address]") {
+          $address_data = &$form_state['values']['panes'][$source];
+          foreach ($address_data as $source_fieldname => $value) {
+            if (substr($source_fieldname, 0, strlen($source)) == $source) {
+              $fieldname = substr($source_fieldname, strlen($source . '_'));
+              $target_fieldname = str_replace($source, $pane, $source_fieldname);
+              $form_state['input']['panes'][$pane][$target_fieldname] = $value;
+              $order->$target_fieldname = $value;
+              if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
+                $address->setField($fieldname, $value);
+              }
+            }
+          }
+        }
+
+        if ($element['#name'] == "panes[$pane][select_address]") {
+          $address_id = $element['#value'];
+          $address = UcAddressesAddressBook::get($user->uid)->getAddressById($address_id)->copyAddress(UcAddressesAddressBook::get(0));
+          $address_data = $address->getRawFieldData();
+          foreach ($address_data as $field => $value) {
+            $form_state['input']['panes'][$pane][$pane . '_' . $field] = $value;
+            $order->{$pane . '_' . $field} = $value;
+          }
+        }
+
+        // Forget any previous Ajax submissions, as we send new default values.
+        unset($form_state['uc_addresses_address']);
+      }
+
+      $contents['address'] = array(
+        '#type' => 'uc_addresses_address',
+        '#uc_addresses_context' => 'checkout_form',
+        '#uc_addresses_address' => $address,
+        '#key_prefix' => $pane,
+        '#hidden' => $copy_address_checked,
+        '#prefix' => '<div id="' . $pane . '-address-pane">',
+        '#suffix' => '</div>',
       );
-      break;
+/*
+      // Form element for debug purposes, displays the address that is taken.
+      $contents['address']['display'] = array(
+        '#type' => 'item',
+        '#title' => t('Address'),
+        '#markup' => (string) $address,
+        '#weight' => 100,
+      );
+//*/
+
+      return array('description' => $description, 'contents' => $contents);
 
     case 'process':
-      $uc_type = $type;
-      if ($type == 'shipping') {
-        $uc_type = 'delivery';
-      }
+      $address = $form['panes'][$pane]['address']['#uc_addresses_address'];
+      $address->op = $op;
+      $panes = &$form_state['values']['panes'];
 
-      foreach ($values[$uc_type] as $fieldname => $value) {
-        $order->{$fieldname} = $value;
-      }
-
-      $address = $values['uc_addresses_address'];
-      if ($address->isNew() && !(isset($values['copy_address']) && $values['copy_address'])) {
+      if ($address->isNew() && !(isset($panes[$pane]['copy_address']) && $panes[$pane]['copy_address'])) {
         // Set flag that this address may be saved to the addressbook
         $address->save_address = TRUE;
       }
-      if (isset($values['copy_address']) && $values['copy_address']) {
-        $address->copy_address = TRUE;
+      // Set flag for if this address is "copied" or not.
+      if (isset($panes[$pane]['copy_address'])) {
+        if (!empty($panes[$pane]['copy_address'])) {
+          $address->copy_address = TRUE;
+        }
+        else {
+          $address->copy_address = FALSE;
+        }
       }
-      else {
-        $address->copy_address = FALSE;
-      }
-      $order->uc_addresses[$type] = $address;
 
+      foreach ($panes[$pane] as $target_fieldname => $value) {
+        if (substr($target_fieldname, 0, strlen($pane)) == $pane) {
+          if (!empty($panes[$pane]['copy_address'])) {
+            $fieldname = substr($target_fieldname, strlen($pane . '_'));
+            $value = $panes[$source][str_replace($pane, $source, $target_fieldname)];
+            if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
+              $address->setField($fieldname, $value);
+            }
+          }
+          $order->$target_fieldname = $value;
+        }
+      }
+
+      // Temporary save address with order
+      $order->uc_addresses[$type] = $address;
       // Save address into session
       $_SESSION['uc_addresses_order'][$order->order_id][$type] = serialize($address);
       return TRUE;
@@ -188,56 +247,48 @@ function uc_addresses_checkout_pane_address($type, $op, &$order, $values = array
 // ---------------------------------------------------------------------------
 // UBERCART CALLBACKS
 // order panes
+// @todo Implement!
 // ---------------------------------------------------------------------------
 
 /**
- * Callback for the "bill to" pane
+ * Callback for the "bill to" pane.
  *
- * @param string $op
- *   The operation that is being performed
- * @param array/object $order
- *   The Ubercart order
- * @param array $values
- *   The values from the order form
- * @return mixed
+ * Overrides uc_order_pane_bill_to().
+ *
+ * @see uc_addresses_order_pane_address()
  */
-function uc_addresses_order_pane_bill_to($op, $order, $values = array()) {
-  return uc_addresses_order_pane_address('billing', $op, $order, $values);
+function uc_addresses_order_pane_bill_to($op, $order, &$form = NULL, &$form_state = NULL) {
+  return uc_addresses_order_pane_address('billing', $op, $order, $form, $form_state);
 }
 
 /**
- * Callback for the "ship to" pane
+ * Callback for the "ship to" pane.
  *
- * @param string $op
- *   The operation that is being performed
- * @param array/object $order
- *   The Ubercart order
- * @param array $values
- *   The values from the order form
- * @return mixed
+ * Overrides uc_order_pane_ship_to().
+ *
+ * @see uc_addresses_order_pane_address()
  */
-function uc_addresses_order_pane_ship_to($op, $order, $values = array()) {
-  return uc_addresses_order_pane_address('shipping', $op, $order, $values);
+function uc_addresses_order_pane_ship_to($op, $order, &$form = NULL, &$form_state = NULL) {
+  return uc_addresses_order_pane_address('shipping', $op, $order, $form, $form_state);
 }
 
 /**
- * Callback for an address order pane
+ * Callback for an address order pane.
  *
  * @param string $type
  *   The address type: billing or shipping
  * @param string $op
  *   The operation that is being performed
- * @param array/object $order
+ * @param object $order
  *   The Ubercart order
- * @param array $values
- *   The values from the order form
+ * @param array $form
+ *   The order edit form
+ * @param array $form_state
+ *   The form state of the order edit form
+ *
  * @return mixed
  */
-function uc_addresses_order_pane_address($type, $op, $order, $values = array()) {
-  global $user;
-  drupal_add_js(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.js');
-  drupal_add_js(drupal_get_path('module', 'uc_order') . '/uc_order.js');
-
+function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$form_state = NULL) {
   if ($type == 'shipping') {
     $other_type = 'billing';
     $uc_type = 'delivery';
@@ -261,10 +312,12 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
           $lines[] = $value['data'] . '<br />';
         }
       }
-      $output = '<br />' . implode('<br />', $lines);
-      return $output;
+      $build = array('#markup' => implode('<br />', $lines));
+      return $build;
 
     case 'edit-form':
+      drupal_add_js(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.js');
+      drupal_add_js(drupal_get_path('module', 'uc_order') . '/uc_order.js');
       // Initialize pane description
       switch ($type) {
         case 'shipping':
@@ -279,13 +332,6 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
       if (isset($order->uc_addresses[$type])) {
         $address = $order->uc_addresses[$type];
       }
-
-      $form = array(
-        '#type' => 'fieldset',
-        '#title' => t("Modify 'Bill to' information"),
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-      );
 
       // View the address form
       $form[$uc_type] = array(
@@ -311,27 +357,29 @@ function uc_addresses_order_pane_address($type, $op, $order, $values = array()) 
       }
       $output = ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
         . '/images/address_book.gif" alt="' . t('Select from address book.') . '" '
-        . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $order['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
+        . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $form['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
         . 'style="position: relative; top: 2px; cursor: pointer;" />';
       $output .= ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
         . '/images/copy.gif" alt="' . $copy_text . '" title="'
         . $copy_text . '" onclick="uc_addresses_copy_address_order(\'' . $other_type . '\', \'' . $uc_type . '\');" '
         . 'style="position: relative; top: 2px; cursor: pointer;" />';
+      $output .= '<div id="' . $uc_type . '_address_select"></div>';
       return $output;
 
     case 'edit-theme':
-      $output = '<div id="' . $uc_type . '-pane"><div id="' . $uc_type . '_address_select"></div>' . drupal_render($order[$uc_type]) . '</div>';
-      return $output;
+      return '<div id="' . $uc_type . '-pane">' . drupal_render($form[$uc_type]) . '</div>';
+      //$output = '<div id="' . $uc_type . '-pane"><div id="' . $uc_type . '_address_select"></div>' . drupal_render($form[$uc_type]) . '</div>';
 
     case 'edit-process':
-      $order_values = $order;
-      $order = uc_order_load($order_values['order_id']);
+      $order_values = $form_state['values'];
       $address = $order->uc_addresses[$type];
       $changes = array();
 
-      foreach ($order_values[$uc_type] as $key => $value) {
-        // Set value
-        $order_values[$key] = $value;
+      foreach ($order_values as $key => $value) {
+        // Check if this an address field
+        if (strpos($key, $uc_type . '_') !== 0) {
+          continue;
+        }
 
         // Check if the value was changed
         $fieldname = substr($key, strlen($uc_type) + 1);

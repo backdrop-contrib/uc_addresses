@@ -175,7 +175,7 @@ function uc_addresses_uc_addresses_fields() {
 
   // Ubercart Addresses fields
   $data['address_name'] = array(
-    'title' => t('Name'),
+    'title' => t('Address name'),
     'description' => t('The name used to access this address'),
     'handler' => 'UcAddressesAddressNameFieldHandler',
     'display_settings' => array(
@@ -228,6 +228,7 @@ function uc_addresses_uc_addresses_fields() {
       'default' => FALSE,
     ),
     'compare' => FALSE,
+    'hidden' => TRUE,
   );
   $data['uid'] = array(
     'title' => t('User ID'),
@@ -237,6 +238,7 @@ function uc_addresses_uc_addresses_fields() {
       'default' => FALSE,
     ),
     'compare' => FALSE,
+    'hidden' => TRUE,
   );
   $data['created'] = array(
     'title' => t('Created'),
@@ -246,6 +248,7 @@ function uc_addresses_uc_addresses_fields() {
       'default' => FALSE,
     ),
     'compare' => FALSE,
+    'hidden' => TRUE,
   );
   $data['modified'] = array(
     'title' => t('Modified'),
@@ -255,6 +258,7 @@ function uc_addresses_uc_addresses_fields() {
       'default' => FALSE,
     ),
     'compare' => FALSE,
+    'hidden' => TRUE,
   );
 
   return $data;

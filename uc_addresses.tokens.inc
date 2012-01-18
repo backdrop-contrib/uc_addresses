@@ -1,8 +1,7 @@
 <?php
 /**
  * @file
- * Copy of functionality in token.module to allow to replace tokens
- * of uc_addresses two levels deep.
+ * Hook implementations for token module.
  */
 
 /**
@@ -52,11 +51,11 @@ function uc_addresses_token_info($type = 'all') {
   }
 
   // Ubercart order tokens
-  if ($type == 'order' || $type == 'all') {
-    $tokens['order']['uc-addresses-shipping-address'] = array(
+  if ($type == 'uc_order' || $type == 'all') {
+    $tokens['uc_order']['uc-addresses-shipping-address'] = array(
       'name' => t('The order shipping address, formatted with the Ubercart Addresses module.'),
     );
-    $tokens['order']['uc-addresses-billing-address'] = array(
+    $tokens['uc_order']['uc-addresses-billing-address'] = array(
       'name' => t('The order billing address, formatted with the Ubercart Addresses module.'),
     );
   }
@@ -124,9 +123,10 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
           else {
             // Check if this token represents a particular output format of an existing address field
             $token_pieces = explode(':', $name);
-            if (count($token_pieces) == 2) {
+            if (count($token_pieces) >= 2) {
               $fieldname = $token_pieces[0];
-              $output_format = $token_pieces[1];
+              array_shift($token_pieces);
+              $output_format = implode(':', $token_pieces);
               if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
                 // Check if this field supports the specified output format.
                 $handler = uc_addresses_get_address_field_handler($address, $fieldname, 'token');
@@ -140,46 +140,23 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
         }
       }
       break;
+    case 'uc_order':
+      $order = $data['uc_order'];
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'uc-addresses-shipping-address':
+            if (isset($order->uc_addresses['shipping']) && $order->uc_addresses['shipping'] instanceof UcAddressesAddress) {
+              $replacements[$original] = uc_addresses_format_address($order->uc_addresses['shipping'], 'token');
+            }
+            break;
+          case 'uc-addresses-billing-address':
+            if (isset($order->uc_addresses['billing']) && $order->uc_addresses['billing'] instanceof UcAddressesAddress) {
+              $replacements[$original] = uc_addresses_format_address($order->uc_addresses['billing'], 'token');
+            }
+            break;
+        }
+      }
+      break;
   }
   return $replacements;
-}
-
-/**
- * Replace tokens using uc_addresses tokens
- *
- * @param string $format
- * @param UcAddressesAddress $address
- * @return string
- *
- * @todo REMOVE
- */
-function uc_addresses_token_replace($text, UcAddressesAddress $address) {
-  $type = 'uc_addresses';
-  $object = $address;
-
-  token_include();
-
-  $id = _token_get_id($type, $object);
-  if ($id && isset($tokens[$type][$id])) {
-    $tmp_tokens = $tokens[$type][$id];
-  }
-  else {
-    $tmp_tokens = module_invoke_all('token_values', $type, $object, $options);
-    $tokens[$type][$id] = $tmp_tokens;
-  }
-
-  // Special-case global tokens, as we always want to be able to process
-  // those substitutions.
-  if (!isset($tokens['global']['default'])) {
-    $tokens['global']['default'] = module_invoke_all('token_values', 'global');
-  }
-
-  $all = array_merge($tokens['global']['default'], $tokens[$type][$id]);
-
-  $result = new stdClass();
-  $result->tokens = array_keys($all);
-  $result->values = array_values($all);
-
-  $tokens = token_prepare_tokens($result->tokens);
-  return str_replace($tokens, $result->values, $text);
 }

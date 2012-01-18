@@ -23,7 +23,7 @@
  * - Rich from Freestyle Systems (enhancements).
  * - Tony Freixas (maintainer) from Tiger Heron LLC (major revisions).
  *
- * Authors of the current 6.x-2.x version:
+ * Authors of the current 7.x-1.x version:
  * @author MegaChriz (maintainer)
  * @author Tony Freixas (maintainer) from Tiger Heron LLC. (initially setup of the architecture)
  *
@@ -256,6 +256,40 @@ function uc_addresses_permission() {
 }
 
 /**
+ * Implements hook_hook_info().
+ *
+ * Declares available hooks invoked by this module.
+ *
+ * @return array
+ */
+function uc_addresses_hook_info() {
+  $hooks = array(
+    'uc_addresses_field_handlers',
+    'uc_addresses_fields',
+    'uc_addresses_fields_alter',
+    'uc_addresses_preprocess_address_alter',
+    'uc_addresses_address_load',
+    'uc_addresses_address_presave',
+    'uc_addresses_address_insert',
+    'uc_addresses_address_update',
+    'uc_addresses_address_delete',
+    'uc_addresses_address_update',
+    'uc_addresses_may_view',
+    'uc_addresses_may_edit',
+    'uc_addresses_may_delete',
+    'uc_addresses_select_addresses',
+    'uc_addresses_select_addresses_alter',
+  );
+  $return = array();
+  foreach ($hooks as $hook) {
+    $return[$hook] = array(
+      'group' => 'uc_addresses',
+    );
+  }
+  return $return;
+}
+
+/**
  * Implements hook_user_insert().
  */
 function uc_addresses_user_insert(&$edit, $account, $category = NULL) {
@@ -374,8 +408,12 @@ function uc_addresses_process_address_field(&$element, $form_state) {
     $element['#uc_addresses_address'] = UcAddressesAddress::newAddress();
   }
   $element['#tree'] = TRUE;
-  $prefix = $element['#key_prefix'] ? ($element['#key_prefix'] . '_') : '';
+  $prefix = ($element['#key_prefix']) ? $element['#key_prefix'] . '_' : '';
+  if (function_exists('uc_store_address_field_weights')) {
+    $weights = uc_addresses_address_field_weights();
+  }
 
+  // MegaChriz: this code prevents checkout from working correctly!
   // Ensure we working with the right address (sometimes we caught two address objects where on of them was serialized).
   $element['#uc_addresses_address'] = $element['#uc_addresses_address']->getAddressBook()->getAddressById($element['#uc_addresses_address']->getId());
 
@@ -415,9 +453,16 @@ function uc_addresses_process_address_field(&$element, $form_state) {
   // Set common values for all address fields.
   foreach (element_children($element) as $fieldname) {
     $element[$fieldname] += array(
-      '#parents' => array_merge(array_slice($element['#parents'], 0, -1), array($fieldname)),
+      '#parents' => array_merge(array_slice($element['#parents'], 0, -1), array($prefix . $fieldname)),
       '#access' => $element['#hidden'] ? FALSE : TRUE,
+      '#weight' => (isset($weights[$fieldname])) ? $weights[$fieldname] : 0,
     );
+    // Add weight setting also to fields only used for display.
+    if (isset($element[$fieldname . '_item']) && isset($weights[$fieldname])) {
+      $element[$fieldname . '_item'] += array(
+        '#weight' => $weights[$fieldname],
+      );
+    }
     
     // Make all fields non-required if property "uc_addresses_required" is set to FALSE.
     if ($element['#uc_addresses_required'] === FALSE) {
@@ -541,12 +586,21 @@ function uc_addresses_validate_address_field_country($element, &$form_state) {
   $form_state['uc_addresses_address'] = isset($form_state['uc_addresses_address']) ? array_merge($form_state['uc_addresses_address'], $address) : $address;
 }
 
+/**
+ * Returns the weights of address fields.
+ *
+ * @return array
+ */
+function uc_addresses_address_field_weights() {
+  return variable_get('uc_address_fields_weight', array('first_name' => 0, 'last_name' => 1, 'company' => 2, 'street1' => 3, 'street2' => 4, 'city' => 5, 'zone' => 6, 'country' => 7, 'postal_code' => 8, 'phone' => 9, 'address_name' => 10, 'default_shipping' => 11, 'default_billing' => 12));
+}
+
 // ---------------------------------------------------------------------------
 // UBERCART HOOKS
 // ---------------------------------------------------------------------------
 
 /**
- * Implements hook_checkout_pane_alter().
+ * Implements hook_uc_checkout_pane_alter().
  *
  * Alters delivery and billing pane
  *
@@ -554,7 +608,7 @@ function uc_addresses_validate_address_field_country($element, &$form_state) {
  *
  * @return void
  */
-function uc_addresses_checkout_pane_alter(&$panes) {
+function uc_addresses_uc_checkout_pane_alter(&$panes) {
   // Load file with the callback functions
   module_load_include('ubercart.inc', 'uc_addresses');
 
@@ -571,7 +625,7 @@ function uc_addresses_checkout_pane_alter(&$panes) {
 }
 
 /**
- * Implements hook_order_pane_alter().
+ * Implements hook_uc_order_pane_alter().
  *
  * Alters delivery and billing pane
  *
@@ -579,7 +633,7 @@ function uc_addresses_checkout_pane_alter(&$panes) {
  *
  * @return void
  */
-function uc_addresses_order_pane_alter(&$panes) {
+function uc_addresses_uc_order_pane_alter(&$panes) {
   // Load file with the callback functions
   module_load_include('ubercart.inc', 'uc_addresses');
 
@@ -604,7 +658,7 @@ function uc_addresses_order_pane_alter(&$panes) {
  *
  * @return void
  */
-function uc_addresses_order($op, &$order, $arg2) {
+function uc_addresses_uc_order($op, &$order, $arg2) {
   switch ($op) {
     case 'load':
       $order->uc_addresses = array();
@@ -744,6 +798,10 @@ function uc_addresses_get_address_fields() {
       if (!isset($fielddata['compare'])) {
         $fields[$fieldname]['compare'] = TRUE;
       }
+      // Add hidden setting (only applies for address field settings page)
+      if (!isset($fielddata['hidden'])) {
+        $fields[$fieldname]['hidden'] = FALSE;
+      }
     }
   }
   return $fields;
@@ -841,6 +899,46 @@ function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for form uc_store_address_fields_form().
+ *
+ * @param array $form
+ * @param array $form_state
+ *
+ * @return void
+ */
+function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_state) {
+  $fields = uc_addresses_get_address_fields();
+  $weights = uc_addresses_address_field_weights();
+  foreach ($fields as $fieldname => $field) {
+    if (!$field['hidden'] && !isset($form['fields'][$fieldname])) {
+      $form['fields'][$fieldname] = array(
+        'default' => array(
+          '#markup' => $field['title'],
+        ),
+        'title' => array(
+          '#type' => 'value',
+          '#value' => $field['title'],
+        ),
+        'weight' => array(
+          '#type' => 'weight',
+          '#default_value' => isset($weights[$fieldname]) ? $weights[$fieldname] : 0,
+          '#attributes' => array(
+            'class' => array('uc-store-address-fields-weight'),
+          ),
+        ),
+        /*
+        'enabled' => array(
+          '#type' => 'checkbox',
+          '#default_value' => isset($current[$field]) ? TRUE : FALSE,
+        ),
+        */
+        '#weight' => isset($weights[$fieldname]) ? $weights[$fieldname] : 0,
+      );
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter() for form uc_order_address_book_form().
  *
  * @param array $form
@@ -849,10 +947,10 @@ function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
  * @return void
  */
 function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state) {
-  $uid = $form_state['post']['uid'];
-  $type = $form_state['post']['type'];
+  $uid = $form_state['input']['uid'];
+  $type = $form_state['input']['type'];
 
-  $select = uc_addresses_select_address($uid, 'order_form', $type);
+  $select = uc_addresses_select_addresses($uid, 'order_form', $type);
 
   if ($uid == 0) {
     $form['desc'] = array('#value' => '<br />' . t('You must select a customer before address<br />information is available.<br />') . '<br />');
@@ -942,6 +1040,7 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
   return $addresses;
 }
 
+// TODO: replace with logics in new uc_select_addresses function.
 /**
  * Widget for selecting an address.
  *
@@ -960,7 +1059,7 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
  *   A select form element for selecting addresses
  * @todo make an 'element' of it?
  */
-function uc_addresses_select_address($uid, $context = 'default', $type = 'billing', UcAddressesAddress $default_value = NULL) {
+function uc_addresses_select_addresses($uid, $context = 'default', $type = 'billing', UcAddressesAddress $default_value = NULL) {
   // Get addresses for select.
   $addresses = uc_addresses_get_select_addresses($uid, $context, $type);
 
@@ -974,28 +1073,29 @@ function uc_addresses_select_address($uid, $context = 'default', $type = 'billin
   $address_book_default_value = NULL;
 
   $options = array(
-    '0' => t('Select one...'),
+    '-1' => t('Select one...'),
   );
   foreach ($addresses as $address) {
-    $data = array();
-    $fields = $address->getRawFieldData();
-    // Replace underscores and spaces with a hyphen
-    foreach ($fields as $fieldname => $value) {
-      $fieldname_with_hyphens = str_replace(array('_', ' '), '-', $fieldname);
-      $data[$fieldname_with_hyphens] = $value;
+    switch ($context) {
+      case 'order_form':
+        $key = drupal_json_encode($address->getRawFieldData());
+        break;
+      default:
+        $key = $address->getId();
+        break;
     }
     if ($address_name = $address->getName()) {
-      $options[drupal_json_encode($data)] = $address_name;
+      $options[$key] = $address_name;
     }
     else {
-      $options[drupal_json_encode($data)] = preg_replace('/<.*?>/', ', ', uc_addresses_format_address($address));
+      $options[$key] = preg_replace('/<.*?>/', ', ', trim(uc_addresses_format_address($address)));
     }
 
     // Check if this address is equal to given default value
     if ($default_value && !$address_book_default_value) {
       if ($address->compareAddress($default_value)) {
         // Default value found! Save it for later.
-        $address_book_default_value = drupal_json_encode($data);
+        $address_book_default_value = $key;
       }
     }
   }
@@ -1004,9 +1104,10 @@ function uc_addresses_select_address($uid, $context = 'default', $type = 'billin
     '#type' => 'select',
     '#title' => t('Address book'),
     '#options' => $options,
-    '#attributes' => array('onchange' => "uc_addresses_apply_address('" . $type . "', this.value);"),
-    '#weight' => -50,
   );
+  if ($context == 'order_form') {
+    $select['#attributes'] = array('onchange' => "uc_addresses_apply_address('" . $type . "', this.value);");
+  }
   // Add default value if found
   if ($address_book_default_value) {
     $select['#default_value'] = $address_book_default_value;
@@ -1090,8 +1191,8 @@ function theme_uc_addresses_default_address_checkbox($variables) {
  * @return void
  */
 function uc_addresses_preprocess_uc_order(&$variables) {
-  $variables['order_shipping_address'] = $variables['uc_addresses_shipping_address'];
-  $variables['order_billing_address'] = $variables['uc_addresses_billing_address'];
+  $variables['order_shipping_address'] = $variables['order_addresses_shipping_address'];
+  $variables['order_billing_address'] = $variables['order_addresses_billing_address'];
 }
 
 // -----------------------------------------------------------------------------
@@ -1114,17 +1215,7 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
   $format = uc_addresses_get_address_format($country_id);
 
   // Replace tokens
-  if ($context == 'token') {
-    // Ouch! We can't replace tokens two levels deep!
-    // We use our own token replace system here.
-    module_load_include('tokens.inc', 'uc_addresses');
-    $address_string = uc_addresses_token_replace($format, $address);
-  }
-  else {
-    // In other cases the token replacement can be handled by the
-    // token module itself.
-    $address_string = token_replace($format, array('uc_addresses' => $address));
-  }
+  $address_string = token_replace($format, array('uc_addresses' => $address));
 
   // Clean-up address string
   $address_string = strtr($address_string, array("\n" => '<br />'));
