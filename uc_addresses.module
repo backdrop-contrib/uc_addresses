@@ -228,28 +228,28 @@ function uc_addresses_permission() {
       'title' => t('view own addresses'),
       'description' => t('Roles with this permission can view all own addresses in their address book, <em>including</em> their default addresses.'),
     ),
-    "view everyone's default addresses" => array(
-      'title' => t("view everyone's default addresses"),
+    'view all default addresses' => array(
+      'title' => t('view all default addresses'),
       'description' => t('Roles with this permission can view all default addresses of all users, <em>including</em> their own default addresses.'),
     ),
-    "view everyone's addresses" => array(
-      'title' => t("view everyone's addresses"),
+    'view all addresses' => array(
+      'title' => t('view all addresses'),
       'description' => t('Roles with this permission can view all addresses of all users, including addresses of their own.'),
     ),
     'add/edit own addresses' => array(
       'title' => t('add/edit own addresses'),
       'description' => t('Roles with this permission can add addresses to their own address book and edit own addresses. They are also able to view their own addresses.'),
     ),
-    "add/edit everyone's addresses" => array(
-      'title' => t("add/edit everyone's addresses"),
+    'add/edit all addresses' => array(
+      'title' => t('add/edit all addresses'),
       'description' => t('Roles with this permission can add addresses to address books of any user and edit addresses of all users. They are also be able to view all addresses.'),
     ),
     'delete own addresses' => array(
       'title' => t('delete own addresses'),
       'description' => t("Roles with this permission can delete own addresses that are not marked as the default shipping or the default billing address. (Ubercart Addresses doesn't allow anyone to delete default addresses, including the superuser. This is by design.)"),
     ),
-    "delete everyone's addresses" => array(
-      'title' => t("delete everyone's addresses"),
+    'delete all addresses' => array(
+      'title' => t('delete all addresses'),
       'description' => t('Roles with this permission can delete all addresses of all users, except addresses that are marked as default shipping or default billing.'),
     ),
   );

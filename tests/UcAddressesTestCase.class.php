@@ -50,7 +50,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
     // Setup users
     $this->basicUser = $this->drupalCreateUser();
     $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
-    $this->adminUser = $this->drupalCreateUser(array("add/edit everyone's addresses", "delete everyone's addresses"));
+    $this->adminUser = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
   }
 
   // -----------------------------------------------------------------------------

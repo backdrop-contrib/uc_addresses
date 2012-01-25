@@ -103,17 +103,17 @@ Permissions
 - view own addresses:
     Roles with this permission can view all own addresses in their address
     book, *including* the default addresses.
-- view everyone's default addresses
+- view all default addresses
     Roles with this permission can view all default addresses of all
     users, *including* their own default addresses.
-- view everyone's addresses
+- view all addresses
     Roles with this permission can view all addresses of all users,
     including addresses of their own.
 - add/edit own addresses
     Roles with this permission can add addresses to their own address
     book and edit own addresses. They are also able to view their own
     addresses.
-- add/edit everyone's addresses
+- add/edit all addresses
     Roles with this permission can add addresses to address books of
     any user and edit addresses of all users. They are also be able
     to view all addresses.
@@ -122,7 +122,7 @@ Permissions
     marked as the default shipping or the default billing address.
     (Ubercart Addresses doesn't allow anyone to delete default addresses,
     including the superuser. This is by design.)
-- delete everyone's addresses
+- delete all addresses
     Roles with this permission can delete all addresses of all users,
     except addresses that are marked as default shipping or default
     billing.

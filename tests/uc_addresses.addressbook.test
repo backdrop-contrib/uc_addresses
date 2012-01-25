@@ -342,7 +342,7 @@ class UcAddressesAddressBookAdminViewDefTestCase extends UcAddressesAddressBookT
    * and delete addresses.
    */
   public function testAdminViewDef() {
-    $adminViewDef = $this->drupalCreateUser(array("view everyone's default addresses"));
+    $adminViewDef = $this->drupalCreateUser(array('view all default addresses'));
     $this->doOwnAddressTests($adminViewDef, TRUE, FALSE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($adminViewDef, TRUE, FALSE, FALSE, FALSE);
   }
@@ -375,7 +375,7 @@ class UcAddressesAddressBookAdminViewTestCase extends UcAddressesAddressBookTest
    * addresses.
    */
   public function testAdminView() {
-    $adminView = $this->drupalCreateUser(array("view everyone's addresses"));
+    $adminView = $this->drupalCreateUser(array('view all addresses'));
     $this->doOwnAddressTests($adminView, TRUE, TRUE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($adminView, TRUE, TRUE, FALSE, FALSE);
   }
@@ -408,7 +408,7 @@ class UcAddressesAddressBookAdminEditTestCase extends UcAddressesAddressBookTest
    * and delete addresses.
    */
   public function testAdminEdit() {
-    $adminEdit = $this->drupalCreateUser(array("add/edit everyone's addresses"));
+    $adminEdit = $this->drupalCreateUser(array('add/edit all addresses'));
     $this->doOwnAddressTests($adminEdit, TRUE, TRUE, TRUE, FALSE);
     $this->doOtherUsersAddressTests($adminEdit, TRUE, TRUE, TRUE, FALSE);
   }
@@ -441,7 +441,7 @@ class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestC
    * delete addresses.
    */
   public function testAdminAll() {
-    $adminAll = $this->drupalCreateUser(array("add/edit everyone's addresses", "delete everyone's addresses"));
+    $adminAll = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
     $this->doOwnAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
     $this->doOtherUsersAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
   }
