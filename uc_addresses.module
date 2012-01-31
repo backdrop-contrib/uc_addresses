@@ -291,6 +291,9 @@ function uc_addresses_hook_info() {
 
 /**
  * Implements hook_user_insert().
+ *
+ * @see uc_addresses_form_user_register_form_alter()
+ * @see uc_addresses_form_user_register_form_submit()
  */
 function uc_addresses_user_insert(&$edit, $account, $category = NULL) {
   // Save the address the user entered during registering.
@@ -863,9 +866,12 @@ function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $addres
  * @param array $form_state
  *
  * @return void
+ *
+ * @see uc_addresses_form_user_register_form_alter()
+ * @see uc_addresses_user_insert()
  */
 function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
-  // Check if we need to ask for an address upon registering
+  // Check if we need to ask for an address upon registering.
   if (user_access('administer users')) {
     // User is admin
     $require_address = variable_get('uc_addresses_require_address_admin', TRUE);
@@ -875,8 +881,8 @@ function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
   }
 
   if ($require_address) {
-    if (isset($form_state['values']['uc_addresses_address']) && $form_state['values']['uc_addresses_address'] instanceof UcAddressesAddress) {
-      $address = $form_state['values']['uc_addresses_address'];
+    if (isset($form_state['storage']['uc_addresses_address']) && $form_state['storage']['uc_addresses_address'] instanceof UcAddressesAddress) {
+      $address = $form_state['storage']['uc_addresses_address'];
     }
     else {
       $address = UcAddressesAddressBook::newAddress();
@@ -890,16 +896,32 @@ function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
       '#uc_addresses_address' => $address,
       '#uc_addresses_context' => 'register',
     );
-    $form['uc_addresses']['uc_addresses_address'] = array(
-      '#type' => 'value',
-      '#value' => $address,
-    );
+    // Execute uc_addresses_form_user_register_form_submit() before the account gets saved.
+    array_unshift($form['#submit'], 'uc_addresses_form_user_register_form_submit');
+    // Store address, so it can be picked up when the form is rebuild
+    // (this happens when an other country is chosen and the zone field is updated).
+    $form_state['storage']['uc_addresses_address'] = $address;
     return $form;
   }
 }
 
 /**
+ * Submit handler for user register form.
+ *
+ * Adds UcAddressesAddress object to user object, so it's available in $edit in uc_addresses_user_insert().
+ *
+ * @see uc_addresses_form_user_register_form_alter()
+ * @see uc_addresses_user_insert()
+ */
+function uc_addresses_form_user_register_form_submit(&$form, $form_state) {
+  $form['#user']->uc_addresses_address = $form['uc_addresses']['address']['#uc_addresses_address'];
+}
+
+/**
  * Implements hook_form_FORM_ID_alter() for form uc_store_address_fields_form().
+ *
+ * Adds address fields from Ubercart Addresses to the address field settings form,
+ * so the weight of these fields can also be adjusted.
  *
  * @param array $form
  * @param array $form_state
@@ -926,6 +948,8 @@ function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_sta
             'class' => array('uc-store-address-fields-weight'),
           ),
         ),
+        // @todo Ubercart Addresses has it own settings page for enabling/disabling fields,
+        //   I'm not sure yet if I want to move these settings to this place.
         /*
         'enabled' => array(
           '#type' => 'checkbox',
