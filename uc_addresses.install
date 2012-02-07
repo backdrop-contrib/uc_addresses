@@ -137,25 +137,18 @@ function uc_addresses_schema() {
 
 /**
  * Implements hook_install().
- * @return void
  */
 function uc_addresses_install() {
-  // Setup default permissions.
-  // If the module 'permissions_api' is enabled, the authencated user will
-  // automatically be granted with the permissions 'view own addresses' and
-  // 'add/edit own addresses'.
-  if (module_exists('permissions_api')) {
-    permissions_grant_permissions('authenticated user', array(
+  $t = get_t();
+  // Setup default permissions. Authenticated users will automatically
+  // be granted with permissions to manage their own addresses.
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array(
       'view own addresses',
       'add/edit own addresses',
       'delete own addresses',
     )
-    );
-    drupal_set_message(st("Ubercart Addresses is installed. Since you had the module 'Permissions API' enabled, the authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => st('view own addresses'), '%edit_own' => st('add/edit own addresses'), '%delete_own' => st('delete own addresses'))), 'status');
-  }
-  else {
-    drupal_set_message(st("Ubercart Addresses is installed. Now set up !permissions_link so users will be able to view, edit and delete addresses.", array('!permissions_link' => l(st('permissions'), 'admin/user/permissions', array('fragment' => 'module-uc_addresses')))), 'warning');
-  }
+  );
+  drupal_set_message($t("Ubercart Addresses is installed. The authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => $t('view own addresses'), '%edit_own' => $t('add/edit own addresses'), '%delete_own' => $t('delete own addresses'))), 'status');
 }
 
 /**
@@ -225,4 +218,13 @@ function uc_addresses_update_6200() {
 
   // Drop table uc_addresses_defaults
   db_drop_table('uc_addresses_defaults');
+
+  // Setup default permissions. Authenticated users will automatically
+  // be granted with permissions to manage their own addresses.
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array(
+    'view own addresses',
+    'add/edit own addresses',
+    'delete own addresses',
+  ));
+  drupal_set_message(t("Ubercart Addresses has new permissions. The authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => t('view own addresses'), '%edit_own' => t('add/edit own addresses'), '%delete_own' => t('delete own addresses'))), 'status');
 }
