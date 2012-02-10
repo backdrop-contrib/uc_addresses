@@ -21,7 +21,7 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
       'name' => 'Orders',
       'description' => 'Ensure that orders function properly when Ubercart Addresses is enabled.',
       'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store', 'uc_order'),
+      'dependencies' => array('ctools', 'token', 'rules', 'uc_store', 'uc_order'),
     );
   }
 

@@ -21,7 +21,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
       'name' => 'Cart and checkout',
       'description' => 'Ensures the cart and checkout process is functioning when Ubercart Addresses is enabled.',
       'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store', 'uc_cart'),
+      'dependencies' => array('ctools', 'token', 'rules', 'uc_store', 'uc_cart'),
     );
   }
 
