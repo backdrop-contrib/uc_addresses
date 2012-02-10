@@ -29,7 +29,7 @@
  *
  * @ingroup uc_addresses
  */
- 
+
 // -----------------------------------------------------------------------------
 // DRUPAL HOOKS
 // -----------------------------------------------------------------------------
@@ -466,7 +466,7 @@ function uc_addresses_process_address_field(&$element, $form_state) {
         '#weight' => $weights[$fieldname],
       );
     }
-    
+
     // Make all fields non-required if property "uc_addresses_required" is set to FALSE.
     if ($element['#uc_addresses_required'] === FALSE) {
       $element[$fieldname]['#required'] = FALSE;

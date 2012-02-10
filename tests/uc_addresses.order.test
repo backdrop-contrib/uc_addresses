@@ -32,37 +32,7 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
     parent::setUp();
 
     // Install Ubercart Addresses and flush schema cache.
-    drupal_install_modules(array('ctools', 'uc_addresses'));
+    module_enable(array('ctools', 'uc_addresses'));
     drupal_get_schema(NULL, TRUE);
-  }
-
-  /**
-   * Override of UbercartOrderTestCase::testOrderEditing().
-   */
-  public function testOrderEditing() {
-    $order = $this->ucCreateOrder($this->customer);
-
-    $this->drupalLogin($this->customer);
-    $this->drupalGet('user/' . $this->customer->uid . '/orders');
-    $this->assertText(t('My order history'));
-
-    $this->drupalGet('user/' . $this->customer->uid . '/orders/' . $order->order_id);
-    $this->assertResponse(200, 'Customer can view their own order.');
-
-    $this->drupalGet('admin/store/orders/' . $order->order_id);
-    $this->assertResponse(403, 'Customer may not edit orders.');
-
-    $this->drupalLogin($this->adminUser);
-    $this->drupalGet('user/' . $this->customer->uid . '/order/' . $order->order_id);
-    $this->assertText(drupal_strtoupper($order->billing_first_name . ' ' . $order->billing_last_name), 'Found customer name.');
-
-    $edit = array(
-      'billing[billing_first_name]' => $this->randomName(8),
-      'billing[billing_last_name]' => $this->randomName(15),
-    );
-    $this->drupalPost('admin/store/orders/' . $order->order_id . '/edit', $edit, t('Submit changes'));
-    $this->assertText(t('Order changes saved.'));
-    $this->assertFieldByName('billing[billing_first_name]', $edit['billing[billing_first_name]'], 'Billing first name changed.');
-    $this->assertFieldByName('billing[billing_last_name]', $edit['billing[billing_last_name]'], 'Billing last name changed.');
   }
 }

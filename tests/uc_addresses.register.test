@@ -30,9 +30,9 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
    */
   public function testRegistration() {
     // Allow registration by site visitors without administrator approval.
-    variable_set('user_register', 1);
+    variable_set('user_register', USER_REGISTER_VISITORS);
 
-    // Require e-mail verification.
+    // Don't require e-mail verification.
     variable_set('user_email_verification', FALSE);
 
     $this->drupalGet('user/register');
@@ -45,6 +45,10 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $edit['pass[pass1]'] = $new_pass = $this->randomName();
     $edit['pass[pass2]'] = $new_pass;
     $this->drupalPost(NULL, $edit, t('Create new account'));
+
+    // Clear mail history, or else the address entered during registration stays into memory.
+    // This would else cause this test to fail.
+    variable_del('drupal_test_email_collector');
 
     $uid = db_query("SELECT uid FROM {users} WHERE name = :name AND mail = :mail", array(':name' => $name, ':mail' => $mail))->fetchField();
     $new_user = user_load($uid);
@@ -68,7 +72,7 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
       $this->pass(t('User has assigned the right permissions.'));
     }
     else {
-      $this->fail(t('User has not assigned the right permissions.'));
+      $this->fail(t('User has assigned the right permissions.'));
     }
 
     $addressBook = UcAddressesAddressBook::get($new_user->uid);

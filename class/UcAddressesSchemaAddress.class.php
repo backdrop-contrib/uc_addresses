@@ -273,6 +273,29 @@ class UcAddressesSchemaAddress {
     return (array) $this->schemaAddress;
   }
 
+  /**
+   * Get a "safe" field value from a single field.
+   *
+   * @param string $fieldName
+   *	 The name of the field whose value we want.
+   * @param string $format
+   *   (optional) The format in which the value should be outputted.
+   *   See outputValue() in UcAddressesFieldHandler.class.php for
+   *   more information.
+   * @param string $context
+   *   (optional) The context where the field is used for.
+   *
+   * @access public
+   * @return mixed
+   *   The field's value safe for ouput.
+   * @throws UcAddressInvalidFieldException
+   */
+  public function getFieldValue($fieldName, $format = '', $context = 'default') {
+    self::fieldMustExist($fieldName);
+    $handler = uc_addresses_get_address_field_handler($this, $fieldName, $context);
+    return $handler->outputValue($this->getField($fieldName), $format);
+  }
+
   // -----------------------------------------------------------------------------
   // SCHEMA METHODS
   // -----------------------------------------------------------------------------

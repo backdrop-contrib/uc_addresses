@@ -748,11 +748,11 @@ class UcAddressesAddressBook {
         ->condition('aid', $arg)
         ->fields('uc_addresses')
         ->execute();
-    }    
+    }
     else {
       $result = db_select('uc_addresses')
         ->condition('uid', $this->uid)
-        ->condition('address_name', $arg)        
+        ->condition('address_name', $arg)
         ->fields('uc_addresses')
         ->execute();
     }
@@ -936,7 +936,7 @@ class UcAddressesAddressBook {
       db_delete('uc_addresses')
         ->condition('aid', $address->getId())
         ->execute();
-     }
+    }
 
     // Remove from address book object
     $this->removeAddressFromAddressBook($address);

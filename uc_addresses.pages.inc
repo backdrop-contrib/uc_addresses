@@ -319,13 +319,11 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
     $address = $form['uc_addresses']['address']['#uc_addresses_address'];
 
     if ($form_state['clicked_button']['#value'] == variable_get('uc_addresses_delete_button', t('Delete address'))) {
-      unset($form_state['storage']); // Storage must be cleared or else the redirect does not work.
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses/' . $address->getId() . '/delete';
     }
     elseif ($form_state['clicked_button']['#value']) {
       $address->getAddressBook()->save();
       drupal_set_message(t('The address is saved.'));
-      unset($form_state['storage']); // Storage must be cleared or else the redirect does not work.
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses';
     }
   }

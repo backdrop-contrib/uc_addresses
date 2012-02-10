@@ -51,6 +51,14 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
     $this->basicUser = $this->drupalCreateUser();
     $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
     $this->adminUser = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
+
+    // Revoke default permissions for authenticated user, so we can test the effect of permissions.
+    user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array(
+        'view own addresses',
+        'add/edit own addresses',
+        'delete own addresses',
+      )
+    );
   }
 
   // -----------------------------------------------------------------------------
@@ -287,7 +295,6 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       $query->condition($fieldname, $value);
     }
     $sQuery = (string) $query;
-    $this->verbose($sQuery);
     $result = $query->execute();
 
     return ($result->fetchField()) ? TRUE : FALSE;

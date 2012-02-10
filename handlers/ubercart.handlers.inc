@@ -177,7 +177,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       ->condition('zone_id', $value)
       ->fields('uc_zones')
       ->execute();
-    
+
     if ($row = $result->fetch()) {
       $zone_data = array(
         'zone_code' => $row->zone_code,

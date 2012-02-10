@@ -76,8 +76,6 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
   switch ($op) {
     case 'view':
       // Tell addres book we want to get multiple addresses
-      $addressBook_0 = UcAddressesAddressBook::get(0);
-      $sess = $_SESSION;
       UcAddressesAddressBook::get($user->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
       // Initialize address variable
@@ -100,7 +98,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       if (!$address) {
         $address = UcAddressesAddress::newAddress();
       }
-      
+
       // Check if address is copied from source pane
       // (if the "copy address" checkbox was enabled)
       if (
