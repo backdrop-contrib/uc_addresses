@@ -26,6 +26,7 @@ files[] = tests/uc_addresses.api.test
 files[] = tests/uc_addresses.checkout.test
 files[] = tests/uc_addresses.order.test
 files[] = tests/uc_addresses.register.test
+files[] = tests/uc_addresses.tokens.test
 
 ; Additional files with hook implementations
 files[] = uc_addresses.ubercart.inc

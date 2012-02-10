@@ -121,6 +121,30 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
         }
       }
       break;
+    case 'user':
+      $user = $data['user'];
+      $user_tokens = array(
+        'billing' => 'default-billing-address',
+        'shipping' => 'default-shipping-address',
+      );
+      foreach ($user_tokens as $address_type => $token) {
+        $address_tokens = token_find_with_prefix($tokens, $token);
+        if (!isset($tokens[$token]) && !$address_tokens) {
+          continue;
+        }
+        $address = UcAddressesAddressBook::get($user)->getDefaultAddress($address_type);
+        if (!$address) {
+          continue;
+        }
+
+        if (isset($tokens[$token])) {
+          $replacements[$tokens[$token]] = uc_addresses_format_address($address, 'token');
+        }
+        if ($address_tokens) {
+          $replacements += token_generate('uc_addresses', $address_tokens, array('uc_addresses' => $address), $options);
+        }
+      }
+      break;
   }
   return $replacements;
 }
