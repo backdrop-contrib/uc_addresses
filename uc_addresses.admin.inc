@@ -105,7 +105,7 @@ function uc_addresses_country_formats_page($country_id = NULL) {
   $result = db_query("SELECT country_id, country_name FROM {uc_countries} ORDER BY country_name ASC");
   while ($country = $result->fetch()) {
     $rows[] = array(
-      l($country->country_name, $path . '/' . $country->country_id),
+      l(t($country->country_name), $path . '/' . $country->country_id),
       (variable_get('uc_addresses_address_format_' . $country->country_id, NULL) ? t('Overridden') : t('Ubercart default')),
     );
   }
@@ -129,7 +129,7 @@ function uc_addresses_country_formats_form($form, $form_state, $country_id) {
   $form = array();
   $form['uc_addresses_address_format_' . $country_id] = array(
     '#type' => 'textarea',
-    '#title' => t('Address format for @country', array('@country' => $country->country_name)),
+    '#title' => t('Address format for @country', array('@country' => t($country->country_name))),
     '#default_value' => uc_addresses_get_address_format($country_id),
     '#description' => t('Uses tokens to format an address for this country.'),
     '#rows' => 6,

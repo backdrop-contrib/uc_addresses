@@ -79,7 +79,7 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<p>' . t('When a user is deleted, all their addresses are also deleted.') . '</p>';
 
       $output .= '<h2>' . t('Address fields') . '</h2>';
-      $output .= '<p>' . t('Configure the address fields at the <a href="!address-fields-link">!address-fields-page-title</a> page.', array('!address-fields-link' => url('admin/store/settings/checkout/edit/fields'), '!address-fields-page-title' => t('Address fields'))) . '</p>';
+      $output .= '<p>' . t('Configure the address fields at the <a href="!address-fields-link">!address-fields-page-title</a> page.', array('!address-fields-link' => url('admin/store/settings/countries/fields'), '!address-fields-page-title' => t('Address fields'))) . '</p>';
 
       $output .= '<h2>' . t('Changes to Drupal/Ubercart: technical information') . '</h2>';
       $output .= '<p>' . t('The following changes are made to Drupal and Ubercart to provide the functionality:') . '</p>';
@@ -90,7 +90,7 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<li>' . t('Delivery and billing addresses are formatted with Ubercart Addresses address formats.') . '</li>';
       $output .= '<li>' . t('On the user register form an address form is present.') . '</li>';
       $output .= '<li>' . t('A page to <a href="!address-settings-link">configure the module</a> is added.', array('!address-settings-link' => url('admin/store/settings/addresses'))) . '</li>';
-      $output .= '<li>' . t('A page to <a href="!uc-addresses-country-settings-link">configure Ubercart Addresses address formats</a> is added.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/edit/uc_addresses_formats'))) . '</li>';
+      $output .= '<li>' . t('A page to <a href="!uc-addresses-country-settings-link">configure Ubercart Addresses address formats</a> is added.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/uc_addresses_formats'))) . '</li>';
       $output .= '</ul>';
 
       $output .= '<h2>' . t('Ubercart Addresses country formats') . '</h2>';
@@ -101,21 +101,21 @@ function uc_addresses_help($path, $arg = array()) {
       $output .= '<li>' . t('Delivery and billing addresses in the invoice Ubercart sends when the customer places an order.') . '</li>';
       $output .= '</ul>';
       $output .= '<p>' . t('Address format example:') . '</p>';
-      $output .= "<code>[uc_addresses_company]<br />[uc_addresses_first_name] [uc_addresses_last_name]<br />[uc_addresses_street1]<br />[uc_addresses_street2]<br />[uc_addresses_city], [uc_addresses_zone_code] [uc_addresses_postal_code]<br />[uc_addresses_country_name_if]</code>";
-      $output .= '<p>' . t('Configure the address formats for Ubercart Addresses at the <a href="!uc-addresses-country-settings-link">!uc-addresses-country-settings-page-title</a> page.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/edit/uc_addresses_formats'), '!uc-addresses-country-settings-page-title' => t('Ubercart Addresses country formats'))) . '</p>';
+      $output .= "<code>[uc_addresses:company]<br />[uc_addresses:first_name] [uc_addresses:last_name]<br />[uc_addresses:street1]<br />[uc_addresses:street2]<br />[uc_addresses:city], [uc_addresses:zone:zone_code] [uc_addresses:postal_code]<br />[uc_addresses:country:country_name_if]</code>";
+      $output .= '<p>' . t('Configure the address formats for Ubercart Addresses at the <a href="!uc-addresses-country-settings-link">!uc-addresses-country-settings-page-title</a> page.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/uc_addresses_formats'), '!uc-addresses-country-settings-page-title' => t('Ubercart Addresses address formats'))) . '</p>';
       return $output;
 
-    case 'admin/store/settings/addresses/edit':
+    case 'admin/store/settings/addresses':
       $output = '<p>' . t('On this page you can configure the settings of the Ubercart Addresses module.') . '</p>';
       $output .= '<h3>' . t('Other settings') . '</h3>';
       $output .= '<ul>';
-      $output .= '<li>' . t('To configure the address field settings, go to the <a href="!address-fields-link">!address-fields-page-title</a> page.', array('!address-fields-link' => url('admin/store/settings/checkout/edit/fields'), '!address-fields-page-title' => t('Address fields'))) . '</li>';
-      $output .= '<li>' . t('To configure the address formats for Ubercart Addresses, go to the <a href="!uc-addresses-country-settings-link">!uc-addresses-country-settings-page-title</a> page.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/edit/uc_addresses_formats'), '!uc-addresses-country-settings-page-title' => t('Ubercart Addresses country formats'))) . '</li>';
+      $output .= '<li>' . t('To configure the address field settings, go to the <a href="!address-fields-link">!address-fields-page-title</a> page.', array('!address-fields-link' => url('admin/store/settings/countries/fields'), '!address-fields-page-title' => t('Address fields'))) . '</li>';
+      $output .= '<li>' . t('To configure the address formats for Ubercart Addresses, go to the <a href="!uc-addresses-country-settings-link">!uc-addresses-country-settings-page-title</a> page.', array('!uc-addresses-country-settings-link' => url('admin/store/settings/countries/uc_addresses_formats'), '!uc-addresses-country-settings-page-title' => t('Ubercart Addresses address formats'))) . '</li>';
       $output .= '</ul><br />';
       return $output;
 
-    case 'admin/store/settings/countries/edit/uc_addresses_formats':
-      $output .= '<p>' . t("Ubercart Addresses comes with it's own address formats that are build by using tokens, rather than the predefined set of variables Ubercart uses. This way it's possible to add any extra address values to an address format. Only addresses used by Ubercart Addresses are formatted using Ubercart Addresses' address formats.") . '</p>';
+    case 'admin/store/settings/countries/uc_addresses_formats':
+      $output = '<p>' . t("Ubercart Addresses comes with it's own address formats that are build by using tokens, rather than the predefined set of variables Ubercart uses. This way it's possible to add any extra address values to an address format. Only addresses used by Ubercart Addresses are formatted using Ubercart Addresses' address formats.") . '</p>';
       return $output;
   }
 }
@@ -206,12 +206,20 @@ function uc_addresses_menu() {
     'description' => 'Edit the country specific format settings for Ubercart Addresses.',
     'page callback' => 'uc_addresses_country_formats_page',
     'access arguments' => array('administer store'),
-    'weight' => -4,
     'type' => MENU_LOCAL_TASK,
     'file' => 'uc_addresses.admin.inc',
-    '_visible' => TRUE, // This property is set to make this path visible on the help page as an admin task.
   );
   return $items;
+}
+
+/**
+ * Implements hook_menu_link_alter().
+ */
+function uc_addresses_menu_link_alter(&$item) {
+  // Make the Ubercart Addresses address formats page visible as an admin task.
+  if ($item['link_path'] == 'admin/store/settings/countries/uc_addresses_formats') {
+    $item['hidden'] = 0;
+  }
 }
 
 /**

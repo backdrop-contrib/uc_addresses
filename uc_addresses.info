@@ -4,8 +4,9 @@ dependencies[] = uc_store
 dependencies[] = ctools
 dependencies[] = token
 package = "Ubercart - extra"
+configure = admin/store/settings/addresses
 core = 7.x
-php = 5.0
+php = 5.2
 
 ; Classes
 files[] = class/Exceptions.inc
