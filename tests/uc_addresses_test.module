@@ -1,0 +1,9 @@
+<?php
+/**
+ * @file
+ * Testing module for Ubercart Addresses functionality.
+ *
+ * Currently, this module does nothing and exists only to let
+ * the drupal.org testbot load all project dependencies that
+ * are needed for the tests.
+ */
