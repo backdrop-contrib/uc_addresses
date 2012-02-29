@@ -262,6 +262,8 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
     $form['delete'] = array(
       '#type' => 'submit',
       '#value' => variable_get('uc_addresses_delete_button', t('Delete address')),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('uc_addresses_get_address_form_submit'),
     );
 
     // Check if address may be deleted
@@ -280,30 +282,6 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
 }
 
 /**
- * Validate handler for the address form.
- *
- * @param array $form
- * @param array $form_state
- *
- * @return void
- *
- * @see uc_addresses_get_address_form()
- * @see uc_addresses_get_address_form_submit()
- */
-function uc_addresses_get_address_form_validate(&$form, &$form_state) {
-  switch ($form_state['clicked_button']['#value']) {
-    case variable_get('uc_addresses_delete_button', t('Delete address')):
-      // Don't do further validation
-      unset($form['uc_addresses']['address']['#element_validate']);
-      unset($_SESSION['messages']['error']);
-      $form_state['submitted'] = TRUE;
-      form_set_error(NULL, '', TRUE);
-      return;
-  }
-  return TRUE;
-}
-
-/**
  * Submit handler for the address form.
  *
  * @param array $form
@@ -312,7 +290,6 @@ function uc_addresses_get_address_form_validate(&$form, &$form_state) {
  * @return void
  *
  * @see uc_addresses_get_address_form()
- * @see uc_addresses_get_address_form_validate()
  */
 function uc_addresses_get_address_form_submit(&$form, &$form_state) {
   try {
