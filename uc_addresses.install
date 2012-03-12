@@ -148,6 +148,24 @@ function uc_addresses_install() {
       'delete own addresses',
     )
   );
+
+  // Increase the weight of uc_addresses relative
+  // to uc_quote by an addition of 1 so that
+  // uc_addresses module can undo some of the actions
+  // done by uc_quote's form alter, which causes the
+  // delivery address form to disapear on checkout.
+  //
+  // See also http://drupal.org/node/1421720.
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'uc_quote', '=')
+    ->execute()
+    ->fetchField();
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'uc_addresses', '=')
+    ->execute();
+
   drupal_set_message($t("Ubercart Addresses is installed. The authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => $t('view own addresses'), '%edit_own' => $t('add/edit own addresses'), '%delete_own' => $t('delete own addresses'))), 'status');
 }
 
@@ -304,4 +322,25 @@ function uc_addresses_update_7100() {
       variable_set('uc_addresses_address_format_' . $country->country_id, $format);
     }
   }
+}
+
+/**
+ * Increase the weight of uc_addresses relative
+ * to uc_quote by an addition of 1 so that
+ * uc_addresses module can undo some of the actions
+ * done by uc_quote's form alter, which causes the
+ * delivery address form to disapear on checkout.
+ *
+ * See also http://drupal.org/node/1421720.
+ */
+function uc_addresses_update_7101() {
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'uc_quote', '=')
+    ->execute()
+    ->fetchField();
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'uc_addresses', '=')
+    ->execute();
 }

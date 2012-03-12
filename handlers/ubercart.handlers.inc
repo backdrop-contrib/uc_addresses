@@ -116,6 +116,15 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       $options = array(-1 => t('Not applicable'));
     }
 
+    if (empty($form['#key_prefix'])) {
+      // When no key prefix is set, use the address ID as part of the zone wrapper ID.
+      $zone_wrapper_id = 'uc-address' . $this->getAddress()->getId() . '-zone-wrapper';
+    }
+    else {
+      // When a key prefix is set, make this part of the zone wrapper ID.
+      $zone_wrapper_id = 'uc-store-address-' . str_replace('_', '-', $form['#key_prefix']) . '-zone-wrapper';
+    }
+
     return array(
       $fieldName => array(
         '#type' => 'select',
@@ -123,7 +132,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
         '#required' => $this->isFieldRequired(),
         '#options' => $options,
         '#default_value' => $default,
-        '#prefix' => '<div id="uc-address' . $this->getAddress()->getId() . '-zone-wrapper">',
+        '#prefix' => '<div id="' . $zone_wrapper_id . '">',
         '#suffix' => '</div>',
         '#empty_value' => 0,
       ),
@@ -243,6 +252,15 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       $options[] = t('No countries found.');
     }
 
+    if (empty($form['#key_prefix'])) {
+      // When no key prefix is set, use the address ID as part of the zone wrapper ID.
+      $zone_wrapper_id = 'uc-address' . $this->getAddress()->getId() . '-zone-wrapper';
+    }
+    else {
+      // When a key prefix is set, make this part of the zone wrapper ID.
+      $zone_wrapper_id = 'uc-store-address-' . str_replace('_', '-', $form['#key_prefix']) . '-zone-wrapper';
+    }
+
     return array(
       $fieldName => array(
         '#type' => 'select',
@@ -252,7 +270,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         '#default_value' => empty($default) ? uc_store_default_country() : $default,
         '#ajax' => array(
           'callback' => 'uc_store_update_address_field_zones',
-          'wrapper' => 'uc-address' . $this->getAddress()->getId() . '-zone-wrapper',
+          'wrapper' => $zone_wrapper_id,
           'progress' => array(
             'type' => 'throbber',
           ),

@@ -926,6 +926,30 @@ function uc_addresses_form_user_register_form_submit(&$form, $form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for form uc_cart_checkout_form().
+ *
+ * If the #process callback of the address element is overwritten within
+ * a form alter it gets a callback in which Ubercart Addresses will fail to
+ * work properly on the checkout page.
+ * This is the case when the Shipping Quotes (uc_quote) module is enabled.
+ * This module sets the #process callback to "uc_store_process_address_field"
+ * and will cause the delivery address form to disappear.
+ *
+ * We fix this by overriding the #process callback again and setting it back
+ * to what Ubercart Addresses needs to work properly on the checkout page.
+ * This form alter replaces the "uc_store_process_address_field" callback with
+ * "uc_addresses_process_address_field" callback.
+ */
+function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
+  if (isset($form['panes']['delivery']['address']['#process'])) {
+    $key = array_search('uc_store_process_address_field', $form['panes']['delivery']['address']['#process']);
+    if ($key !== FALSE) {
+      $form['panes']['delivery']['address']['#process'][$key] = 'uc_addresses_process_address_field';
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter() for form uc_store_address_fields_form().
  *
  * Adds address fields from Ubercart Addresses to the address field settings form,
