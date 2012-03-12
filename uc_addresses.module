@@ -1129,7 +1129,7 @@ function uc_addresses_select_addresses($uid, $context = 'default', $type = 'bill
   $address_book_default_value = NULL;
 
   $options = array(
-    '-1' => t('Select one...'),
+    '' => t('Select one...'),
   );
   foreach ($addresses as $address) {
     switch ($context) {
