@@ -414,25 +414,41 @@ function uc_addresses_access($method, $address_user = NULL, UcAddressesAddress $
  * @see uc_addresses_element_info()
  * @see uc_addresses_validate_address_field()
  */
-function uc_addresses_process_address_field(&$element, $form_state) {
-  if (!($element['#uc_addresses_address'] instanceof UcAddressesSchemaAddress)) {
-    $element['#uc_addresses_address'] = UcAddressesAddress::newAddress();
-  }
+function uc_addresses_process_address_field(&$element, &$form_state) {
   $element['#tree'] = TRUE;
   $prefix = ($element['#key_prefix']) ? $element['#key_prefix'] . '_' : '';
+
+  // Make sure the form element is associated with an address.
+  if (!($element['#uc_addresses_address'] instanceof UcAddressesSchemaAddress)) {
+    // Find address ID in form_state first.
+    $address = NULL;
+    $input = $form_state['input'];
+    $parents = $element['#parents'];
+    foreach ($parents as $parent) {
+      if (isset($input[$parent])) {
+        $input = $input[$parent];
+      }
+      else {
+        break;
+      }
+    }
+    if (isset($input['aid'])) {
+      $address = UcAddressesAddressBook::get(0)->getAddressById($input['aid']);
+    }
+    if (!$address) {
+      $address = UcAddressesAddress::newAddress();
+    }
+    $element['#uc_addresses_address'] = $address;
+  }
+
   if (function_exists('uc_store_address_field_weights')) {
     $weights = uc_addresses_address_field_weights();
   }
 
-  // MegaChriz: this code prevents checkout from working correctly!
   // Ensure we working with the right address (sometimes we caught two address objects where on of them was serialized).
   $element['#uc_addresses_address'] = $element['#uc_addresses_address']->getAddressBook()->getAddressById($element['#uc_addresses_address']->getId());
 
-  if (isset($form_state['uc_addresses_address'])) {
-    // Use submitted Ajax values.
-    $values = $form_state['uc_addresses_address'];
-  }
-  elseif (is_array($element['#value']) || is_object($element['#value'])) {
+  if (is_array($element['#value']) || is_object($element['#value'])) {
     // Use provided default value.
     $values = (array) $element['#value'];
   }
@@ -458,13 +474,23 @@ function uc_addresses_process_address_field(&$element, $form_state) {
     }
   }
 
+  // Add address ID to the form (if not set).
+  if (!isset($element['aid'])) {
+    $element['aid'] = array(
+      '#type' => 'hidden',
+      '#value' => $element['#uc_addresses_address']->getId(),
+    );
+  }
+
+  // Save address in form state.
+  $form_state['uc_addresses'][$element['#uc_addresses_address']->getId()] = $element['#uc_addresses_address'];
+
   // Allow other modules to alter the element
   drupal_alter('uc_addresses_address_field', $element);
 
   // Set common values for all address fields.
   foreach (element_children($element) as $fieldname) {
     $element[$fieldname] += array(
-      '#parents' => array_merge(array_slice($element['#parents'], 0, -1), array($prefix . $fieldname)),
       '#access' => $element['#hidden'] ? FALSE : TRUE,
       '#weight' => (isset($weights[$fieldname])) ? $weights[$fieldname] : 0,
     );

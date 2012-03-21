@@ -185,12 +185,12 @@ abstract class UcAddressesFieldHandler {
    * Returns the editable field
    *
    * @param array $form
-   * @param array $form_state
+   * @param array $form_values
    * @abstract
    * @access public
    * @return array
    */
-  abstract public function getFormField($form, $form_state);
+  abstract public function getFormField($form, $form_values);
 
   /**
    * Check to see if a field is enabled.

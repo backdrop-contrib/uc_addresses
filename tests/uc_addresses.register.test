@@ -38,7 +38,7 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $this->drupalGet('user/register');
 
     $address_name = $this->randomName();
-    $values = $this->getEditAddressValues(array(), array('address_name' => $address_name), 'register');
+    $values = $this->getEditAddressValues(array('address'), array('address_name' => $address_name), 'register');
     $edit = $values['form_values'];
     $edit['name'] = $name = $this->randomName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';

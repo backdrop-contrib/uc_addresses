@@ -154,7 +154,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
             if (substr($source_fieldname, 0, strlen($source)) == $source) {
               $fieldname = substr($source_fieldname, strlen($source . '_'));
               $target_fieldname = str_replace($source, $pane, $source_fieldname);
-              $form_state['input']['panes'][$pane][$target_fieldname] = $value;
+              $form_state['input']['panes'][$pane]['address'][$target_fieldname] = $value;
               $order->$target_fieldname = $value;
               if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
                 $address->setField($fieldname, $value);
@@ -170,7 +170,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
             $address = $address_source->copyAddress(UcAddressesAddressBook::get(0));
             $address_data = $address->getRawFieldData();
             foreach ($address_data as $field => $value) {
-              $form_state['input']['panes'][$pane][$pane . '_' . $field] = $value;
+              $form_state['input']['panes'][$pane]['address'][$pane . '_' . $field] = $value;
               $order->{$pane . '_' . $field} = $value;
             }
           }
@@ -220,11 +220,11 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         }
       }
 
-      foreach ($panes[$pane] as $target_fieldname => $value) {
+      foreach ($panes[$pane]['address'] as $target_fieldname => $value) {
         if (substr($target_fieldname, 0, strlen($pane)) == $pane) {
           if (!empty($panes[$pane]['copy_address'])) {
             $fieldname = substr($target_fieldname, strlen($pane . '_'));
-            $value = $panes[$source][str_replace($pane, $source, $target_fieldname)];
+            $value = $panes[$source]['address'][str_replace($pane, $source, $target_fieldname)];
             if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
               $address->setField($fieldname, $value);
             }

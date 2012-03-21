@@ -124,7 +124,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function createAddress($account, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array(), $values, 'address_form');
+      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account) . 'add', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
@@ -167,7 +167,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function editAddress($account, $aid, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array(), $values, 'address_form');
+      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account, $aid) . 'edit', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 

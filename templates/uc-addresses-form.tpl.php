@@ -17,16 +17,20 @@
   <table>
     <?php foreach (element_children($form) as $fieldname): ?>
       <?php
-        // Skip fields with #access == FALSE or #type == value.
+        // Skip fields with:
+        // - #access == FALSE
+        // - #type == value
+        // - #type == hidden for fields without a label.
         if (
           (isset($form[$fieldname]['#access']) && $form[$fieldname]['#access'] == FALSE)
           || ($form[$fieldname]['#type'] == 'value')
+          || ($form[$fieldname]['#type'] == 'hidden' && empty($form[$fieldname]['#title']))
         ) {
           continue;
         }
       ?>
       <tr class="field-<?php print $fieldname; ?>">
-        <?php if (isset($form[$fieldname]['#title']) && $form[$fieldname]['#title']): ?>
+        <?php if (!empty($form[$fieldname]['#title'])): ?>
           <td class="field-label">
             <?php if ($form[$fieldname]['#required']): ?>
               <?php print $req; ?>

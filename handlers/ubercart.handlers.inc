@@ -107,13 +107,9 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       ->orderBy('zone_name')
       ->execute();
 
-    $options[''] = t('Please select');
+    $options = array();
     foreach ($result as $zone) {
       $options[$zone->zone_id] = $zone->zone_name;
-    }
-
-    if (count($options) == 1) {
-      $options = array(-1 => t('Not applicable'));
     }
 
     if (empty($form['#key_prefix'])) {
@@ -125,7 +121,20 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       $zone_wrapper_id = 'uc-store-address-' . str_replace('_', '-', $form['#key_prefix']) . '-zone-wrapper';
     }
 
-    return array(
+    if (count($options) == 0) {
+      return array(
+        $fieldName => array(
+          '#title' => $this->getFieldTitle(),
+          '#type' => 'hidden',
+          '#value' => 0,
+          '#required' => FALSE,
+          '#prefix' => '<div id="' . $zone_wrapper_id . '">',
+          '#suffix' => '</div>',
+        )
+      );
+    }
+
+    $return = array(
       $fieldName => array(
         '#type' => 'select',
         '#title' => $this->getFieldTitle(),
@@ -137,6 +146,13 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
         '#empty_value' => 0,
       ),
     );
+
+    // If the country value was updated, the selected zone does not exists.
+    // In that case, just empty the value.
+    if (!empty($form_values['zone']) && !isset($options[$form_values['zone']])) {
+      $return[$fieldName]['#value'] = 0;
+    }
+    return $return;
   }
 
   /**
