@@ -687,7 +687,7 @@ function uc_addresses_uc_order_pane_alter(&$panes) {
 }
 
 /**
- * Implements hook_order().
+ * Implements hook_uc_order().
  *
  * @param string $op
  * @param object $order
@@ -1158,14 +1158,7 @@ function uc_addresses_select_addresses($uid, $context = 'default', $type = 'bill
     '' => t('Select one...'),
   );
   foreach ($addresses as $address) {
-    switch ($context) {
-      case 'order_form':
-        $key = drupal_json_encode($address->getRawFieldData());
-        break;
-      default:
-        $key = $address->getId();
-        break;
-    }
+    $key = $address->getId();
     if ($address_name = $address->getName()) {
       $options[$key] = $address_name;
     }
@@ -1187,9 +1180,6 @@ function uc_addresses_select_addresses($uid, $context = 'default', $type = 'bill
     '#title' => t('Address book'),
     '#options' => $options,
   );
-  if ($context == 'order_form') {
-    $select['#attributes'] = array('onchange' => "uc_addresses_apply_address('" . $type . "', this.value);");
-  }
   // Add default value if found
   if ($address_book_default_value) {
     $select['#default_value'] = $address_book_default_value;

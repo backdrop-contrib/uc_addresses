@@ -59,11 +59,11 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
   global $user;
 
   if ($type == 'shipping') {
-    $other_type = 'billing';
+    $other_pane = 'billing';
     $pane = 'delivery';
   }
   else {
-    $other_type = 'delivery';
+    $other_pane = 'delivery';
     $pane = 'billing';
   }
 
@@ -291,12 +291,12 @@ function uc_addresses_order_pane_ship_to($op, $order, &$form = NULL, &$form_stat
  */
 function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$form_state = NULL) {
   if ($type == 'shipping') {
-    $other_type = 'billing';
-    $uc_type = 'delivery';
+    $other_pane = 'billing';
+    $pane = 'delivery';
   }
   else {
-    $other_type = 'delivery';
-    $uc_type = 'billing';
+    $other_pane = 'delivery';
+    $pane = 'billing';
   }
 
   switch ($op) {
@@ -317,75 +317,89 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       return $build;
 
     case 'edit-form':
-      drupal_add_js(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.js');
-      drupal_add_js(drupal_get_path('module', 'uc_order') . '/uc_order.js');
-      // Initialize pane description
-      switch ($type) {
-        case 'shipping':
-          $description = t("Modify 'Ship to' information");
-          break;
-        case 'billing':
-          $description = t("Modify 'Bill to' information");
-          break;
-      }
+      $form[$pane] = array(
+        '#tree' => TRUE,
+      );
 
       // Get address for order if set
       if (isset($order->uc_addresses[$type])) {
         $address = $order->uc_addresses[$type];
-      }
-
-      // View the address form
-      $form[$uc_type] = array(
-        '#type' => 'uc_addresses_address',
-        '#uc_addresses_context' => 'order_form',
-        '#key_prefix' => $uc_type,
-      );
+      }      
       if (!$address) {
         $address = UcAddressesAddress::newAddress();
       }
-      // Add address to the form
-      $form[$uc_type]['#uc_addresses_address'] = $address;
+
+      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $pane, $address)) {
+        $form[$pane]['select_address'] = $select + array(
+          '#type' => 'select',
+          '#ajax' => array(
+            'callback' => 'uc_addresses_order_pane_address_render',
+            'wrapper' => $pane . '-address-pane',
+            'progress' => array(
+              'type' => 'throbber',
+            ),
+          ),
+        );
+      }
+
+      if (isset($form_state['triggering_element'])) {
+        $element = &$form_state['triggering_element'];
+
+        if ($element['#name'] == $pane . '[select_address]') {
+          $address_id = $element['#value'];
+          $address_source = UcAddressesAddressBook::get($order->uid)->getAddressById($address_id);
+          if ($address_source instanceof UcAddressesAddress) {
+            $address = $address_source->copyAddress(UcAddressesAddressBook::get(0));
+            $address_data = $address->getRawFieldData();
+            foreach ($address_data as $field => $value) {
+              if (isset($order->{$pane . '_' . $field})) {
+                $form_state['input'][$pane]['address'][$pane . '_' . $field] = $value;
+                $order->{$pane . '_' . $field} = $value;
+              }
+            }
+          }
+        }
+
+        // Forget any previous Ajax submissions, as we send new default values.
+        unset($form_state['uc_addresses_address']);
+      }
+
+      // View the address form
+      $form[$pane]['address'] = array(
+        '#type' => 'uc_addresses_address',
+        '#uc_addresses_address' => $address,
+        '#uc_addresses_context' => 'order_form',
+        '#prefix' => '<div id="' . $pane . '-address-pane">',
+        '#suffix' => '</div>',
+        '#key_prefix' => $pane,
+      );
+      // Form element for debug purposes, displays the address that is taken.
+      $form[$pane]['address']['display'] = array(
+        '#type' => 'item',
+        '#title' => t('Address'),
+        '#markup' => (string) $address,
+        '#weight' => 100,
+      );
       return $form;
 
-    case 'edit-title':
-      switch ($type) {
-        case 'shipping':
-          $copy_text = t("Copy billing information.");
-          break;
-        case 'billing':
-          $copy_text = t("Copy shipping information.");
-          break;
-      }
-      $output = ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
-        . '/images/address_book.gif" alt="' . t('Select from address book.') . '" '
-        . 'title="' . t('Select from address book.') . '" onclick="load_address_select(' . $form['order_uid']['#value'] . ', \'#' . $uc_type . '_address_select\', \'' . $uc_type . '\');" '
-        . 'style="position: relative; top: 2px; cursor: pointer;" />';
-      $output .= ' <img src="' . base_path() . drupal_get_path('module', 'uc_store')
-        . '/images/copy.gif" alt="' . $copy_text . '" title="'
-        . $copy_text . '" onclick="uc_addresses_copy_address_order(\'' . $other_type . '\', \'' . $uc_type . '\');" '
-        . 'style="position: relative; top: 2px; cursor: pointer;" />';
-      $output .= '<div id="' . $uc_type . '_address_select"></div>';
-      return $output;
-
     case 'edit-theme':
-      return '<div id="' . $uc_type . '-pane">' . drupal_render($form[$uc_type]) . '</div>';
-      //$output = '<div id="' . $uc_type . '-pane"><div id="' . $uc_type . '_address_select"></div>' . drupal_render($form[$uc_type]) . '</div>';
+      return '<div id="' . $pane . '-pane">' . drupal_render($form[$pane]) . '</div>';
 
     case 'edit-process':
+      //outputlog(get_defined_vars());
       $order_values = $form_state['values'];
       $address = $order->uc_addresses[$type];
       $changes = array();
-
-      foreach ($order_values as $key => $value) {
-        // Check if this an address field
-        if (strpos($key, $uc_type . '_') !== 0) {
+      foreach ($order_values[$pane]['address'] as $key => $value) {
+        // Check if this is an address field
+        if (strpos($key, $pane . '_') !== 0) {
           continue;
         }
 
         // Check if the value was changed
-        $fieldname = substr($key, strlen($uc_type) + 1);
+        $fieldname = substr($key, strlen($pane) + 1);
         try {
-          if ($address->getField($fieldname) != $value) {
+          if ($address->getField($fieldname) != $value && isset($order->$key)) {
             $changes[$key] = $value;
           }
         }
@@ -395,4 +409,15 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       }
       return $changes;
   }
+}
+
+/**
+ * Ajax callback to re-render the full address element.
+ */
+function uc_addresses_order_pane_address_render($form, &$form_state) {
+  $element = &$form;
+  foreach (array_slice($form_state['triggering_element']['#array_parents'], 0, -1) as $field) {
+    $element = &$element[$field];
+  }
+  return $element['address'];
 }
