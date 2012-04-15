@@ -43,7 +43,7 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
    * have a bit different name.
    * Example:
    * Instead of "billing_first_name",
-   * Ubercart Addresses uses "billing[billing_first_name]".
+   * Ubercart Addresses uses "billing[address][billing_first_name]".
    * This is done to fix issues with the zone field.
    */
   public function testOrderEditing() {
@@ -64,12 +64,12 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
     $this->assertText(drupal_strtoupper($order->billing_first_name . ' ' . $order->billing_last_name), 'Found customer name.');
 
     $edit = array(
-      'billing[billing_first_name]' => $this->randomName(8),
-      'billing[billing_last_name]' => $this->randomName(15),
+      'billing[address][billing_first_name]' => $this->randomName(8),
+      'billing[address][billing_last_name]' => $this->randomName(15),
     );
     $this->drupalPost('admin/store/orders/' . $order->order_id . '/edit', $edit, t('Submit changes'));
     $this->assertText(t('Order changes saved.'));
-    $this->assertFieldByName('billing[billing_first_name]', $edit['billing[billing_first_name]'], 'Billing first name changed.');
-    $this->assertFieldByName('billing[billing_last_name]', $edit['billing[billing_last_name]'], 'Billing last name changed.');
+    $this->assertFieldByName('billing[address][billing_first_name]', $edit['billing[address][billing_first_name]'], 'Billing first name changed.');
+    $this->assertFieldByName('billing[address][billing_last_name]', $edit['billing[address][billing_last_name]'], 'Billing last name changed.');
   }
 }

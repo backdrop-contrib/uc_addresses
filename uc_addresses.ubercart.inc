@@ -75,7 +75,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
 
   switch ($op) {
     case 'view':
-      // Tell addres book we want to get multiple addresses
+      // Tell address book we want to get multiple addresses.
       UcAddressesAddressBook::get($user->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
       // Initialize address variable
@@ -317,6 +317,9 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       return $build;
 
     case 'edit-form':
+      // Tell address book we want to get multiple addresses.
+      UcAddressesAddressBook::get($order->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
+
       $form[$pane] = array(
         '#tree' => TRUE,
       );
@@ -324,7 +327,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       // Get address for order if set
       if (isset($order->uc_addresses[$type])) {
         $address = $order->uc_addresses[$type];
-      }      
+      }
       if (!$address) {
         $address = UcAddressesAddress::newAddress();
       }
@@ -373,6 +376,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         '#suffix' => '</div>',
         '#key_prefix' => $pane,
       );
+/*
       // Form element for debug purposes, displays the address that is taken.
       $form[$pane]['address']['display'] = array(
         '#type' => 'item',
@@ -380,13 +384,13 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         '#markup' => (string) $address,
         '#weight' => 100,
       );
+//*/
       return $form;
 
     case 'edit-theme':
       return '<div id="' . $pane . '-pane">' . drupal_render($form[$pane]) . '</div>';
 
     case 'edit-process':
-      //outputlog(get_defined_vars());
       $order_values = $form_state['values'];
       $address = $order->uc_addresses[$type];
       $changes = array();
