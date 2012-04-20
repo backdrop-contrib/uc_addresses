@@ -1,0 +1,75 @@
+<?php
+/**
+ * @file
+ * Install file for Ubercart Addresses Example module.
+ */
+
+module_load_include('fields.inc', 'uc_addresses_example');
+
+/**
+ * Implements hook_schema_alter().
+ * @param array $schema
+ * @return void
+ */
+function uc_addresses_example_schema_alter(&$schema) {
+  $tables = _uc_addresses_example_schema_tables();
+  $fields = _uc_addresses_example_schema_fields();
+
+  foreach ($tables as $table) {
+    foreach ($fields as $fieldname => $field) {
+      $tablename = $table['table'];
+      $tablefieldname = $table['prefix'] . $fieldname;
+      $schema[$tablename]['fields'][$tablefieldname] = $field;
+    }
+  }
+}
+
+/**
+ * Implements hook_install().
+ *
+ * Installs fields defined by _uc_addresses_example_schema_fields()
+ * in tables defined by _uc_addresses_example_schema_tables().
+ *
+ * @return array
+ */
+function uc_addresses_example_install() {
+  $ret = array();
+
+  $tables = _uc_addresses_example_schema_tables();
+  $fields = _uc_addresses_example_schema_fields();
+
+  foreach ($tables as $table) {
+    foreach ($fields as $fieldname => $field) {
+      $tablename = $table['table'];
+      $tablefieldname = $table['prefix'] . $fieldname;
+      $ret[] = db_add_field($tablename, $tablefieldname, $field);
+    }
+  }
+
+  return $ret;
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Removes fields defined by _uc_addresses_example_schema_fields()
+ * in tables defined by _uc_addresses_example_schema_tables().
+ *
+ * @return array
+ */
+function uc_addresses_example_uninstall() {
+  $ret = array();
+
+  $tables = _uc_addresses_example_schema_tables();
+  $fields = _uc_addresses_example_schema_fields();
+
+  foreach ($tables as $table) {
+    foreach ($fields as $fieldname => $field) {
+      $tablename = $table['table'];
+      $tablefieldname = $table['prefix'] . $fieldname;
+      $ret[] = db_drop_field($tablename, $tablefieldname);
+    }
+  }
+
+  return $ret;
+}

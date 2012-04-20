@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ * Example module for Ubercart Addresses.
+ *
+ * Adds extra address fields. See uc_addresses_example.fields.inc
+ * for which fields are being added.
+ *
+ * This module can be used as an example for adding extra address fields.
+ *
+ * Note this example module is work in progress: it needs more examples.
+ * Now there is only an example for how to add extra text fields.
+ */
+
+// ---------------------------------------------------------------------------
+// UBERCART ADDRESSES HOOKS
+// ---------------------------------------------------------------------------
+
+/**
+ * Implements hook_uc_addresses_field_handlers().
+ *
+ * Registers field handlers.
+ *
+ * @return array
+ */
+function uc_addresses_example_uc_addresses_field_handlers() {
+  $path = drupal_get_path('module', 'uc_addresses_example') . '/handlers';
+
+  $info = array();
+  $info['UcAddressesTextFieldHandler'] = array(
+    'hidden' => FALSE,
+    'handler' => array(
+      'parent' => 'UcAddressesFieldHandler',
+      'class' => 'UcAddressesTextFieldHandler',
+      'file' => 'uc_addresses.handlers.inc',
+      'path' => $path,
+    ),
+  );
+
+  return $info;
+}
+
+/**
+ * Implements hook_uc_addresses_fields().
+ *
+ * Registers all extra address fields for Ubercart Addresses.
+ *
+ * @return array
+ */
+function uc_addresses_example_uc_addresses_fields() {
+  module_load_include('fields.inc', 'uc_addresses_example');
+  return _uc_addresses_example_schema_fields();
+}

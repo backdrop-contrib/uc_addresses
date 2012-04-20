@@ -21,6 +21,17 @@ database table, one that the user can manipulate as part of the user
 profile.
 
 
+Table of contents
+---------------------
+- Module overview
+- Ubercart Addresses address formats
+- Dependencies
+- Installation
+- Permissions
+- Extending the module
+---------------------
+
+
 Module overview:
 ---------------------
 When users create an account, you can request that they be asked to
@@ -63,7 +74,7 @@ when users have no addresses.
 Note: when a user is deleted, all their addresses are also deleted.
 
 
-Ubercart Addresses country formats 
+Ubercart Addresses address formats
 ---------------------
 Ubercart Addresses comes with it's own address formats that are build
 by using tokens, rather than the predefined set of variables Ubercart
@@ -78,8 +89,8 @@ The following addresses are formatted by Ubercart Addresses:
     review page and the order pages.
 
 You can configure the address formats for Ubercart Addresses at the
-Ubercart Addresses country formats page:
-admin/store/settings/countries/edit/uc_addresses_formats
+Ubercart Addresses address formats page:
+admin/store/settings/countries/uc_addresses_formats
 
 
 Dependencies
@@ -92,7 +103,7 @@ Installation
   * Copy the uc_addresses module's directory to your modules directory
     and activate it. I have mine in /sites/all/modules/uc_addresses.
   * Activate the module, set up permissions and go to your account
-    page to begin using the new Addresses tab.
+    page to begin using the new Address book tab.
 
 
 Permissions
@@ -126,3 +137,28 @@ Permissions
     Roles with this permission can delete all addresses of all users,
     except addresses that are marked as default shipping or default
     billing.
+
+
+Extending the module
+-----------
+Ubercart Addresses provides two API's and a set of hooks to extend the
+module:
+- The address book API
+  With this API you can control addresses used by Ubercart Addresses.
+- The field handler API
+  With this API you can add extra address fields.
+- Hooks
+  Hooks allow you to respond to events in the Ubercart Addresses module:
+  - Your module can respond when an address is loaded, saved or deleted.
+  - Your module can get extra control about address access if the
+    existing permissions don't suite your needs.
+  - Your module can deliver a list of selectable addresses at checkout
+    that don't have to exists in the user's address book.
+  - Your module can alter an address field listing before it's displayed.
+
+There is an example module included in the uc_addresses_example sub-
+directory which demonstrates how to interact with the field handler API.
+Documentation about the hooks can be found in uc_addresses.api.php.
+
+More documentation can be found online:
+http://drupal.org/node/1340672

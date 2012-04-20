@@ -1,0 +1,9 @@
+name = Ubercart Addresses Example
+description = "Example module for Ubercart Addresses. Adds extra address fields."
+dependencies[] = uc_order
+dependencies[] = uc_addresses
+package = "Ubercart - extra"
+core = 7.x
+
+; Field handlers
+files[] = handlers/uc_addresses.handlers.inc
