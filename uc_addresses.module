@@ -728,6 +728,14 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
         $order->uc_addresses[$address_type] = $address;
       }
       break;
+
+    case 'save':
+      if (!isset($order->uc_addresses)) {
+        // Attach address objects immediately after saving, so the order
+        // doesn't require a reload to gain the address objects.
+        uc_addresses_uc_order('load', $order, $arg2);
+      }
+      break;
   }
 }
 
@@ -1256,15 +1264,21 @@ function theme_uc_addresses_default_address_checkbox($variables) {
 }
 
 /**
- * Overwrite address display values for invoices.
+ * Overwrite address display values for invoices
+ * (in case an Ubercart Addresses version exists).
  *
  * @param array $variables
+ *   Order variables for in the invoice template.
  *
  * @return void
  */
 function uc_addresses_preprocess_uc_order(&$variables) {
-  $variables['order_shipping_address'] = $variables['order_addresses_shipping_address'];
-  $variables['order_billing_address'] = $variables['order_addresses_billing_address'];
+  if (isset($variables['order_addresses_shipping_address'])) {
+    $variables['order_shipping_address'] = $variables['order_addresses_shipping_address'];
+  }
+  if (isset($variables['order_addresses_billing_address'])) {
+    $variables['order_billing_address'] = $variables['order_addresses_billing_address'];
+  }
 }
 
 // -----------------------------------------------------------------------------
