@@ -1275,9 +1275,9 @@ function uc_addresses_preprocess_uc_order(&$variables) {
  * Format an address by using tokens.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  * @param string $context
- *   The context in which the address will be displayed
+ *   The context in which the address will be displayed.
  *
  * @return string
  *   A formatted address.
@@ -1285,6 +1285,8 @@ function uc_addresses_preprocess_uc_order(&$variables) {
 function uc_addresses_format_address(UcAddressesAddress $address, $context = '') {
   $country_id = $address->getField('country');
   $format = uc_addresses_get_address_format($country_id);
+
+  drupal_alter('uc_addresses_format_address', $format, $address, $context);
 
   // Replace tokens
   $address_string = token_replace($format, array('uc_addresses' => $address));

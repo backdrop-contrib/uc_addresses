@@ -18,7 +18,7 @@
  * A field handler is a class that extends UcAddressesFormFieldHandler.
  * The declaration of field handlers is based on the CTools plugin API.
  *
- * For a working example look at uc_addresses_uc_addresses_field_handlers()
+ * For a working example, look at uc_addresses_uc_addresses_field_handlers()
  * in the file uc_addresses.uc_addresses_fields.inc.
  *
  * @return array
@@ -43,11 +43,11 @@ function hook_uc_addresses_field_handlers() {
  * This hook allows you to register extra fields to be used in
  * all address edit forms.
  *
- * For a working example look at uc_addresses_uc_addresses_fields()
+ * For a working example, look at uc_addresses_uc_addresses_fields()
  * in the file uc_addresses.uc_addresses_fields.inc.
  *
  * @return array
- *   An associarive array containing:
+ *   An associative array containing:
  *   - title: the title of the field, safe for output.
  *   - handler: handler class, registered through hook_uc_addresses_field_handlers().
  *   - display_settings: (optional) An array of contexts to show or hide the
@@ -461,6 +461,40 @@ function hook_uc_addresses_select_addresses_alter(&$addresses, $uid, $context, $
         unset($addresses[$index]);
       }
     }
+  }
+}
+
+/**
+ * This hook allows you to alter an address format before it's being processed.
+ *
+ * This is useful if you want to display the address in a different way under
+ * some kind of circumstances. For example, you may want to exclude the display
+ * of first name and last name when you display an address in your own context.
+ *
+ * Warning: do not convert the address object to a string as that will result
+ * into an infinite loop.
+ *
+ * @param string $format
+ *   The unprocessed address format (tokens still need to be replaced).
+ * @param UcAddressesAddress $address
+ *   The address object for which a format is processed.
+ * @param string $context
+ *   The context in which the address will be displayed.
+ *
+ * @return void
+ */
+function hook_uc_addresses_format_address_alter(&$format, $address, $context) {
+  // Example: remove the line that contains the last name completely when the
+  // context is "order_view".
+  if ($context == "order_view") {
+    $lines = explode("\n", $format);
+    foreach ($lines as $line_number => $line) {
+      if (strpos($line, '[uc_addresses:last_name]') !== FALSE) {
+        unset($lines[$line_number]);
+      }
+    }
+    $format = implode("\n", $lines);
+    break;
   }
 }
 
