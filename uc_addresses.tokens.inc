@@ -29,10 +29,12 @@ function uc_addresses_token_info() {
   $tokens['uc_order']['uc-addresses-shipping-address'] = array(
     'name' => t('Shipping address'),
     'description' => t('The order shipping address, formatted with the Ubercart Addresses module.'),
+    'type' => 'uc_addresses',
   );
   $tokens['uc_order']['uc-addresses-billing-address'] = array(
     'name' => t('Billing address'),
     'description' => t('The order billing address, formatted with the Ubercart Addresses module.'),
+    'type' => 'uc_addresses',
   );
 
   // User tokens
@@ -62,8 +64,6 @@ function uc_addresses_token_info() {
  * @param array $options
  *
  * @return array
- *
- * @todo IMPLEMENT!
  */
 function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()) {
   $replacements = array();
@@ -106,18 +106,23 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
         return array();
       }
       $order = $data['uc_order'];
-      foreach ($tokens as $name => $original) {
-        switch ($name) {
-          case 'uc-addresses-shipping-address':
-            if (isset($order->uc_addresses['shipping']) && $order->uc_addresses['shipping'] instanceof UcAddressesAddress) {
-              $replacements[$original] = uc_addresses_format_address($order->uc_addresses['shipping'], 'token');
-            }
-            break;
-          case 'uc-addresses-billing-address':
-            if (isset($order->uc_addresses['billing']) && $order->uc_addresses['billing'] instanceof UcAddressesAddress) {
-              $replacements[$original] = uc_addresses_format_address($order->uc_addresses['billing'], 'token');
-            }
-            break;
+      $order_tokens = array(
+        'billing' => 'uc-addresses-billing-address',
+        'shipping' => 'uc-addresses-shipping-address',
+      );
+      foreach ($order_tokens as $address_type => $token) {
+        $address_tokens = token_find_with_prefix($tokens, $token);
+        if (!isset($tokens[$token]) && !$address_tokens) {
+          continue;
+        }
+        if (isset($order->uc_addresses[$address_type]) && $order->uc_addresses[$address_type] instanceof UcAddressesAddress) {
+          $address = $order->uc_addresses[$address_type];
+          if (isset($tokens[$token])) {
+            $replacements[$tokens[$token]] = uc_addresses_format_address($address, 'token');
+          }
+          if ($address_tokens) {
+            $replacements += token_generate('uc_addresses', $address_tokens, array('uc_addresses' => $address), $options);
+          }
         }
       }
       break;
