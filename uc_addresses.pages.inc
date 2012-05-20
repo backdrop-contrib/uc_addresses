@@ -233,10 +233,10 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
     if (isset($form_state['input']['address']['aid'])) {
       $address = UcAddressesAddressBook::get($address_user)->getAddressById($form_state['input']['address']['aid']);
     }
-    else {
-      // Create a new instance.
-      $address = UcAddressesAddressBook::get($address_user)->addAddress();
-    }
+  }
+  // If we have still no valid address instance, create a new instance.
+  if (!($address instanceof UcAddressesAddress)) {
+    $address = UcAddressesAddressBook::get($address_user)->addAddress();
   }
 
   $form['uc_addresses'] = array(
