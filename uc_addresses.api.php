@@ -494,7 +494,6 @@ function hook_uc_addresses_format_address_alter(&$format, $address, $context) {
       }
     }
     $format = implode("\n", $lines);
-    break;
   }
 }
 
