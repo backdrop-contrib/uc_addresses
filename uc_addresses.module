@@ -560,44 +560,46 @@ function uc_addresses_validate_address_field(&$element, $form_state) {
 }
 
 /**
- * Prepare address fields for display
+ * Prepare address fields for display.
  *
  * @param UcAddressesSchemaAddress $address
- *   The address object
+ *   The address object.
  * @param string $context
- *   The context in which the fields will be displayed
+ *   The context in which the fields will be displayed.
  *
  * @return array
  *   An array with fieldname => data
  */
 function uc_addresses_preprocess_address(UcAddressesSchemaAddress $address, $context = 'default') {
-  // Build field list
+  // Build field list.
   $fields = array();
   $weight = 1;
+  $weights = uc_addresses_address_field_weights();
 
   $handlers = uc_addresses_get_address_field_handler_instances($address, $context);
   foreach ($handlers as $fieldname => $handler) {
     if ($handler->isFieldEnabled() && $handler->checkContext()) {
       if (($value = $handler->outputValue()) !== '') {
+        $weight = (isset($weights[$fieldname])) ? $weights[$fieldname] : $weight++;
         $fields[$fieldname] = array(
           'title' => $handler->getFieldTitle(),
           'data' => $value,
-          '#weight' => $weight++,
+          '#weight' => $weight,
         );
       }
     }
   }
 
-  // Set weight of address name (if available)
+  // Set weight of address name (if available).
   if (isset($fields['address_name'])) {
-    $fields['address_name']['#weight'] = -10;
+    $fields['address_name']['#weight'] = -40;
   }
 
-  // Address format
+  // Address format.
   $fields['address'] = array(
     'title' => t('Address'),
     'data' => uc_addresses_format_address($address, $context),
-    '#weight' => -1,
+    '#weight' => -35,
   );
   if ($context == 'order_view') {
     // Don't show address label when viewing the order.
