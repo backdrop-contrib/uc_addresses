@@ -37,13 +37,13 @@
         <h2><?php print t('Default addresses'); ?></h2>
         <ol>
         <?php if ($default_billing_address): ?>
-          <li class="address-item">
+          <li class="address-item default-billing-address">
             <h3><?php print t('Default billing address'); ?></h3>
             <?php print $default_billing_address; ?>
           </li>
         <?php endif; ?>
         <?php if ($default_shipping_address): ?>
-          <li class="address-item">
+          <li class="address-item default-shipping-address">
             <h3><?php print t('Default shipping address'); ?></h3>
             <?php print $default_shipping_address; ?>
           </li>
