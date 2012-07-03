@@ -8,7 +8,7 @@
  * - $req: A span for required fields:
  *   <span class="form-required">*</span>
  *
- * @see template_preprocess_uc_addresses_pane()
+ * @see template_preprocess_uc_addresses_form()
  *
  * @ingroup themeable
  */

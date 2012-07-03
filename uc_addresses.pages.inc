@@ -343,7 +343,7 @@ function theme_uc_addresses_get_address_form($variables) {
  *
  * @ingroup themeable
  */
-function template_preprocess_uc_addresses_pane(&$vars) {
+function template_preprocess_uc_addresses_form(&$vars) {
   drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   $vars['req'] = '<span class="form-required">*</span>';
 }

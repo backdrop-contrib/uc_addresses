@@ -368,7 +368,7 @@ function uc_addresses_element_info() {
     '#tree' => TRUE,
     '#process' => array('uc_addresses_process_address_field'),
     '#element_validate' => array('uc_addresses_validate_address_field'),
-    '#theme' => 'uc_addresses_pane',
+    '#theme' => 'uc_addresses_form',
     '#uc_addresses_address' => NULL,
     '#uc_addresses_context' => 'default',
     '#uc_addresses_required' => TRUE,
@@ -1243,7 +1243,7 @@ function uc_addresses_theme() {
       ),
       'file' => 'uc_addresses.pages.inc',
     ),
-    'uc_addresses_pane' => array(
+    'uc_addresses_form' => array(
       'render element' => 'form',
       'template' => 'templates/uc-addresses-form',
       'file' => 'uc_addresses.pages.inc',
