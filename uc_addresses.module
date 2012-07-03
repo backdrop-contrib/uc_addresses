@@ -1275,11 +1275,47 @@ function theme_uc_addresses_default_address_checkbox($variables) {
  * @return void
  */
 function uc_addresses_preprocess_uc_order(&$variables) {
+  $order = &$variables['order'];
+
   if (isset($variables['order_addresses_shipping_address'])) {
     $variables['order_shipping_address'] = $variables['order_addresses_shipping_address'];
   }
   if (isset($variables['order_addresses_billing_address'])) {
     $variables['order_billing_address'] = $variables['order_addresses_billing_address'];
+  }
+
+  // Generate tokens to use as template variables.
+  $token_info = token_info();
+
+  // Remove default_shipping, default_billing, aid, uid, created and modified.
+  // These fields are not useful in order context as they never contain values
+  // in these context.
+  unset($token_info['tokens']['uc_addresses']['default_shipping']);
+  unset($token_info['tokens']['uc_addresses']['default_billing']);
+  unset($token_info['tokens']['uc_addresses']['aid']);
+  unset($token_info['tokens']['uc_addresses']['uid']);
+  unset($token_info['tokens']['uc_addresses']['created']);
+  unset($token_info['tokens']['uc_addresses']['modified']);
+
+  $replacements = array();
+  if (isset($order->uc_addresses)) {
+    foreach ($order->uc_addresses as $address_type => $address) {
+      if ($address instanceof UcAddressesAddress) {
+        $types = array(
+          'uc_addresses' => $address,
+        );
+        $replacements[$address_type] = token_generate('uc_addresses', drupal_map_assoc(array_keys($token_info['tokens']['uc_addresses'])), $types);
+      }
+    }
+  }
+
+  foreach ($replacements as $type => $tokens) {
+    foreach ($tokens as $token => $value) {
+      $key  = 'uc_addresses_' . $type . '_' . $token;
+      $key = str_replace('-', '_', $key);
+      $key = str_replace(':', '_', $key);
+      $variables[$key] = $value;
+    }
   }
 }
 
