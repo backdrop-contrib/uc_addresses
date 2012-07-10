@@ -712,18 +712,19 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
           $address_type = 'shipping';
         }
 
-        // Check session first for temporary saved addresses
+        // Check session first for temporary saved addresses.
         if (isset($_SESSION['uc_addresses_order'][$order->order_id][$address_type])) {
           $address = unserialize($_SESSION['uc_addresses_order'][$order->order_id][$address_type]);
         }
         else {
-          // Construct new address
+          // Construct new address.
           $address = UcAddressesAddressBook::get($order->uid)->addAddress();
-          foreach ($order as $fieldname => $fieldvalue) {
-            if (strpos($fieldname, $order_type) === 0) {
-              // Get substracted fieldname
-              $address_fieldname = substr($fieldname, strlen($order_type) + 1);
-              $address->setField($address_fieldname, $fieldvalue);
+          // Loop through all address field definitions and set those that exists for the order.
+          $fields_data = uc_addresses_get_address_fields();
+          foreach ($fields_data as $fieldname => $fielddata) {
+            $order_field_name = $order_type . '_' . $fieldname;
+            if (isset($order->$order_field_name)) {
+              $address->setField($fieldname, $order->$order_field_name);
             }
           }
         }

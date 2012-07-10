@@ -72,4 +72,18 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
     $this->assertFieldByName('billing[address][billing_first_name]', $edit['billing[address][billing_first_name]'], 'Billing first name changed.');
     $this->assertFieldByName('billing[address][billing_last_name]', $edit['billing[address][billing_last_name]'], 'Billing last name changed.');
   }
+
+  /**
+   * Test if editing an order works properly when an extra field is added.
+   */
+  public function testOrderExtraFields() {
+    $definition = array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    );
+    db_add_field('uc_orders', 'delivery_extra_field', $definition);
+    $this->testOrderEditing();
+  }
 }
