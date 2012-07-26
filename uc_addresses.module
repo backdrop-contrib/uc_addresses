@@ -1007,6 +1007,20 @@ function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $addres
   return NULL;
 }
 
+// ---------------------------------------------------------------------------
+// VIEWS HOOKS
+// ---------------------------------------------------------------------------
+
+/**
+ * Implements hook_views_api().
+ */
+function uc_addresses_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+  );
+}
+
 // -----------------------------------------------------------------------------
 // FORM ALTERS
 // -----------------------------------------------------------------------------
