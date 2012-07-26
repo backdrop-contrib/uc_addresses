@@ -268,13 +268,13 @@ function uc_addresses_uc_addresses_fields() {
  * Implements hook_uc_addresses_select_addresses().
  *
  * @param int $uid
- *   The user ID to select addresses for
+ *   The user ID to select addresses for.
  * @param string $context
  *   The context in which the addresses are used:
  *   - checkout_form
  *   - order_form
  * @param string $type
- *   The type of address to select addresses for (shipping or billing)
+ *   The type of address to select addresses for (shipping or billing).
  *
  * @return array
  *   An array of UcAddressesAddress objects.
@@ -283,40 +283,43 @@ function uc_addresses_uc_addresses_fields() {
  */
 function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
   static $addresses = array();
-
-  if (count($addresses) > 0) {
-    return $addresses;
+  if (!isset($addresses[$type])) {
+    $addresses[$type] = array();
   }
 
-  // Address book selecting
+  if (count($addresses[$type]) > 0) {
+    return $addresses[$type];
+  }
+
+  // Address book selecting.
   $uc_addresses = UcAddressesAddressBook::get($uid)->getAddresses();
   if (count($uc_addresses) > 0) {
     foreach ($uc_addresses as $address) {
       if ($address->isNew()) {
-        // Skip unsaved addresses
+        // Skip unsaved addresses.
         continue;
       }
       if (!UcAddressesPermissions::canViewAddress(user_load($address->getUserId()), $address)) {
         // Skip addresses that the currently logged in user may not view.
         continue;
       }
-      $addresses[] = $address;
+      $addresses[$type][] = $address;
     }
   }
 
   // If there no addresses in the address book, try to select addresses from
   // previous orders.
-  if (count($addresses) < 1) {
-    $addresses = uc_get_addresses($uid, $type);
-    if (is_array($addresses) && count($addresses) > 0) {
-      foreach ($addresses as $index => $address) {
+  if (count($addresses[$type]) < 1) {
+    $addresses[$type] = uc_get_addresses($uid, $type);
+    if (is_array($addresses[$type]) && count($addresses[$type]) > 0) {
+      foreach ($addresses[$type] as $index => $address) {
         // Set source module manually this time.
-        $addresses[$index]['module'] = 'uc_order';
+        $addresses[$type][$index]['module'] = 'uc_order';
       }
     }
     else {
-      $addresses = array();
+      $addresses[$type] = array();
     }
   }
-  return $addresses;
+  return $addresses[$type];
 }

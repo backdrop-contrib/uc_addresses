@@ -126,22 +126,24 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         );
       }
 
-      if ($user->uid && $select = uc_addresses_select_addresses($user->uid, 'checkout_form', $pane, $address)) {
+      if ($user->uid && $select = uc_addresses_select_addresses($user->uid, 'checkout_form', $pane)) {
         $contents['select_address'] = $select + array(
-          '#type' => 'select',
-          '#title' => t('Saved addresses'),
           '#ajax' => array(
             'callback' => 'uc_checkout_pane_address_render',
             'wrapper' => $pane . '-address-pane',
             'progress' => array(
               'type' => 'throbber',
             ),
+            'event' => 'change',
           ),
           '#states' => array(
             'invisible' => array(
               'input[name="panes[' . $pane . '][copy_address]"]' => array('checked' => TRUE),
             ),
           ),
+          '#uc_addresses_address_element' => array('panes', $pane, 'address'),
+          '#uc_addresses_address_input' => array('panes', $pane, 'address'),
+          '#default_value' => $address,
         );
       }
 
@@ -159,19 +161,6 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
               if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
                 $address->setField($fieldname, $value);
               }
-            }
-          }
-        }
-
-        if ($element['#name'] == "panes[$pane][select_address]") {
-          $address_id = $element['#value'];
-          $address_source = UcAddressesAddressBook::get($user->uid)->getAddressById($address_id);
-          if ($address_source instanceof UcAddressesAddress) {
-            $address = $address_source->copyAddress(UcAddressesAddressBook::get(0));
-            $address_data = $address->getRawFieldData();
-            foreach ($address_data as $field => $value) {
-              $form_state['input']['panes'][$pane]['address'][$pane . '_' . $field] = $value;
-              $order->{$pane . '_' . $field} = $value;
             }
           }
         }
@@ -248,7 +237,6 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
 // ---------------------------------------------------------------------------
 // UBERCART CALLBACKS
 // order panes
-// @todo Implement!
 // ---------------------------------------------------------------------------
 
 /**
@@ -332,16 +320,19 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         $address = UcAddressesAddress::newAddress();
       }
 
-      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $pane, $address)) {
+      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $pane)) {
         $form[$pane]['select_address'] = $select + array(
-          '#type' => 'select',
           '#ajax' => array(
-            'callback' => 'uc_addresses_order_pane_address_render',
+            'callback' => 'uc_addresses_address_render',
             'wrapper' => $pane . '-address-pane',
             'progress' => array(
               'type' => 'throbber',
             ),
+            'event' => 'change',
           ),
+          '#uc_addresses_address_element' => array('panes', $pane, 'address'),
+          '#uc_addresses_address_input' => array('panes', $pane, 'address'),
+          '#default_value' => $address,
         );
       }
 
@@ -413,15 +404,4 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       }
       return $changes;
   }
-}
-
-/**
- * Ajax callback to re-render the full address element.
- */
-function uc_addresses_order_pane_address_render($form, &$form_state) {
-  $element = &$form;
-  foreach (array_slice($form_state['triggering_element']['#array_parents'], 0, -1) as $field) {
-    $element = &$element[$field];
-  }
-  return $element['address'];
 }

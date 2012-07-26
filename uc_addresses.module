@@ -376,6 +376,18 @@ function uc_addresses_element_info() {
     '#hidden' => FALSE,
   );
 
+  $types['uc_addresses_address_select'] = array(
+    '#input' => TRUE,
+    '#multiple' => FALSE,
+    '#process' => array('uc_addresses_form_process_select_address', 'form_process_select', 'ajax_process_form'),
+    '#uc_addresses_select_addresses' => array(),
+    '#uc_addresses_address_element' => array(),
+    '#uc_addresses_address_input' => array(),
+    '#theme' => 'select',
+    '#theme_wrappers' => array('form_element'),
+    '#default_value' => NULL,
+  );
+
   return $types;
 }
 
@@ -632,6 +644,101 @@ function uc_addresses_validate_address_field_country($element, &$form_state) {
  */
 function uc_addresses_address_field_weights() {
   return variable_get('uc_address_fields_weight', array('first_name' => 0, 'last_name' => 1, 'company' => 2, 'street1' => 3, 'street2' => 4, 'city' => 5, 'zone' => 6, 'country' => 7, 'postal_code' => 8, 'phone' => 9, 'address_name' => 10, 'default_shipping' => 11, 'default_billing' => 12));
+}
+
+/**
+ * Element process hook for an selectable address field.
+ *
+ * @param array $element
+ *   The form element to process.
+ * @param array $form_state
+ *   The complete form state.
+ *
+ * @return array
+ */
+function uc_addresses_form_process_select_address(&$element, &$form_state) {
+  if (count($element['#uc_addresses_select_addresses']) < 1) {
+    // Return NULL if there are no addresses.
+    return NULL;
+  }
+
+  // Initialize default value, we don't know yet which address in the list is
+  // equal to the given default value.
+  $address_book_default_value = NULL;
+
+  $options = array(
+    '' => t('Select one...'),
+  );
+  $addresses = array_values($element['#uc_addresses_select_addresses']);
+  foreach ($addresses as $key => $address) {
+    if ($address_name = $address->getName()) {
+      $options[$key] = $address_name;
+    }
+    else {
+      $options[$key] = preg_replace('/<.*?>/', ', ', trim(uc_addresses_format_address($address)));
+    }
+
+    // Check if this address is equal to given default value.
+    if ($element['#default_value'] instanceof UcAddressesSchemaAddress && !$address_book_default_value) {
+      if ($address->compareAddress($element['#default_value'])) {
+        // Default value found! Save it for later.
+        $address_book_default_value = $key;
+      }
+    }
+  }
+
+  $element['#options'] = $options;
+
+  // Add default value if found.
+  if ($address_book_default_value) {
+    $element['#default_value'] = $address_book_default_value;
+  }
+  else {
+    unset($element['#default_value']);
+  }
+
+  // Replace address in form.
+  if (isset($form_state['triggering_element']) && $form_state['triggering_element']['#id'] === $element['#id']) {
+    // Hey, we need to update an address.
+    if (empty($element['#uc_addresses_address_input']) || empty($element['#uc_addresses_address_element'])) {
+      // Hm, it's not specified where the address is in the form.
+      // Abort.
+    }
+    elseif (isset($addresses[$element['#value']])) {
+      $address = $addresses[$element['#value']];
+      // Find address field to replace.
+      $address_field = &$form_state['complete form'];
+      foreach ($element['#uc_addresses_address_element'] as $key) {
+        if (isset($address_field[$key])) {
+          $address_field = &$address_field[$key];
+        }
+      }
+      $address_field['#value'] = $address->getRawFieldData();
+
+      // Find input array to replace.
+      $input = &$form_state['input'];
+      foreach ($element['#uc_addresses_address_input'] as $key) {
+        if (isset($input[$key])) {
+          $input = &$input[$key];
+        }
+      }
+      $input = $address_field['#value'];
+    }
+  }
+  return $element;
+}
+
+/**
+ * Ajax callback to re-render the full address element.
+ */
+function uc_addresses_address_render($form, &$form_state) {
+  $element = &$form;
+  foreach ($form_state['triggering_element']['#uc_addresses_address_element'] as $key) {
+    if (isset($element[$key])) {
+      $element = &$element[$key];
+    }
+  }
+  return $element;
 }
 
 // ---------------------------------------------------------------------------
@@ -1133,7 +1240,6 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
   return $addresses;
 }
 
-// TODO: replace with logics in new uc_select_addresses function.
 /**
  * Widget for selecting an address.
  *
@@ -1145,14 +1251,11 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
  *   - order_form
  * @param string $type
  *   The type of address to select addresses for (shipping or billing)
- * @param UcAddressesAddress $default_value
- *   (optional) The option that should be selected.
  *
  * @return array
  *   A select form element for selecting addresses
- * @todo make an 'element' of it?
  */
-function uc_addresses_select_addresses($uid, $context = 'default', $type = 'billing', UcAddressesAddress $default_value = NULL) {
+function uc_addresses_select_addresses($uid, $context = 'default', $type = 'billing') {
   // Get addresses for select.
   $addresses = uc_addresses_get_select_addresses($uid, $context, $type);
 
@@ -1161,42 +1264,11 @@ function uc_addresses_select_addresses($uid, $context = 'default', $type = 'bill
     return NULL;
   }
 
-  // Initialize default value, we don't know yet which address in the list is
-  // equal to the given default value.
-  $address_book_default_value = NULL;
-
-  $options = array(
-    '' => t('Select one...'),
-  );
-  foreach ($addresses as $address) {
-    $key = $address->getId();
-    if ($address_name = $address->getName()) {
-      $options[$key] = $address_name;
-    }
-    else {
-      $options[$key] = preg_replace('/<.*?>/', ', ', trim(uc_addresses_format_address($address)));
-    }
-
-    // Check if this address is equal to given default value
-    if ($default_value && !$address_book_default_value) {
-      if ($address->compareAddress($default_value)) {
-        // Default value found! Save it for later.
-        $address_book_default_value = $key;
-      }
-    }
-  }
-
-  $select = array(
-    '#type' => 'select',
+  return array(
+    '#type' => 'uc_addresses_address_select',
     '#title' => t('Address book'),
-    '#options' => $options,
+    '#uc_addresses_select_addresses' => $addresses,
   );
-  // Add default value if found
-  if ($address_book_default_value) {
-    $select['#default_value'] = $address_book_default_value;
-  }
-
-  return $select;
 }
 
 // -----------------------------------------------------------------------------
