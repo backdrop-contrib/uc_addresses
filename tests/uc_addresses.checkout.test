@@ -38,6 +38,10 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
 
   /**
    * Override of UbercartTestHelper::checkout().
+   *
+   * @return object
+   *   An Ubercart order object, if checkout succeeded.
+   *   False otherwise.
    */
   function checkout($edit = array()) {
     $this->drupalPost('cart', array(), 'Checkout');
@@ -56,12 +60,14 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
       $this->pass(
         t('Order %order_id has been created', array('%order_id' => $order_id))
       );
+      $order = uc_order_load($order_id);
     }
     else {
       $this->fail(t('An order was created.'));
+      $order = FALSE;
     }
 
-    return $order_id;
+    return $order;
   }
 
   /**
