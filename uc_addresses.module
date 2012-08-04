@@ -922,7 +922,7 @@ function uc_addresses_ctools_plugin_type() {
  * @return array
  */
 function uc_addresses_get_address_fields() {
-  static $fields = array();
+  $fields = &drupal_static(__FUNCTION__, array());
   if (count($fields) < 1) {
     ctools_include('plugins');
     ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
@@ -1474,7 +1474,7 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
  * @todo Don't return an empty string!
  */
 function uc_addresses_get_address_format($country_id) {
-  static $formats = array();
+  $formats = &drupal_static(__FUNCTION__, array());
 
   if (isset($formats[$country_id])) {
     return $formats[$country_id];

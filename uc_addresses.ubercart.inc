@@ -68,7 +68,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
   }
 
   // Source pane for "copy address" checkbox.
-  static $source;
+  $source = &drupal_static('uc_addresses_checkout_pane_address_source_pane');
   if (!isset($source)) {
     $source = $pane;
   }

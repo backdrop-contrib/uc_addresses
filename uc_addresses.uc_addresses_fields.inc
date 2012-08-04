@@ -282,7 +282,7 @@ function uc_addresses_uc_addresses_fields() {
  * @todo Add setting to say if addresses may come from previous orders or not.
  */
 function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
-  static $addresses = array();
+  $addresses = &drupal_static(__FUNCTION__, array());
   if (!isset($addresses[$type])) {
     $addresses[$type] = array();
   }

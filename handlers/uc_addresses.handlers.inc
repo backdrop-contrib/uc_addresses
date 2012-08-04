@@ -265,7 +265,7 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Output a fields value
+   * Output a fields value.
    *
    * @param mixed $value
    *   The value to output
@@ -277,7 +277,7 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
    * @see getOutputFormats()
    */
   public function outputValue($value = '', $format = '') {
-    static $values = array();
+    $values = &drupal_static('UcAddressesDateFieldHandler::outputValue', array());
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }

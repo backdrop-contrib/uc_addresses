@@ -368,7 +368,7 @@ class UcAddressesSchemaAddress {
    * @return boolean
    */
   public function compareAddress(UcAddressesSchemaAddress $address) {
-    static $fields_to_compare = array();
+    $fields_to_compare = &drupal_static('UcAddressesSchemaAddress::compareAddress', array());
 
     if ($address === $this) {
       // No comparison needed. Given address object is exactly the same.
@@ -378,7 +378,7 @@ class UcAddressesSchemaAddress {
     $fieldsDataThisAddress = $this->getRawFieldData();
     $fieldsDataOtherAddress = $address->getRawFieldData();
 
-    // Find out which field to compare
+    // Find out which field to compare.
     if (count($fields_to_compare) < 1) {
       $fields_data = uc_addresses_get_address_fields();
       foreach ($fields_data as $fieldname => $field_data) {
