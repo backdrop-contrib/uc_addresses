@@ -50,7 +50,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $this->assertTrue($address->isNew(), t('The address is new.'));
 
     // Fill the address (all field values should be present)
-    $values = $this->getEditAddressValues();
+    $values = self::getEditAddressValues();
     $address->setMultipleFields($values['values'], TRUE);
 
     // Save all addresses in the address book and ensure the address is no longer new (thus has a definitive address ID).
@@ -118,10 +118,10 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     // Add three other addresses and save them all.
     for ($i = 0; $i < 3; $i++) {
       $address = $addressBook->addAddress();
-      $values = $this->getEditAddressValues();
+      $values = self::getEditAddressValues();
       $address->setMultipleFields($values['values'], TRUE);
     }
-    $values = $this->getEditAddressValues();
+    $values = self::getEditAddressValues();
     $address3->setMultipleFields($values['values'], TRUE);
     $addressBook->save();
     // Get addresses for later use.

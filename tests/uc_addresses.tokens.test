@@ -32,11 +32,11 @@ class UcAddressesTokenTestCase extends UcAddressesTestCase {
     // Add two addresses, one default shipping, the other default billing.
     $addressBook = UcAddressesAddressBook::get($this->adminUser->uid);
     $shippingAddress = $addressBook->addAddress();
-    $values = $this->getEditAddressValues();
+    $values = self::getEditAddressValues();
     $shippingAddress->setMultipleFields($values['values'], TRUE);
     $addressBook->setAddressAsDefault($shippingAddress, 'shipping');
     $billingAddress = $addressBook->addAddress();
-    $values = $this->getEditAddressValues();
+    $values = self::getEditAddressValues();
     $billingAddress->setMultipleFields($values['values'], TRUE);
     $addressBook->setAddressAsDefault($billingAddress, 'billing');
     $addressBook->save();

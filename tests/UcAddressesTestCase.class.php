@@ -124,7 +124,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function createAddress($account, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
+      $values = self::getEditAddressValues(array('address'), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account) . 'add', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
@@ -167,7 +167,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function editAddress($account, $aid, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
-      $values = $this->getEditAddressValues(array('address'), $values, 'address_form');
+      $values = self::getEditAddressValues(array('address'), $values, 'address_form');
       $this->drupalPost($this->constructAddressUrl($account, $aid) . 'edit', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
@@ -343,7 +343,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    *
    * @todo Think of which values go in the values array.
    */
-  protected function getEditAddressValues($parents = array(), $values = array(), $context = 'default', $prefix = '') {
+  public static function getEditAddressValues($parents = array(), $values = array(), $context = 'default', $prefix = '') {
     // Initialize values array
     $form_values = array();
 
@@ -374,7 +374,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       // Check if field is used in the context
       if ($handler->checkContext()) {
         // Fill in a value.
-        $values[$fieldname] = $this->generateAddressFieldValue($fieldname, $values);
+        $values[$fieldname] = self::generateAddressFieldValue($fieldname, $values);
       }
     }
 
@@ -405,7 +405,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    * @return string
    *   The generated value
    */
-  protected function generateAddressFieldValue($fieldname, &$values) {
+  public static function generateAddressFieldValue($fieldname, &$values) {
     switch ($fieldname) {
       case 'address_name':
         // By default an empty address name is returned to avoid name collisions
@@ -424,7 +424,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       case 'zone':
         // Random zone based on the defined country
         if (!isset($values['country'])) {
-          $values['country'] = $this->generateAddressFieldValue('country', &$values);
+          $values['country'] = self::generateAddressFieldValue('country', &$values);
         }
         return db_query("SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :zone_country_id ORDER BY rand()", array(':zone_country_id' => $values['country']))->fetchField();
       default:
