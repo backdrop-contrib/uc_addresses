@@ -1121,6 +1121,25 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
 function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_state) {
   $fields = uc_addresses_get_address_fields();
   $weights = uc_addresses_address_field_weights();
+
+  // Propose delta of weight fields.
+  $delta = count($fields);
+  if ($delta < 10) {
+    // Delta should be 10 at least.
+    $delta = 10;
+  }
+
+  // Set adjust delta of current defined weight fields.
+  foreach (element_children($form['uc_address_fields_weight']) as $fieldname) {
+    if ($form['uc_address_fields_weight'][$fieldname]['#type'] == 'weight') {
+      // Set or adjust delta only if it not set or if it's currently lower than
+      // the proposed value.
+      if (!isset($form['uc_address_fields_weight'][$fieldname]['#delta']) || $form['uc_address_fields_weight'][$fieldname]['#delta'] < $delta) {
+        $form['uc_address_fields_weight'][$fieldname]['#delta'] = $delta;
+      }
+    }
+  }
+
   foreach ($fields as $fieldname => $field) {
     if (!$field['hidden'] && !isset($form['fields'][$fieldname])) {
       $form['fields'][$fieldname] = array(
@@ -1131,22 +1150,14 @@ function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_sta
           '#type' => 'value',
           '#value' => $field['title'],
         ),
-        'weight' => array(
-          '#type' => 'weight',
-          '#default_value' => isset($weights[$fieldname]) ? $weights[$fieldname] : 0,
-          '#attributes' => array(
-            'class' => array('uc-store-address-fields-weight'),
-          ),
-        ),
-        // @todo Ubercart Addresses has it own settings page for enabling/disabling fields,
-        //   I'm not sure yet if I want to move these settings to this place.
-        /*
-        'enabled' => array(
-          '#type' => 'checkbox',
-          '#default_value' => isset($current[$field]) ? TRUE : FALSE,
-        ),
-        */
         '#weight' => isset($weights[$fieldname]) ? $weights[$fieldname] : 0,
+      );
+
+      $form['uc_address_fields_weight'][$fieldname] = array(
+        '#type' => 'weight',
+        '#delta' => $delta,
+        '#default_value' => isset($weights[$fieldname]) ? $weights[$fieldname] : 0,
+        '#attributes' => array('class' => array('uc-store-address-fields-weight')),
       );
     }
   }
