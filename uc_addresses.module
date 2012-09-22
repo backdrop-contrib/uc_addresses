@@ -805,17 +805,45 @@ function uc_addresses_uc_order_pane_alter(&$panes) {
  * @return void
  */
 function uc_addresses_uc_order($op, &$order, $arg2) {
+  global $user;
   switch ($op) {
+    case 'new':
+      $order->uc_addresses = array();
+      foreach (uc_addresses_address_types() as $address_type) {
+        // Check if address may be automatically filled in.
+        if (variable_get('uc_addresses_default_' . $address_type . '_address', TRUE) && variable_get('uc_addresses_use_default_' . $address_type, TRUE)) {
+          // Get default address of type $address_type.
+          $address = UcAddressesAddressBook::get($user->uid)->getDefaultAddress($address_type);
+          if ($address) {
+            $address = $address->copyAddress(UcAddressesAddressBook::get(0));
+            // Set order values.
+            $order_address_type = $address_type;
+            if ($order_address_type == 'shipping') {
+              $order_address_type = 'delivery';
+            }
+            $address_values = $address->getFieldData();
+            foreach ($address_values as $fieldname => $value) {
+              $order_fieldname = $order_address_type . '_' . $fieldname;
+              $order->$order_fieldname = $value;
+            }
+          }
+        }
+        else {
+          // Construct new address.
+          $order_address_type = $address_type;
+          if ($address_type == 'shipping') {
+            $order_address_type = 'delivery';
+          }
+          $address = uc_addresses_new_address_from_order($order, $order_address_type);
+        }
+        $order->uc_addresses[$address_type] = $address;
+      }
+      break;
     case 'load':
       $order->uc_addresses = array();
-      $address_types = array(
-        'delivery',
-        'billing',
-      );
-
-      foreach ($address_types as $order_type) {
-        $address_type = $order_type;
-        if ($order_type == 'delivery') {
+      foreach (uc_addresses_order_address_types() as $order_address_type) {
+        $address_type = $order_address_type;
+        if ($order_address_type == 'delivery') {
           $address_type = 'shipping';
         }
 
@@ -825,15 +853,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
         }
         else {
           // Construct new address.
-          $address = UcAddressesAddressBook::get($order->uid)->addAddress();
-          // Loop through all address field definitions and set those that exists for the order.
-          $fields_data = uc_addresses_get_address_fields();
-          foreach ($fields_data as $fieldname => $fielddata) {
-            $order_field_name = $order_type . '_' . $fieldname;
-            if (isset($order->$order_field_name)) {
-              $address->setField($fieldname, $order->$order_field_name);
-            }
-          }
+          $address = uc_addresses_new_address_from_order($order, $order_address_type);
         }
         $order->uc_addresses[$address_type] = $address;
       }
@@ -887,6 +907,30 @@ function uc_addresses_uc_checkout_complete($order, $user) {
 
   // Remove any temporary addresses from session.
   unset($_SESSION['uc_addresses_order']);
+}
+
+/**
+ * Creates a new address from order data.
+ *
+ * @param object $order
+ *   An Ubercart order object.
+ * @param string $order_address_type
+ *   The type of address to create: delivery or billing.
+ *
+ * @return UcAddressesAddress
+ *   An instance of UcAddresses, filled with values from order object.
+ */
+function uc_addresses_new_address_from_order($order, $order_address_type) {
+  $address = UcAddressesAddressBook::get($order->uid)->addAddress();
+  // Loop through all address field definitions and set those that exists for the order.
+  $fields_data = uc_addresses_get_address_fields();
+  foreach ($fields_data as $fieldname => $fielddata) {
+    $order_field_name = $order_address_type . '_' . $fieldname;
+    if (isset($order->$order_field_name)) {
+      $address->setField($fieldname, $order->$order_field_name);
+    }
+  }
+  return $address;
 }
 
 // ---------------------------------------------------------------------------
@@ -1420,6 +1464,28 @@ function uc_addresses_preprocess_uc_order(&$variables) {
 // -----------------------------------------------------------------------------
 // UTIL
 // -----------------------------------------------------------------------------
+
+/**
+ * Returns address types used in addresses from
+ * Ubercart Addresses.
+ *
+ * @return array
+ *   The address types used by Ubercart Addresses.
+ */
+function uc_addresses_address_types() {
+  return array('shipping', 'billing');
+}
+
+/**
+ * Returns address types used in the Ubercart order
+ * object.
+ *
+ * @return array
+ *   The address types used in the Ubercart order.
+ */
+function uc_addresses_order_address_types() {
+  return array('delivery', 'billing');
+}
 
 /**
  * Format an address by using tokens.

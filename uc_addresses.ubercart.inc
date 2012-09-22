@@ -78,29 +78,19 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       // Tell address book we want to get multiple addresses.
       UcAddressesAddressBook::get($user->uid)->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
-      // Initialize address variable
+      // Initialize address variable.
       $address = NULL;
 
-      // Check if address may be automatically filled in
-      $auto_fill_address = (variable_get('uc_addresses_default_' . $type . '_address', TRUE) && variable_get('uc_addresses_use_default_' . $type, TRUE));
-
-      // Get address for order if set
+      // Get address for order if set.
       if (isset($order->uc_addresses[$type])) {
         $address = $order->uc_addresses[$type];
-      }
-      elseif ($auto_fill_address) {
-        // Get default address of type $type
-        $address = UcAddressesAddressBook::get($user->uid)->getDefaultAddress($type);
-        if ($address) {
-          $address = $address->copyAddress(UcAddressesAddressBook::get(0));
-        }
       }
       if (!$address) {
         $address = UcAddressesAddress::newAddress();
       }
 
       // Check if address is copied from source pane
-      // (if the "copy address" checkbox was enabled)
+      // (if the "copy address" checkbox was enabled).
       if (
         (isset($address->copy_address) && $address->copy_address)
         || !empty($form_state['values']['panes'][$pane]['copy_address'])
@@ -222,9 +212,9 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         }
       }
 
-      // Temporary save address with order
+      // Temporary save address with order.
       $order->uc_addresses[$type] = $address;
-      // Save address into session
+      // Save address into session.
       $_SESSION['uc_addresses_order'][$order->order_id][$type] = serialize($address);
       return TRUE;
 

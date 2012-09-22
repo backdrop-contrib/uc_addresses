@@ -36,6 +36,10 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     drupal_get_schema(NULL, TRUE);
   }
 
+  // -----------------------------------------------------------------------------
+  // Overrides of methods in UbercartCartCheckoutTestCase from uc_cart.
+  // -----------------------------------------------------------------------------
+
   /**
    * Override of UbercartTestHelper::checkout().
    *
@@ -198,6 +202,148 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     }
     else {
       $this->fail('No order was created.');
+    }
+  }
+
+  // -----------------------------------------------------------------------------
+  // Ubercart Addresses own tests.
+  // -----------------------------------------------------------------------------
+
+  /**
+   * Test if the address fields are prefilled with the customer's
+   * default addresses.
+   *
+   * @see doDefaultAddressesTests()
+   * @see checkCheckoutAddressFields()
+   */
+  public function testDefaultAddresses() {
+    // Create an user with edit address privileges.
+    $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    // Create a default shipping and a default billing address for this user.
+    $addressBook = UcAddressesAddressBook::get($this->customer->uid);
+    $address_types = uc_addresses_address_types();
+    foreach ($address_types as $address_type) {
+      $address = $addressBook->addAddress();
+      $values = UcAddressesTestCase::getEditAddressValues(array(), array(), 'address_form');
+      $address->setMultipleFields($values['values']);
+      $address->setAsDefault($address_type);
+      $address->save();
+    }
+
+    // Log in as customer.
+    $this->drupalLogin($this->customer);
+
+    // Check if address fields are prefilled with values from the default addresses.
+    $this->doDefaultAddressesTests();
+
+    // Now, turn off the option to prefill the billing address and check again.
+    variable_set('uc_addresses_default_shipping_address', TRUE);
+    variable_set('uc_addresses_default_billing_address', FALSE);
+    $this->doDefaultAddressesTests();
+
+    // Reverse, don't fill in a default for the delivery address, but do
+    // so for the billing address.
+    variable_set('uc_addresses_default_shipping_address', FALSE);
+    variable_set('uc_addresses_default_billing_address', TRUE);
+    $this->doDefaultAddressesTests();
+
+    // Now turn off both and check again.
+    variable_set('uc_addresses_default_shipping_address', FALSE);
+    variable_set('uc_addresses_default_billing_address', FALSE);
+    $this->doDefaultAddressesTests();
+  }
+
+  /**
+   * Checkout with the default addresses.
+   *
+   * Helper method for testDefaultAddresses().
+   *
+   * @see testDefaultAddresses()
+   * @see checkCheckoutAddressFields()
+   */
+  protected function doDefaultAddressesTests() {
+    global $user;
+
+    // Load default addresses for this user.
+    $address_types = uc_addresses_address_types();
+    $addresses = array();
+    foreach ($address_types as $address_type) {
+      $address = UcAddressesAddressBook::get($user->uid)->getDefaultAddress($address_type);
+      if ($address instanceof UcAddressesAddress) {
+        $addresses[$address_type] = $address;
+      }
+      else {
+        $addresses[$address_type] = UcAddressesAddressBook::newAddress();
+      }
+    }
+
+    // Create an empty address too.
+    $empty_address = UcAddressesAddressBook::newAddress();
+
+    // Initialize values for checkout form.
+    $edit = array();
+
+    // Clear out any static variables in drupal_html_id().
+    drupal_static_reset('drupal_html_id');
+
+    // Place item in cart.
+    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    // Continue to checkout.
+    $this->drupalPost('cart', array(), 'Checkout');
+
+    // Check if the address form is prefilled with the default addresses
+    // according to the settings.
+    foreach ($address_types as $address_type) {
+      $order_address_type = $address_type;
+      if ($address_type == 'shipping') {
+        $order_address_type = 'delivery';
+      }
+      if (variable_get('uc_addresses_default_' . $address_type . '_address', TRUE)) {
+        $this->checkCheckoutAddressFields($order_address_type, $addresses[$address_type]);
+      }
+      else {
+        $this->checkCheckoutAddressFields($order_address_type, $empty_address);
+        $values = UcAddressesTestCase::getEditAddressValues(array('panes', $order_address_type, 'address'), array(), 'checkout_form', $order_address_type . '_');
+        $edit += $values['form_values'];
+      }
+    }
+
+    // And checkout.
+    $this->drupalPost(NULL, $edit, t('Review order'));
+    $messages = uc_cart_uc_message();
+    $this->assertText($messages['review_instructions']);
+    $this->drupalPost(NULL, array(), t('Submit order'));
+  }
+
+  /**
+   * Checks values on checkout form for given address and type.
+   *
+   * @param string $order_address_type
+   *   The type of address on the checkout form the check values for:
+   *   delivery or billing.
+   * @param UcAddressesAddress $address
+   *   The address to check values against.
+   */
+  protected function checkCheckoutAddressFields($order_address_type, $address) {
+    $handlers = uc_addresses_get_address_field_handler_instances($address, 'checkout_form');
+    foreach ($handlers as $fieldname => $handler) {
+      if ($handler->checkContext()) {
+        $field_id = 'edit-panes-' . $order_address_type . '-address-' . $order_address_type . '-' . $fieldname;
+        $field_id = drupal_html_id($field_id);
+        $value = $address->getField($fieldname);
+        $message_variables = array(
+          '@address_type' => t($order_address_type),
+          '%field' => $handler->getFieldTitle(),
+          '%value' => $value,
+        );
+        if (empty($value)) {
+          $message = t('The @address_type field %field is empty.', $message_variables);
+        }
+        else {
+          $message = t('The @address_type field %field contains %value.', $message_variables);
+        }
+        $this->assertFieldById($field_id, $value, $message);
+      }
     }
   }
 }
