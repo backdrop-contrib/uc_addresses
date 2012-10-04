@@ -120,7 +120,6 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    * @return int
    *   The address ID for the created address if creating was succesful.
    *   NULL Otherwise.
-   * @todo Return the address ID.
    */
   protected function createAddress($account, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
@@ -138,7 +137,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       $this->viewAddress($account, $aid);
       $values['values']['aid'] = $aid;
       $this->doAddressValuesDisplayedTests($values['values'], 'address_view');
-      $this->assertTrue($this->checkAddressValuesInDatabase($values['values']), t('The address %aid is correctly saved to the database.', array('%aid' => $aid)));
+      $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), t('The address %aid is correctly saved to the database.', array('%aid' => $aid)));
 
       return $aid;
     }
@@ -175,7 +174,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       $this->viewAddress($account, $aid);
       $values['values']['aid'] = $aid;
       $this->doAddressValuesDisplayedTests($values['values'], 'address_view');
-      $this->assertTrue($this->checkAddressValuesInDatabase($values['values']), t('The address %aid is correctly saved to the database.', array('%aid' => $aid)));
+      $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), t('The address %aid is correctly saved to the database.', array('%aid' => $aid)));
     }
     else {
       $this->drupalGet($this->constructAddressUrl($account, $aid) . 'edit');
@@ -276,13 +275,15 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    * Test if these address values appear in the database.
    *
    * @param array $values
+   *   The address values to check for.
    *
+   * @static
    * @return boolean
    */
-  protected function checkAddressValuesInDatabase($values, $context = 'default') {
+  public static function checkAddressValuesInDatabase($values) {
     $schema_values = array();
 
-    // Only check real schema fields
+    // Only check real schema fields.
     foreach ($values as $fieldname => $value) {
       if (UcAddressesSchemaAddress::schemaFieldExists($fieldname)) {
         $schema_values[$fieldname] = $value;

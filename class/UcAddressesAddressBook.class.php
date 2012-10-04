@@ -290,12 +290,13 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Updates address ID in the address book
+   * Updates address ID in the address book.
    *
    * Called by method save() in UcAddressesAddress when the
    * address gets an ID.
    *
    * @param UcAddressesAddress $address
+   *   The address to reindex.
    * @access public
    * @return void
    * @throws UcAddressesInvalidParameterException
@@ -306,14 +307,21 @@ class UcAddressesAddressBook {
       throw new UcAddressesInvalidParameterException(t('Tried to update an address from an other address book'));
     }
 
+    // Loop through all addresses to find out what temporary ID
+    // the address is known under.
     foreach ($this->addresses as $aid => $addressBookAddress) {
       if ($address === $addressBookAddress) {
-        // Update address ID
+        // Update address ID.
         unset($this->addresses[$aid]);
         $this->addresses[$address->getId()] = $address;
         return;
       }
     }
+    // The address should have been found in the address book.
+    // However, sometimes it can happen that there are two address
+    // objects with the same ID. This can happen when serializing
+    // and unserializing address objects.
+    $this->addresses[$address->getId()] = $address;
   }
 
   /**
@@ -328,19 +336,36 @@ class UcAddressesAddressBook {
    * already in the address book.
    *
    * @param UcAddressesAddress $address
+   *   The address to compare with other addresses in the address book.
+   * @param boolean $compareUnsaved
+   *   (optional) If the address should be compared with addresses that
+   *   are not yet saved.
+   *   Defaults to FALSE.
    * @access public
    * @return
-   *   UcAddressesAddress in case a match is found
+   *   UcAddressesAddress in case a match is found.
    *   FALSE otherwise.
    */
-  public function compareAddress(UcAddressesAddress $address) {
+  public function compareAddress(UcAddressesAddress $address, $compareUnsaved = FALSE) {
     if (!$this->allLoaded) {
       $this->loadAll();
     }
 
     foreach ($this->addresses as $addressBookAddress) {
+      if (!$compareUnsaved && $addressBookAddress->isNew()) {
+        // Don't compare the addresses with unsaved addresses.
+        continue;
+      }
       if ($address === $addressBookAddress) {
-        // We don't need to compare the address with itself
+        // We don't need to compare the address with itself.
+        continue;
+      }
+      if ($address->getId() === $addressBookAddress->getId()) {
+        // Somehow we ended up with two addresses with the same ID.
+        // This can happen when address objects get serialized and unserialized.
+        // Ideally, this case should be prevented, but I'm not sure how. We can't
+        // reassign "$this" in __wakeup().
+        // Anyway, in this case we need to skip the comparison too.
         continue;
       }
 

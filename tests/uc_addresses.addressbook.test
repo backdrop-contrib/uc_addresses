@@ -70,7 +70,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
       $this->doCrudTests($account, $default_address->getId(), $may_view_own_default, $may_edit_own, FALSE);
     }
 
-    // Try to add an address
+    // Try to add an address.
     $aid = $this->createAddress($account, $may_edit_own);
     if ($aid) {
       $this->doCrudTests($account, $aid, $may_view_own, $may_edit_own, $may_delete_own);
@@ -444,5 +444,30 @@ class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestC
     $adminAll = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
     $this->doOwnAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
     $this->doOtherUsersAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
+  }
+
+  /**
+   * Test if double addresses are not saved.
+   */
+  public function testDoubleAddresses() {
+    $adminAll = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
+    $values = self::getEditAddressValues(array('address'), array(), 'address_form');
+    $this->drupalLogin($adminAll);
+
+    // Create first address.
+    $this->createAddress($adminAll, TRUE, $values['values']);
+
+    // Now try to create an address with the same values.
+    // A (form) error should be displayed about that the address already exists.
+    $this->drupalPost($this->constructAddressUrl($adminAll) . 'add', $values['form_values'], t('Save address'));
+    $this->assertText(t('This address already appears in your address book. A new address was not added.'), t('The address already appeared in the address book.'));
+
+    // Create an other address.
+    $aid = $this->createAddress($adminAll, TRUE);
+    // Now try to edit this same address, but with the values from the first address.
+    // This should also result into a (form) error, though with a different message
+    // than the first.
+    $this->drupalPost($this->constructAddressUrl($adminAll, $aid) . 'edit', $values['form_values'], t('Save address'));
+    $this->assertText(t('The revised address is already in your address book. Your change was not made.'), t('The revised address already appeared in the address book.'));
   }
 }

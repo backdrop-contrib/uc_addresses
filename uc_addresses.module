@@ -875,32 +875,55 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
  * Saves any new addresses to the address book.
  *
  * @param object $order
- *   The Ubercart order
+ *   The Ubercart order.
  * @param object $user
- *   The user who ordered
+ *   The user who ordered.
  *
  * @return void
  */
 function uc_addresses_uc_checkout_complete($order, $user) {
   if (isset($order->uc_addresses)) {
+    $saved_addresses = array();
     foreach ($order->uc_addresses as $address_type => $address) {
-      if (isset($address->save_address) && $address->save_address == TRUE) {
+      if (!empty($address->save_address)) {
         // Check if the user already has similar looking addresses.
         if (UcAddressesAddressBook::get($user->uid)->compareAddress($address)) {
-          // Don't save the address
+          // Don't save the address.
         }
         else {
           if (!$address->isOwned()) {
             $address->setOwner($user->uid);
           }
 
-          // Check if there is any other default address of type $type for this user
-          if (!$address->getAddressBook()->getDefaultAddress($address_type)) {
-            // If there is no such address, then make this address the default
-            $address->setAsDefault($address_type);
-          }
+          // Save address.
           $address->save();
+
+          // We keep track of which addresses are saved, so we can find
+          // out later which one will become the default shipping address
+          // and which one the default billing address.
+          $saved_addresses[$address_type] = $address;
+          // Make sure we have all types of default addresses in the
+          // saved addresses array.
+          foreach (uc_addresses_address_types() as $save_address_type) {
+            if (!isset($saved_addresses[$save_address_type])) {
+              $saved_addresses[$save_address_type] = $address;
+            }
+          }
         }
+      }
+    }
+    // Find out which address will become the default shipping address
+    // and which one the default billing address.
+    foreach ($saved_addresses as $address_type => $address) {
+      // Check if addresses may set as this default type.
+      if (!variable_get('uc_addresses_use_default_' . $address_type, TRUE)) {
+        // Don't set this default type.
+        continue;
+      }
+      if (!$address->getAddressBook()->getDefaultAddress($address_type)) {
+        // If there is no such address, then make this address the default.
+        $address->setAsDefault($address_type);
+        $address->save();
       }
     }
   }

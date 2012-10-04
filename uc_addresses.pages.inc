@@ -289,6 +289,32 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
 }
 
 /**
+ * Validate handler for the address form.
+ *
+ * Checks if address is similar to other addresses.
+ *
+ * @return void
+ * @see uc_addresses_get_address_form()
+ */
+function uc_addresses_get_address_form_validate($form, $form_state) {
+  try {
+    $address = $form['uc_addresses']['address']['#uc_addresses_address'];
+    $address_book = UcAddressesAddressBook::get($address->getUserId());
+    if ($address_book->compareAddress($address)) {
+      if ($address->isNew()) {
+        form_set_error('uc_addresses][address', t('This address already appears in your address book. A new address was not added.'));
+      }
+      else {
+        form_set_error('uc_addresses][address', t('The revised address is already in your address book. Your change was not made.'));
+      }
+    }
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
+}
+
+/**
  * Submit handler for the address form.
  *
  * @param array $form

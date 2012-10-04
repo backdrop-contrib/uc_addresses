@@ -57,7 +57,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $addressBook->save();
     $this->assertFalse($address->isNew(), t('The address is no longer new.'));
     // Check if the address exists in the database
-    $this->assertTrue($this->checkAddressValuesInDatabase($values['values']), t('The address is correctly saved to the database.'));
+    $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), t('The address is correctly saved to the database.'));
 
     // Set the address as the default billing address.
     $addressBook->setAddressAsDefault($address, 'billing');

@@ -285,6 +285,9 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     // Initialize values for checkout form.
     $edit = array();
 
+    // Initialize array for newly added addresses.
+    $new_addresses = array();
+
     // Clear out any static variables in drupal_html_id().
     drupal_static_reset('drupal_html_id');
 
@@ -307,6 +310,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
         $this->checkCheckoutAddressFields($order_address_type, $empty_address);
         $values = UcAddressesTestCase::getEditAddressValues(array('panes', $order_address_type, 'address'), array(), 'checkout_form', $order_address_type . '_');
         $edit += $values['form_values'];
+        $new_addresses[$order_address_type] = $values['values'];
       }
     }
 
@@ -315,6 +319,20 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $messages = uc_cart_uc_message();
     $this->assertText($messages['review_instructions']);
     $this->drupalPost(NULL, array(), t('Submit order'));
+
+    // Check if any new addresses got saved.
+    foreach ($new_addresses as $address_type => $address_values) {
+      $message = '';
+      switch ($address_type) {
+        case 'delivery':
+          $message = t('The delivery address is correctly saved to the database.');
+          break;
+        case 'billing':
+          $message = t('The billing address is correctly saved to the database.');
+          break;
+      }
+      $this->assertTrue(UcAddressesTestCase::checkAddressValuesInDatabase($address_values), $message);
+    }
   }
 
   /**
@@ -347,5 +365,66 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
         $this->assertFieldById($field_id, $value, $message);
       }
     }
+  }
+
+  /**
+   * Test if double addresses are not saved when checking out.
+   */
+  public function testDoubleAddresses() {
+    // Create an user with edit address privileges.
+    $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    // Log in as customer.
+    $this->drupalLogin($this->customer);
+    // Place item in cart.
+    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    // Continue to checkout.
+    $this->drupalPost('cart', array(), 'Checkout');
+
+    // Fill in the same address in both the delivery and billing pane.
+    $edit = array();
+    $delivery_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'delivery', 'address'), array(), 'checkout_form', 'delivery_');
+    $billing_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'billing', 'address'), $delivery_values['values'], 'checkout_form', 'billing_');
+    $edit += $delivery_values['form_values'];
+    $edit += $billing_values['form_values'];
+    // And checkout.
+    $this->checkout($edit);
+
+    // Check that only one address is saved for the customer.
+    $query = db_select('uc_addresses');
+    $query->addExpression('COUNT(aid)');
+    $query->condition('uid', $this->customer->uid);
+    $result = $query->execute();
+    $count = (int) $result->fetchField();
+    $this->assertTrue(($count === 1), t('The customer has @number addresses. (Actual: @count)', array('@number' => 1, '@count' => $count)));
+
+    // Checkout with the default addresses filled and verify that the customer still has only one address.
+    $edit = array();
+    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->drupalPost('cart', array(), 'Checkout');
+    $this->drupalPost(NULL, $edit, t('Review order'));
+    $messages = uc_cart_uc_message();
+    $this->assertText($messages['review_instructions']);
+    $this->drupalPost(NULL, array(), t('Submit order'));
+    $query = db_select('uc_addresses');
+    $query->addExpression('COUNT(aid)');
+    $query->condition('uid', $this->customer->uid);
+    $result = $query->execute();
+    $count = (int) $result->fetchField();
+    $this->assertTrue(($count === 1), t('The customer has @number addresses. (Actual: @count)', array('@number' => 1, '@count' => $count)));
+
+    // Checkout again, but now with a different billing address.
+    // The customer should have two addresses now.
+    $edit = array();
+    $billing_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'billing', 'address'), array(), 'checkout_form', 'billing_');
+    $edit += $delivery_values['form_values'];
+    $edit += $billing_values['form_values'];
+    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->checkout($edit);
+    $query = db_select('uc_addresses');
+    $query->addExpression('COUNT(aid)');
+    $query->condition('uid', $this->customer->uid);
+    $result = $query->execute();
+    $count = (int) $result->fetchField();
+    $this->assertTrue(($count === 2), t('The customer has @number addresses. (Actual: @count)', array('@number' => 2, '@count' => $count)));
   }
 }
