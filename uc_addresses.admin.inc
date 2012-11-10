@@ -83,18 +83,25 @@ function uc_addresses_settings_form($form, &$form_state) {
 // -----------------------------------------------------------------------------
 
 /**
- * Lists all enabled addresses were address formats
- * may be set
+ * Lists all enabled countries were address formats may be set for.
+ *
  * @param int $country_id
- * @return string
+ *   (optional) The country to set the address format for.
+ *	 If specified, a different form will be loaded.
+ *
+ * @return string | array
+ *   A list of countries, themed in a table.
+ *   Or a form array if a country ID is specified.
+ *
+ * @see uc_addresses_country_formats_form()
  */
 function uc_addresses_country_formats_page($country_id = NULL) {
   if ($country_id) {
-    // Return address display form for this country
+    // Return address display form for this country.
     return drupal_get_form('uc_addresses_country_formats_form', $country_id);
   }
 
-  // List all countries
+  // List all countries.
   $header = array(
     t('Country'),
     t('Status'),
@@ -102,8 +109,15 @@ function uc_addresses_country_formats_page($country_id = NULL) {
 
   $rows = array();
   $path = 'admin/store/settings/countries/uc_addresses_formats';
-  $result = db_query("SELECT country_id, country_name FROM {uc_countries} ORDER BY country_name ASC");
-  while ($country = $result->fetch()) {
+  $countries = array();
+  $result = db_query("SELECT country_id, country_name FROM {uc_countries}");
+  foreach ($result as $country) {
+    $countries[t($country->country_name)] = $country;
+  }
+  // Sort countries in natural order.
+  uksort($countries, 'strnatcasecmp');
+
+  foreach ($countries as $country) {
     $rows[] = array(
       l(t($country->country_name), $path . '/' . $country->country_id),
       (variable_get('uc_addresses_address_format_' . $country->country_id, NULL) ? t('Overridden') : t('Ubercart default')),
@@ -114,12 +128,16 @@ function uc_addresses_country_formats_page($country_id = NULL) {
 }
 
 /**
- * Form for address format
+ * Form for address format.
+ *
  * @param int $country_id
+ *   The ID of the country to set a format for.
+ *
  * @return array
+ *   The form definition.
  */
 function uc_addresses_country_formats_form($form, $form_state, $country_id) {
-  // Get country
+  // Get country.
   $result = db_query("SELECT country_name FROM {uc_countries} WHERE country_id = :country_id", array(':country_id' => $country_id));
   $country = $result->fetch();
   if (!isset($country->country_name)) {

@@ -226,19 +226,19 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
 }
 
 /**
- * Class for the Ubercart country field
+ * Class for the Ubercart country field.
  */
 class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   /**
    * @var array $countries
-   *   An array of all loaded countries
+   *   An array of all loaded countries.
    * @access private
    * @static
    */
   private static $countries;
 
   /**
-   * Returns the editable field
+   * Returns the editable field.
    *
    * @param array $form
    * @param array $form_values
@@ -257,15 +257,19 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       ->orderBy('country_name', 'ASC')
       ->execute();
 
-    $options = array();
+    $countries = array();
     foreach ($result as $country) {
-      // Create option
-      $options[$country->country_id] = t($country->country_name);
-      // Save for later use
+      // Create option.
+      $countries[$country->country_id] = t($country->country_name);
+      // Save for later use.
       self::$countries[$country->country_id] = $country;
     }
-    if (count($options) == 0) {
-      $options[] = t('No countries found.');
+    if (count($countries) == 0) {
+      $countries[] = t('No countries found.');
+    }
+    else {
+      // Sort countries list in natural order.
+      natcasesort($countries);
     }
 
     if (empty($form['#key_prefix'])) {
@@ -281,7 +285,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       $fieldName => array(
         '#type' => 'select',
         '#title' => $this->getFieldTitle(),
-        '#options' => $options,
+        '#options' => $countries,
         '#required' => $this->isFieldRequired(),
         '#default_value' => empty($default) ? uc_store_default_country() : $default,
         '#ajax' => array(
@@ -384,11 +388,11 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Returns country data
+   * Returns country data.
    *
    * @param int $country_id
    * @return object
-   *   Data of country
+   *   Data of country.
    */
   private function getCountry($country_id) {
     if (isset(self::$countries[$country_id])) {

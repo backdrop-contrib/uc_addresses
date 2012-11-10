@@ -1,3 +1,7 @@
+Ubercart Addresses 7.x-1.x, xxxx-xx-xx
+------------------------------
+- Issue #1829348 by MegaChriz: sort countries list after translation.
+
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------
 - Issue #1104854 by MegaChriz: ported Ubercart Addresses 6.x-2.x to
