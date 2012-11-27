@@ -97,6 +97,18 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       ) {
         $copy_address_checked = TRUE;
       }
+      elseif (
+        // Check if the "Use the same address for billing and delivery by default."
+        // setting is enabled. If so, then the checkbox should be automatically
+        // enabled, but only if the setting has not (yet) been overidden by the form
+        // state or the address' copy address setting. Also, the checkbox should only
+        // be ticked for the "target" pane, not the "source" pane.
+        (!isset($form_state['values']['panes'][$pane]['copy_address']) && !isset($address->copy_address))
+        && variable_get('uc_cart_default_same_address', FALSE)
+        && $source != $pane
+      ) {
+        $copy_address_checked = TRUE;
+      }
       else {
         $copy_address_checked = FALSE;
       }
@@ -164,7 +176,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         '#uc_addresses_context' => 'checkout_form',
         '#uc_addresses_address' => $address,
         '#key_prefix' => $pane,
-        '#hidden' => $copy_address_checked,
+        '#hidden' => $copy_address_checked && ($source != $pane),
         '#prefix' => '<div id="' . $pane . '-address-pane">',
         '#suffix' => '</div>',
       );

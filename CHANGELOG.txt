@@ -1,6 +1,8 @@
 Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 ------------------------------
 - Issue #1829348 by MegaChriz: sort countries list after translation.
+- Issue #1843562 by MegaChriz: respect Ubercart's "same address for billing
+  and delivery by default" setting.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------
