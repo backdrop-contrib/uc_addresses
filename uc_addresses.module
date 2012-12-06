@@ -836,6 +836,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
           }
           $address = uc_addresses_new_address_from_order($order, $order_address_type);
         }
+        $address->address_type = $address_type;
         $order->uc_addresses[$address_type] = $address;
       }
       break;
@@ -855,6 +856,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
           // Construct new address.
           $address = uc_addresses_new_address_from_order($order, $order_address_type);
         }
+        $address->address_type = $address_type;
         $order->uc_addresses[$address_type] = $address;
       }
       break;
