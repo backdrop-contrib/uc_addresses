@@ -215,9 +215,12 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         if (substr($target_fieldname, 0, strlen($pane)) == $pane) {
           if (!empty($panes[$pane]['copy_address'])) {
             $fieldname = substr($target_fieldname, strlen($pane . '_'));
-            $value = $panes[$source]['address'][str_replace($pane, $source, $target_fieldname)];
-            if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
-              $address->setField($fieldname, $value);
+            $source_fieldname = $source . '_' . $fieldname;
+            if (isset($panes[$source]['address'][$source_fieldname])) {
+              $value = $panes[$source]['address'][$source_fieldname];
+              if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
+                $address->setField($fieldname, $value);
+              }
             }
           }
           $order->$target_fieldname = $value;
