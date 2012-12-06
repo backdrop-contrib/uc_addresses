@@ -101,6 +101,17 @@ function uc_addresses_uc_addresses_field_handlers() {
     ),
   );
 
+  // Extra handlers.
+  $info['UcAddressesTextFieldHandler'] = array(
+    'hidden' => FALSE,
+    'handler' => array(
+      'parent' => 'UcAddressesFieldHandler',
+      'class' => 'UcAddressesTextFieldHandler',
+      'file' => 'uc_addresses.handlers.inc',
+      'path' => $path,
+    ),
+  );
+
   return $info;
 }
 

@@ -7,7 +7,7 @@
 /**
  * Handler for a simple text field.
  */
-class UcAddressesTextFieldHandler extends UcAddressesFieldHandler {
+class UcAddressesExampleTextFieldHandler extends UcAddressesFieldHandler {
   /**
    * Returns the editable field.
    *

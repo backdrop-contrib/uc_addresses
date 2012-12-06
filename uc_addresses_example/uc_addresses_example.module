@@ -27,11 +27,11 @@ function uc_addresses_example_uc_addresses_field_handlers() {
   $path = drupal_get_path('module', 'uc_addresses_example') . '/handlers';
 
   $info = array();
-  $info['UcAddressesTextFieldHandler'] = array(
+  $info['UcAddressesExampleTextFieldHandler'] = array(
     'hidden' => FALSE,
     'handler' => array(
       'parent' => 'UcAddressesFieldHandler',
-      'class' => 'UcAddressesTextFieldHandler',
+      'class' => 'UcAddressesExampleTextFieldHandler',
       'file' => 'uc_addresses.handlers.inc',
       'path' => $path,
     ),
