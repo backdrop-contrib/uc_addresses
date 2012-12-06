@@ -494,12 +494,15 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     foreach (uc_addresses_order_address_types() as $address_type) {
       // Ensure the customer can choose an address for this address type.
       $field_id = 'edit-panes-' . $address_type . '-select-address';
-      $this->assertFieldById($field_id);
-      // Get address book option to choose.
-      $fields = $this->xpath($this->constructFieldXpath('id', $field_id));
-      $field = reset($fields);
-      $options = $this->getAllOptions($field);
-      $edit['panes[' . $address_type . '][select_address]'] = (string) $options[1]->attributes()->value;
+      $result = $this->assertFieldById($field_id);
+      // Only continue if the address book field was found to avoid a fatal error.
+      if ($result) {
+        // Get address book option to choose.
+        $fields = $this->xpath($this->constructFieldXpath('id', $field_id));
+        $field = reset($fields);
+        $options = $this->getAllOptions($field);
+        $edit['panes[' . $address_type . '][select_address]'] = (string) $options[1]->attributes()->value;
+      }
     }
     $delivery_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'delivery', 'address'), array(), 'checkout_form', 'delivery_');
     $billing_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'billing', 'address'), $delivery_values['values'], 'checkout_form', 'billing_');

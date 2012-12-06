@@ -810,6 +810,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
     case 'new':
       $order->uc_addresses = array();
       foreach (uc_addresses_address_types() as $address_type) {
+        $address = NULL;
         // Check if address may be automatically filled in.
         if (variable_get('uc_addresses_default_' . $address_type . '_address', TRUE) && variable_get('uc_addresses_use_default_' . $address_type, TRUE)) {
           // Get default address of type $address_type.
@@ -828,7 +829,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
             }
           }
         }
-        else {
+        if (empty($address)) {
           // Construct new address.
           $order_address_type = $address_type;
           if ($address_type == 'shipping') {

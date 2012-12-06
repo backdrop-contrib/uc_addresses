@@ -7,6 +7,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   a field appearing in one of the address panes only.
 - by MegaChriz: moved UcAddressesTextFieldHandler from the example module
   to the main module and renamed the used handler in the example module.
+- Issue #1860040 by MegaChriz: ensure an address instance is assigned to
+  the order when an user without addresses enters checkout.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------
