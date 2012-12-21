@@ -60,7 +60,7 @@ function _uc_addresses_example_schema_fields() {
       'default' => '',
       // UC Addresses
       'title' => t('Title'),
-      'handler' => 'UcAddressesTextFieldHandler',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
         'register' => TRUE,
@@ -79,7 +79,7 @@ function _uc_addresses_example_schema_fields() {
       'default' => '',
       // UC Addresses
       'title' => t('Surname prefix'),
-      'handler' => 'UcAddressesTextFieldHandler',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
         'register' => TRUE,
@@ -98,7 +98,7 @@ function _uc_addresses_example_schema_fields() {
       'default' => '',
       // UC Addresses
       'title' => t('House number'),
-      'handler' => 'UcAddressesTextFieldHandler',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
         'register' => TRUE,

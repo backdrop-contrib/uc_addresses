@@ -5,70 +5,51 @@
  */
 
 /**
+ * Implements hook_uc_addresses_field_handlers().
+ *
+ * Registers field handlers.
+ *
+ * @return array
+ */
+function uc_addresses_test_uc_addresses_field_handlers() {
+  $path = drupal_get_path('module', 'uc_addresses_test') . '/handlers';
+
+  $info = array();
+  $info['UcAddressesTestTextFieldHandler'] = array(
+    'hidden' => FALSE,
+    'handler' => array(
+      'parent' => 'UcAddressesTextFieldHandler',
+      'class' => 'UcAddressesTestTextFieldHandler',
+      'file' => 'uc_addresses.handlers.inc',
+      'path' => $path,
+    ),
+  );
+
+  return $info;
+}
+
+/**
  * Implements hook_uc_addresses_fields().
  */
 function uc_addresses_test_uc_addresses_fields() {
   return array(
     'billing_extra1' => array(
       'title' => t('Billing Extra Field'),
-      'handler' => 'UcAddressesTextFieldHandler',
+      'handler' => 'UcAddressesTestTextFieldHandler',
       'display_settings' => array(
         'default' => TRUE,
       ),
       'compare' => TRUE,
+      'address_type' => 'billing',
     ),
     'shipping_extra2' => array(
       'title' => t('Delivery Extra Field'),
-      'handler' => 'UcAddressesTextFieldHandler',
+      'handler' => 'UcAddressesTestTextFieldHandler',
       'display_settings' => array(
         'default' => TRUE,
       ),
       'compare' => TRUE,
+      'address_type' => 'shipping',
     ),
   );
-}
-
-/**
- * Implements hook_uc_addresses_preprocess_address_alter().
- *
- * Don't display the billing only field in other address panes
- * at checkout of order admin.
- *
- * @return void
- */
-function uc_addresses_test_uc_addresses_preprocess_address_alter(&$fields, $address, $context) {
-  uc_addresses_test_unset_fields($fields, $address);
-}
-
-/**
- * Implements hook_uc_addresses_address_field_alter().
- *
- * Don't display the billing only field in other address panes
- * at checkout of order admin.
- *
- * @return void
- */
-function uc_addresses_test_uc_addresses_address_field_alter(&$element) {
-  uc_addresses_test_unset_fields($element, $element['#uc_addresses_address']);
-}
-
-/**
- * Helper function to unset address fields where needed.
- *
- * @param array $fields
- *   The list of form fields.
- * @param UcAddressesAddress $address
- *   An address object.
- */
-function uc_addresses_test_unset_fields(&$fields, $address) {
-  if (!empty($address->address_type)) {
-    if ($address->address_type != 'billing' && isset($fields['billing_extra1'])) {
-      // Don't display the billing field in other panes.
-      unset($fields['billing_extra1']);
-    }
-    if ($address->address_type != 'shipping' && isset($fields['shipping_extra2'])) {
-      // Don't display the billing field in other panes.
-      unset($fields['shipping_extra2']);
-    }
-  }
 }

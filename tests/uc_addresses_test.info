@@ -14,8 +14,10 @@ dependencies[] = uc_order
 dependencies[] = uc_product
 dependencies[] = uc_payment
 dependencies[] = uc_payment_pack
-dependencies[] = uc_roles
 dependencies[] = uc_addresses
 core = 7.x
 files[] = uc_addresses_test.module
 hidden = TRUE
+
+; Field handlers
+files[] = handlers/uc_addresses.handlers.inc
