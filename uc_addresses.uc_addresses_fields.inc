@@ -321,7 +321,7 @@ function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
   // If there no addresses in the address book, try to select addresses from
   // previous orders.
   if (count($addresses[$type]) < 1) {
-    $addresses[$type] = uc_get_addresses($uid, $type);
+    $addresses[$type] = uc_addresses_get_addresses($uid, $type);
     if (is_array($addresses[$type]) && count($addresses[$type]) > 0) {
       foreach ($addresses[$type] as $index => $address) {
         // Set source module manually this time.

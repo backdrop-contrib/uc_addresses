@@ -713,7 +713,16 @@ function uc_addresses_form_process_select_address(&$element, &$form_state) {
           $address_field = &$address_field[$key];
         }
       }
-      $address_field['#value'] = $address->getRawFieldData();
+      $address_values = $address->getRawFieldData();
+      // If there is a key prefix set, then prefix the address values.
+      if (!empty($address_field['#key_prefix'])) {
+        $prefix = $address_field['#key_prefix'] . '_';
+        foreach ($address_values as $fieldname => $value) {
+          $address_values[$prefix . $fieldname] = $address_values[$fieldname];
+          unset($address_values[$fieldname]);
+        }
+      }
+      $address_field['#value'] = $address_values;
 
       // Find input array to replace.
       $input = &$form_state['input'];
@@ -1596,4 +1605,51 @@ function uc_addresses_get_address_format($country_id) {
     return $format;
   }
   return '';
+}
+
+/**
+ * Loads a customer's previously given addresses from the uc_orders table.
+ *
+ * Similar to uc_get_adddresses() in uc_store.module.
+ *
+ * @param int $uid
+ *   The user to select addresses for.
+ * @param string $type
+ *   The type of address to look for: "delivery" or "billing".
+ *
+ * @return array
+ *   An array of address arrays.
+ */
+function uc_addresses_get_addresses($uid, $type = 'billing') {
+  if ($uid == 0) {
+    return NULL;
+  }
+
+  $query = db_select('uc_orders', 'o')->distinct();
+  $query->addTag('uc_get_addresses');
+  $query->addTag('address_type:' . $type);
+
+  $alias = array();
+  $fields = uc_addresses_get_address_fields();
+  $schema = drupal_get_schema('uc_orders');
+  foreach ($fields as $field_name => $field) {
+    $order_field_name = $type . '_' . $field_name;
+    if (isset($schema['fields'][$order_field_name])) {
+      $alias[$field_name] = $query->addField('o', $order_field_name, $field_name);
+    }
+  }
+
+  $query->condition('uid', $uid)
+    ->condition('order_status', uc_order_status_list('general', TRUE), 'IN');
+
+  $result = $query->execute();
+
+  $addresses = array();
+  while ($address = $result->fetchAssoc()) {
+    if (!empty($address['street1']) || !empty($address['postal_code'])) {
+      $addresses[] = $address;
+    }
+  }
+
+  return $addresses;
 }
