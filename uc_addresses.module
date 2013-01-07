@@ -1052,13 +1052,10 @@ function uc_addresses_get_address_fields() {
  * @return array
  */
 function uc_addresses_get_address_field_handler_instances(UcAddressesSchemaAddress $address, $context = 'default') {
-  ctools_include('plugins');
-  ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
   $handlers = array();
   $fields_data = uc_addresses_get_address_fields();
   foreach ($fields_data as $fieldname => $fielddata) {
-    $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fielddata['handler'], 'handler');
-    $handlers[$fieldname] = new $class($fieldname, $address, $context);
+    $handlers[$fieldname] = uc_addresses_get_address_field_handler($address, $fieldname, $context);
   }
   return $handlers;
 }
@@ -1067,23 +1064,37 @@ function uc_addresses_get_address_field_handler_instances(UcAddressesSchemaAddre
  * Returns a specific handler instance of a field.
  *
  * @param UcAddressesSchemaAddress $address
- *   An address object
+ *   An address object.
  * @param string $fieldname
- *   The field name to get a handler for
+ *   The field name to get a handler for.
  * @param string $context
- *   The context where the fields are used for
+ *   The context where the fields are used for.
  *
  * @return UcAddressesFieldHandler
+ *   An instance of UcAddressesFieldHandler.
+ *   An instance of UcAddressesMissingFieldHandler is returned
+ *   if the handler for the field could not be found.
  */
 function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $address, $fieldname, $context = 'default') {
   ctools_include('plugins');
   ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
   $fields_data = uc_addresses_get_address_fields();
   if (isset($fields_data[$fieldname])) {
-    $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler');
-    return new $class($fieldname, $address, $context);
+    if ($class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler')) {
+      return new $class($fieldname, $address, $context);
+    }
+    // Handler not found.
+    $args = array('%handler' => $fields_data[$fieldname]['handler'], '%field' => $fieldname);
+    if (user_access('administer store')) {
+      drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Check whether all required libraries and modules are installed properly.', $args), 'error', FALSE);
+    }
+    else {
+      drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Please contact your site administrator.', $args), 'error', FALSE);
+    }
   }
-  return NULL;
+  // Return an instance of UcAddressesMissingFieldHandler instead.
+  $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', 'UcAddressesMissingFieldHandler', 'handler');
+  return new $class($fieldname, $address, $context);
 }
 
 // ---------------------------------------------------------------------------

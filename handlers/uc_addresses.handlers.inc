@@ -406,3 +406,29 @@ class UcAddressesHiddenFieldHandler extends UcAddressesFieldHandler {
     return FALSE;
   }
 }
+
+/**
+ * Handler for a missing handler.
+ */
+class UcAddressesMissingFieldHandler extends UcAddressesFieldHandler {
+  /**
+   * Implements UcAddressesFieldHandler::getFormField().
+   */
+  public function getFormField($form, $form_values) {
+    return array();
+  }
+
+  /**
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
+   */
+  public function isFieldEnabled() {
+    return FALSE;
+  }
+
+  /**
+   * Implements UcAddressesFieldHandler::isFieldRequired().
+   */
+  public function isFieldRequired() {
+    return FALSE;
+  }
+}

@@ -10,6 +10,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1860040 by MegaChriz: ensure an address instance is assigned to
   the order when an user without addresses enters checkout.
 - Issue #1866096 by MegaChriz: populate extra fields from previous orders.
+- Issue #1871916 by MegaChriz: display a warning when a field handler is
+  missing.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

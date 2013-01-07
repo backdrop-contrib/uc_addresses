@@ -72,8 +72,7 @@ class UcAddressesSchemaAddress {
     $fields = uc_addresses_get_address_fields();
     foreach ($fields as $fieldname => $fielddata) {
       if (!isset($this->schemaAddress->$fieldname)) {
-        $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fielddata['handler'], 'handler');
-        $instance = new $class($fieldname, $this);
+        $instance = uc_addresses_get_address_field_handler($this, $fieldname);
         $this->schemaAddress->$fieldname = $instance->getDefaultValue();
       }
     }
@@ -252,12 +251,10 @@ class UcAddressesSchemaAddress {
    * @return array
    */
   public function getFieldData() {
-    ctools_include('plugins');
     $values = array();
     $fields_data = uc_addresses_get_address_fields();
     foreach ($fields_data as $fieldname => $fielddata) {
-      $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fielddata['handler'], 'handler');
-      $instance = new $class($fieldname, $this);
+      $instance = uc_addresses_get_address_field_handler($this, $fieldname);
       $values[$fieldname] = $instance->outputValue($this->getField($fieldname));
     }
     return $values;
