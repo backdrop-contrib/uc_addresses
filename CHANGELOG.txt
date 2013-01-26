@@ -12,6 +12,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1866096 by MegaChriz: populate extra fields from previous orders.
 - Issue #1871916 by MegaChriz: display a warning when a field handler is
   missing.
+- Issue #1894858 by MegaChriz: made API change in UcAddressesPermissions to
+  be able to check access for other users.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

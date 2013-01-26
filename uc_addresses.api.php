@@ -272,14 +272,16 @@ function hook_uc_addresses_address_delete($address) {
  * when the address itself is displayed (e.g. through theme('uc_addresses_list_address')).
  *
  * @param object $address_user
- *   Owner of the address
+ *   The owner of the address.
  * @param UcAddressesAddress $address
- *   (optional) Address object
+ *   (optional) Address object.
+ * @param object $account
+ *   The account to check access for.
  *
  * @return boolean
  */
-function hook_uc_addresses_may_view($address_user, $address) {
-  // No specific restrictions for viewing addresses
+function hook_uc_addresses_may_view($address_user, $address, $account) {
+  // No specific restrictions for viewing addresses.
   return TRUE;
 }
 
@@ -297,13 +299,15 @@ function hook_uc_addresses_may_view($address_user, $address) {
  * when changes to an address are done programmatically.
  *
  * @param object $address_user
- *   Owner of the address
+ *   The owner of the address.
  * @param UcAddressesAddress $address
- *   (optional) Address object
+ *   (optional) Address object.
+ * @param object $account
+ *   The account to check access for.
  *
  * @return boolean
  */
-function hook_uc_addresses_may_edit($address_user, $address) {
+function hook_uc_addresses_may_edit($address_user, $address, $account) {
   // Example: don't allow editing of default addresses.
   if ($address instanceof UcAddressesAddress) {
     if ($address->isDefault('shipping') || $address->isDefault('billing')) {
@@ -329,14 +333,16 @@ function hook_uc_addresses_may_edit($address_user, $address) {
  * when an address is deleted programmatically.
  *
  * @param object $address_user
- *   Owner of the address
+ *   The owner of the address.
  * @param UcAddressesAddress $address
- *   (optional) Address object
+ *   (optional) Address object.
+ * @param object $account
+ *   The account to check access for.
  *
  * @return boolean
  */
-function hook_uc_addresses_may_delete($address_user, $address) {
-  // No specific restrictions for deleting addresses
+function hook_uc_addresses_may_delete($address_user, $address, $account) {
+  // No specific restrictions for deleting addresses.
   return TRUE;
 }
 

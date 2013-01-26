@@ -77,36 +77,38 @@ class UcAddressesPermissions {
   // -----------------------------------------------------------------------------
 
   /**
-   * Check if user may view this address
+   * Check if user may view this address.
    *
    * @param object $address_user
-   *   User object
+   *   The owner of the address.
    * @param UcAddressesAddress|NULL $address
-   *   (optional) The address object
+   *   (optional) The address object.
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
    *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canViewAddress($address_user, UcAddressesAddress $address = NULL) {
-    global $user;
+  static public function canViewAddress($address_user, UcAddressesAddress $address = NULL, $account = NULL) {
+    $account = self::getAccount($account);
+    if ($address_user->uid == $account->uid) {
+      // User is the owner of the address.
 
-    if ($address_user->uid == $user->uid) {
-      // User is the owner of the address
-
-      // If trying to view own address
-      if (self::canViewOwn()) {
+      // If trying to view own address.
+      if (self::canViewOwn($account)) {
         // Ask other modules if the address may be viewed.
-        return self::invoke('uc_addresses_may_view', $address_user, $address);
+        return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
       }
 
       // If viewing all addresses, we permit the operation if the user
       // can view the default address. The non-default addresses will
       // need to be filtered out elsewhere.
       if ($address == NULL) {
-        if (self::canViewOwnDefault()) {
+        if (self::canViewOwnDefault($account)) {
           // Ask other modules if the address may be viewed.
-          return self::invoke('uc_addresses_may_view', $address_user, $address);
+          return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
         }
         return FALSE;
       }
@@ -114,9 +116,9 @@ class UcAddressesPermissions {
       // Check if the address is a default address and if the user
       // may view own default addresses.
       if ($address->isDefault('shipping') || $address->isDefault('billing')) {
-        if (self::canViewOwnDefault()) {
+        if (self::canViewOwnDefault($account)) {
           // Ask other modules if the address may be viewed.
-          return self::invoke('uc_addresses_may_view', $address_user, $address);
+          return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
         }
       }
     }
@@ -124,18 +126,18 @@ class UcAddressesPermissions {
       // User is NOT the owner of the address
 
       // If trying to view someone else's address
-      if (self::canViewAll()) {
+      if (self::canViewAll($account)) {
         // Ask other modules if the address may be viewed.
-        return self::invoke('uc_addresses_may_view', $address_user, $address);
+        return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
       }
 
       // If viewing all addresses, we permit the operation if the user
       // can view the default address. The non-default addresses will
       // need to be filtered out elsewhere.
       if ($address == NULL) {
-        if (self::canViewAllDefaults()) {
+        if (self::canViewAllDefaults($account)) {
           // Ask other modules if the address may be viewed.
-          return self::invoke('uc_addresses_may_view', $address_user, $address);
+          return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
         }
         return FALSE;
       }
@@ -143,9 +145,9 @@ class UcAddressesPermissions {
       // Check if the address is a default address and if the user
       // may view default addresses of all users.
       if ($address->isDefault('shipping') || $address->isDefault('billing')) {
-        if (self::canViewAllDefaults()) {
+        if (self::canViewAllDefaults($account)) {
           // Ask other modules if the address may be viewed.
-          return self::invoke('uc_addresses_may_view', $address_user, $address);
+          return self::invoke('uc_addresses_may_view', $address_user, $address, $account);
         }
       }
     }
@@ -158,26 +160,30 @@ class UcAddressesPermissions {
    * Check if the user can edit addresses of this user
    *
    * @param object $address_user
-   *   User object
+   *   The owner of the address.
    * @param UcAddressesAddress
-   *   The address object, optional
+   *   (optional) The address object.
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canEditAddress($address_user, UcAddressesAddress $address = NULL) {
-    global $user;
+  static public function canEditAddress($address_user, UcAddressesAddress $address = NULL, $account = NULL) {
+    $account = self::getAccount($account);
 
-    if ($address_user->uid == $user->uid && self::canEditOwn()) {
+    if ($address_user->uid == $account->uid && self::canEditOwn($account)) {
       // Ask other modules if the address may be edited.
-      return self::invoke('uc_addresses_may_edit', $address_user, $address);
+      return self::invoke('uc_addresses_may_edit', $address_user, $address, $account);
     }
-    if ($address_user->uid != $user->uid && self::canEditAll()) {
+    if ($address_user->uid != $account->uid && self::canEditAll($account)) {
       // Ask other modules if the address may be edited.
-      return self::invoke('uc_addresses_may_edit', $address_user, $address);
+      return self::invoke('uc_addresses_may_edit', $address_user, $address, $account);
     }
 
-    // No other cases are permitted
+    // No other cases are permitted.
     return FALSE;
   }
 
@@ -186,15 +192,19 @@ class UcAddressesPermissions {
    * Default addresses can never be deleted.
    *
    * @param object $address_user
-   *   User object
+   *   The owner of the address.
    * @param UcAddressesAddress
-   *   The address object, optional
+   *   (optional) The address object.
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canDeleteAddress($address_user, UcAddressesAddress $address = NULL) {
-    global $user;
+  static public function canDeleteAddress($address_user, UcAddressesAddress $address = NULL, $account = NULL) {
+    $account = self::getAccount($account);
 
     if ($address instanceof UcAddressesAddress) {
       // Check if the address is a default address. If so, the address may not be deleted.
@@ -203,13 +213,13 @@ class UcAddressesPermissions {
       }
     }
 
-    if ($address_user->uid == $user->uid && self::canDeleteOwn()) {
+    if ($address_user->uid == $account->uid && self::canDeleteOwn($account)) {
       // Ask other modules if the address may be deleted.
-      return self::invoke('uc_addresses_may_delete', $address_user, $address);
+      return self::invoke('uc_addresses_may_delete', $address_user, $address, $account);
     }
-    if ($address_user->uid != $user->uid && self::canDeleteAll()) {
+    if ($address_user->uid != $account->uid && self::canDeleteAll($account)) {
       // Ask other modules if the address may be deleted.
-      return self::invoke('uc_addresses_may_delete', $address_user, $address);
+      return self::invoke('uc_addresses_may_delete', $address_user, $address, $account);
     }
 
     // No other cases are permitted
@@ -217,109 +227,149 @@ class UcAddressesPermissions {
   }
 
   /**
-   * If the logged in user may view it's own default address
+   * If the account may view it's own default address.
+   *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
    *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canViewOwnDefault() {
+  static public function canViewOwnDefault($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::VIEW_OWN_DEFAULT) ||
-      self::canViewAllDefaults() ||
-      self::canViewOwn();
+      user_access(self::VIEW_OWN_DEFAULT, $account) ||
+      self::canViewAllDefaults($account) ||
+      self::canViewOwn($account);
   }
 
   /**
-   * If the logged in user may view it's own addresses
+   * If the logged in user may view it's own addresses.
+   *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
    *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canViewOwn() {
+  static public function canViewOwn($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::VIEW_OWN) ||
-      self::canViewAll() ||
-      self::canEditOwn() ||
-      self::canDeleteOwn();
+      user_access(self::VIEW_OWN, $account) ||
+      self::canViewAll($account) ||
+      self::canEditOwn($account) ||
+      self::canDeleteOwn($account);
   }
 
   /**
-   * If the logged in user may view all default addresses
+   * If the logged in user may view all default addresses.
+   *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
    *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canViewAllDefaults() {
+  static public function canViewAllDefaults($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::VIEW_ALL_DEFAULTS) ||
-      self::canViewAll();
+      user_access(self::VIEW_ALL_DEFAULTS, $account) ||
+      self::canViewAll($account);
   }
 
   /**
    * If the logged in user may view all addresses
    *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canViewAll() {
+  static public function canViewAll($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::VIEW_ALL) ||
-      self::canEditAll() ||
-      self::canDeleteAll();
+      user_access(self::VIEW_ALL, $account) ||
+      self::canEditAll($account) ||
+      self::canDeleteAll($account);
   }
 
   /**
    * If the logged in user may edit own addresses
    *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canEditOwn() {
+  static public function canEditOwn($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::EDIT_OWN) ||
-      self::canEditAll();
+      user_access(self::EDIT_OWN, $account) ||
+      self::canEditAll($account);
   }
 
   /**
    * If the logged in user may edit all addresses
    *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canEditAll() {
+  static public function canEditAll($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::EDIT_ALL);
+      user_access(self::EDIT_ALL, $account);
   }
 
   /**
    * If the logged in user may delete own addresses
    *
-   * @access public
-   * @static
-   * @return boolean
-   */
-  static public function canDeleteOwn() {
-    return
-      user_access(self::DELETE_OWN) ||
-      self::canDeleteAll();
-  }
-
-  /**
-   * If the logged in user may delete all addresses
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
    *
    * @access public
    * @static
    * @return boolean
    */
-  static public function canDeleteAll() {
+  static public function canDeleteOwn($account = NULL) {
+    $account = self::getAccount($account);
     return
-      user_access(self::DELETE_ALL);
+      user_access(self::DELETE_OWN, $account) ||
+      self::canDeleteAll($account);
+  }
+
+  /**
+   * If the logged in user may delete all addresses
+   *
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
+   * @access public
+   * @static
+   * @return boolean
+   */
+  static public function canDeleteAll($account = NULL) {
+    $account = self::getAccount($account);
+    return
+      user_access(self::DELETE_ALL, $account);
   }
 
   // -----------------------------------------------------------------------------
@@ -327,27 +377,51 @@ class UcAddressesPermissions {
   // -----------------------------------------------------------------------------
 
   /**
+   * Helper function for getting the account to check access for.
+   *
+   * @param object $account
+   *   (optional) The account return.
+   *   Defaults to the current active user.
+   *
+   * @access private
+   * @static
+   * @return object
+   *   The account to check access for.
+   */
+  private static function getAccount($account = NULL) {
+    if (!$account) {
+      global $user;
+      return $user;
+    }
+    return $account;
+  }
+
+  /**
    * Ask other modules if a particular operation is permitted.
    *
    * @param string $hook
    *   The hook to invoke.
    * @param object $address_user
-   *   User object
+   *   The owner of the address.
    * @param UcAddressesAddress
-   *   The address object, optional
+   *   (optional) The address object.
+   * @param object $account
+   *   (optional) The account to check access for.
+   *   Defaults to the current active user.
+   *
    * @access private
    * @static
    * @return boolean
    */
-  static private function invoke($hook, $address_user, UcAddressesAddress $address = NULL) {
-    global $user;
-    if ($user->uid != 1) {
+  static private function invoke($hook, $address_user, UcAddressesAddress $address = NULL, $account = NULL) {
+    $account = self::getAccount($account);
+    if ($account->uid != 1) {
       // Ask other modules if the operation on the address is permitted.
       // If one of the modules returns FALSE, then the operation on the address is not permitted.
       // The superuser (user 1) may do everything, for this user the check is bypassed.
       foreach (module_implements($hook) as $module) {
         $function = $module . '_' . $hook;
-        if (!$function($address_user, $address)) {
+        if (!$function($address_user, $address, $account)) {
           return FALSE;
         }
       }
