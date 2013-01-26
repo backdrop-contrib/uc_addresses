@@ -1,8 +1,20 @@
 <?php
 
 /**
+ * @file
+ * Installation file for Ubercart Addresses testing module.
+ *
+ * Two fields are added to the uc_addresses table:
+ * - billing_extra1
+ * - shipping_extra2
+ * Two fields are added to the uc_orders table:
+ * - billing_billing_extra1
+ * - delivery_shipping_extra2
+ */
+
+/**
  * Implements hook_schema_alter().
- * @param array $schema
+ *
  * @return void
  */
 function uc_addresses_test_schema_alter(&$schema) {
