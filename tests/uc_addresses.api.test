@@ -162,6 +162,8 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
       // Each address should be loaded.
       $this->assertTrue($addressBook->addressExists($address->getId()), t('Address %aid is loaded.', array('%aid' => $address->getId())));
     }
+    // Set performance hint back to load one.
+    $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ONE);
 
     // -----------------------------
     // Test output (__toString())
@@ -175,5 +177,31 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     foreach ($addresses as $address) {
       $this->doAddressValuesDisplayedTests($address->getRawFieldData(), 'address_view', $output);
     }
+
+    // -----------------------------
+    // Test across multiple address books.
+    // -----------------------------
+    // Reset the address book.
+    $addressBook->reset();
+
+    // Create a new address book.
+    $addressBook2 = UcAddressesAddressBook::get($this->customer->uid);
+    // Ensure that address 3 can't be get from addressbook 2.
+    $this->assertFalse($addressBook2->getAddressById($address3->getId()), t('Address %aid does not belong to user %uid.', array('%aid' => $address3->getId(), '%uid' => $addressBook2->getUserId())));
+
+    // Ensure addresses are equal when either getAddressById() or loadAddress() is used.
+    $address3_1 = $addressBook->getAddressById($address3->getId());
+    $address3_2 = UcAddressesAddressBook::loadAddress($address3->getId());
+    $this->assertTrue($address3_1 === $address3_2, 'UcAddressesAddressBook::loadAddress() loads exactly the same address as $addressBook->getAddressById().');
+
+    // Try to load a non-existent address using the addressBook's getAddressById() method.
+    $this->assertFalse($addressBook->getAddressById(997), t('Address %aid does not exists.', array('%aid' => 997)));
+    // Try again, but now using the loadAddress() method.
+    $this->assertFalse(UcAddressesAddressBook::loadAddress(998), t('Address %aid does not exists.', array('%aid' => 998)));
+
+    // Set performance hint of address book 1 to load all and ensure that this setting
+    // is unchanged in address book 2.
+    $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
+    $this->assertEqual($addressBook2->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ONE, t('Performance hint is set to %setting', array('%setting' => 'PERF_HINT_LOAD_ONE')));
   }
 }

@@ -866,14 +866,16 @@ class UcAddressesAddressBook {
    * @param int $aid
    *   The id of the address
    * @access private
-   * @return void
+   * @return boolean
+   *   TRUE if the address has been loaded or found.
+   *   FALSE otherwise.
    */
   private static function loadStatic($aid) {
     // Reasons to skip out early
     // Lookup in all address books if the address is already loaded
     foreach (self::$singleton as $addressbook) {
       if ($addressbook->addressExists($aid)) {
-        return;
+        return TRUE;
       }
     }
 
@@ -886,6 +888,11 @@ class UcAddressesAddressBook {
     // Create an object from the database record
     $obj = $result->fetch();
 
+    if (!$obj) {
+      // If there is no such address record, then abort.
+      return FALSE;
+    }
+
     // Get address book for loaded user
     $addressbook = self::get($obj->uid);
 
@@ -894,6 +901,7 @@ class UcAddressesAddressBook {
 
     // Give other modules a chance to add their fields
     module_invoke_all('uc_addresses_address_load', $address, $obj);
+    return TRUE;
   }
 
   /**

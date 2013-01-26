@@ -14,6 +14,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   missing.
 - Issue #1894858 by MegaChriz: made API change in UcAddressesPermissions to
   be able to check access for other users.
+- Issue #1895918 by MegaChriz: fixed bug where trying to load a non-
+  existing address could lead to a PHP notice error.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------
