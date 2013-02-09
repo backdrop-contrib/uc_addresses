@@ -53,3 +53,63 @@ function uc_addresses_test_uc_addresses_fields() {
     ),
   );
 }
+
+/**
+ * Implements hook_entity_presave().
+ */
+function uc_addresses_test_entity_presave($entity, $entity_type) {
+  if ($entity_type == 'uc_addresses') {
+    uc_addresses_test_hook_invoked('entity_presave', $entity);
+  }
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function uc_addresses_test_entity_load($entities, $entity_type) {
+  if ($entity_type == 'uc_addresses') {
+    uc_addresses_test_hook_invoked('entity_load', reset($entities));
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function uc_addresses_test_entity_insert($entity, $entity_type) {
+  if ($entity_type == 'uc_addresses') {
+    uc_addresses_test_hook_invoked('entity_insert', $entity);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function uc_addresses_test_entity_update($entity, $entity_type) {
+  if ($entity_type == 'uc_addresses') {
+    uc_addresses_test_hook_invoked('entity_update', $entity);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function uc_addresses_test_entity_delete($entity, $entity_type) {
+  if ($entity_type == 'uc_addresses') {
+    uc_addresses_test_hook_invoked('entity_delete', $entity);
+  }
+}
+
+/**
+ * Reports if a certain hook is invoked.
+ *
+ * Automated tests can use this to check whether or not
+ * a hook is invoked.
+ *
+ * @param string $hook
+ *   The hook that was invoked.
+ * @param object $entity
+ *   The entity that was passed with the hook.
+ */
+function uc_addresses_test_hook_invoked($hook, $entity) {
+  variable_set('uc_addresses_' . $hook, entity_id('uc_addresses', $entity));
+}

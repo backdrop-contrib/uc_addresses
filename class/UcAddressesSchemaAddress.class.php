@@ -69,11 +69,11 @@ class UcAddressesSchemaAddress {
       $this->schemaAddress = $schemaAddress;
     }
     // Make sure all fields are present
-    $fields = uc_addresses_get_address_fields();
-    foreach ($fields as $fieldname => $fielddata) {
-      if (!isset($this->schemaAddress->$fieldname)) {
-        $instance = uc_addresses_get_address_field_handler($this, $fieldname);
-        $this->schemaAddress->$fieldname = $instance->getDefaultValue();
+    $fields = self::getDefinedFields();
+    foreach ($fields as $fieldName => $fielddata) {
+      if (!isset($this->schemaAddress->$fieldName)) {
+        $instance = $this->getHandler($fieldName);
+        $this->schemaAddress->$fieldName = $instance->getDefaultValue();
       }
     }
   }
@@ -157,6 +157,68 @@ class UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
+   * Magic getter.
+   *
+   * Returns properties/fields from the address object.
+   *
+   * @return mixed
+   *   Property or field values.
+   */
+  public function __get($property) {
+    try {
+      if (self::fieldExists($property)) {
+        return $this->getField($property);
+      }
+    }
+    catch (UcAddressesUndefinedFunctionException $e) {
+      // Ignore undefined function exceptions.
+    }
+    if (isset($this->$property)) {
+      return $this->$property;
+    }
+  }
+
+  /**
+   * Magic setter.
+   *
+   * Passes values to the address object.
+   *
+   * @return void
+   * @throw UcAddressesException
+   */
+  public function __set($property, $value) {
+    try {
+      if (self::fieldExists($property)) {
+        return $this->setField($property, $value);
+      }
+    }
+    catch (UcAddressesUndefinedFunctionException $e) {
+      // Ignore undefined function exceptions.
+    }
+    $this->$property = $value;
+  }
+
+  /**
+   * Magic method for giving back if property exists or not.
+   *
+   * @return boolean
+   *   TRUE if the property exists.
+   *   FALSE otherwise.
+   */
+  public function __isset($property) {
+    try {
+      if (self::fieldExists($property)) {
+        return TRUE;
+      }
+    }
+    catch (UcAddressesUndefinedFunctionException $e) {
+      // Ignore undefined function exceptions.
+    }
+    // Else, fallback to the "real" properties.
+    return isset($this->$property);
+  }
+
+  /**
    * Get a field's value.
    *
    * @param string $fieldName
@@ -225,7 +287,7 @@ class UcAddressesSchemaAddress {
    *	 TRUE if addresses have a field with the given name.
    */
   static public function fieldExists($fieldName) {
-    $fields_data = uc_addresses_get_address_fields();
+    $fields_data = self::getDefinedFields();
     return isset($fields_data[$fieldName]);
   }
 
@@ -252,10 +314,10 @@ class UcAddressesSchemaAddress {
    */
   public function getFieldData() {
     $values = array();
-    $fields_data = uc_addresses_get_address_fields();
-    foreach ($fields_data as $fieldname => $fielddata) {
-      $instance = uc_addresses_get_address_field_handler($this, $fieldname);
-      $values[$fieldname] = $instance->outputValue($this->getField($fieldname));
+    $fields_data = self::getDefinedFields();
+    foreach ($fields_data as $fieldName => $fielddata) {
+      $instance = $this->getHandler($fieldName);
+      $values[$fieldName] = $instance->outputValue($this->getField($fieldName));
     }
     return $values;
   }
@@ -289,8 +351,53 @@ class UcAddressesSchemaAddress {
    */
   public function getFieldValue($fieldName, $format = '', $context = 'default') {
     self::fieldMustExist($fieldName);
-    $handler = uc_addresses_get_address_field_handler($this, $fieldName, $context);
+    $handler = $this->getHandler($fieldName, $context);
     return $handler->outputValue($this->getField($fieldName), $format);
+  }
+
+  // -----------------------------------------------------------------------------
+  // HELPER METHODS
+  // These methods call functions defined outside the class.
+  // To ensure the class from operating well, we should throw an exception in
+  // case the functions were not defined. This can happen early in the Drupal
+  // bootstrap phase.
+  // -----------------------------------------------------------------------------
+
+  /**
+   * Returns defined fields.
+   *
+   * @return array
+   *   A list of address field definitions.
+   * @throws UcAddressesUndefinedFunctionException
+   *   In case the function uc_addresses_get_address_fields()
+   *   does not exists.
+   */
+  public static function getDefinedFields() {
+    if (!function_exists('uc_addresses_get_address_fields')) {
+      throw new UcAddressesUndefinedFunctionException('Function uc_addresses_get_address_fields() does not exists.');
+    }
+    return uc_addresses_get_address_fields();
+  }
+
+  /**
+   * Returns a handler instance.
+   *
+   * @param string $fieldName
+   *   The field name to get a handler for.
+   * @param string $context
+   *   The context where the field is used for.
+   *
+   * @return UcAddressesFieldHandler
+   *   An instance of UcAddressesFieldHandler.
+   * @throws UcAddressesUndefinedFunctionException
+   *   In case the function uc_addresses_get_address_field_handler()
+   *   does not exists.
+   */
+  public function getHandler($fieldName, $context = 'default') {
+    if (!function_exists('uc_addresses_get_address_field_handler')) {
+      throw new UcAddressesUndefinedFunctionException('Function uc_addresses_get_address_field_handler() does not exists.');
+    }
+    return uc_addresses_get_address_field_handler($this, $fieldName, $context);
   }
 
   // -----------------------------------------------------------------------------
@@ -377,16 +484,16 @@ class UcAddressesSchemaAddress {
 
     // Find out which field to compare.
     if (count($fields_to_compare) < 1) {
-      $fields_data = uc_addresses_get_address_fields();
-      foreach ($fields_data as $fieldname => $field_data) {
+      $fields_data = self::getDefinedFields();
+      foreach ($fields_data as $fieldName => $field_data) {
         if ($field_data['compare']) {
-          $fields_to_compare[] = $fieldname;
+          $fields_to_compare[] = $fieldName;
         }
       }
     }
 
-    foreach ($fields_to_compare as $fieldname) {
-      if ($fieldsDataThisAddress[$fieldname] != $fieldsDataOtherAddress[$fieldname]) {
+    foreach ($fields_to_compare as $fieldName) {
+      if ($fieldsDataThisAddress[$fieldName] != $fieldsDataOtherAddress[$fieldName]) {
         return FALSE;
       }
     }

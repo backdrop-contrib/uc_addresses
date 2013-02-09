@@ -188,6 +188,18 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
+   * Alias of getId().
+   *
+   * @return int
+   *   The address ID.
+   *
+   * @see entity_id()
+   */
+  public function identifier() {
+    return $this->getId();
+  }
+
+  /**
    * Returns owner of this address.
    *
    * @access public
@@ -223,12 +235,61 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     return ($this->getId() < 1);
   }
 
+  /**
+   * Returns address name if given.
+   *
+   * If the address has no name, it will use the
+   * address format as label instead.
+   *
+   * @return string
+   *   The address name.
+   * @todo better alternative for address name?
+   */
+  public function label() {
+    if ($name = $this->getName()) {
+      return $name;
+    }
+    return preg_replace('/<.*?>/', ', ', trim(uc_addresses_format_address($this)));
+  }
+
+  /**
+   * Returns the uri of the address.
+   *
+   * @return array
+   *   The addres uri.
+   */
+  public function uri() {
+    return array('path' => 'user/' . $this->getUserId() . '/addresses/' . $this->getId());
+  }
+
   // -----------------------------------------------------------------------------
   // uc_addresses features
   // -----------------------------------------------------------------------------
 
   /**
-   * Override of setField().
+   * Override of UcAddressesSchemaAddress::getField().
+   *
+   * Getting some of the schema fields differently.
+   *
+   * @param string $fieldName
+   *	 The name of the field whose value we want.
+   * @access public
+   * @return mixed
+   *	 The field value.
+   * @throws UcAddressInvalidFieldException
+   */
+  public function getField($fieldName) {
+    switch ($fieldName) {
+      case 'aid':
+        return $this->getId();
+      case 'uid':
+        return $this->getUserId();
+    }
+    return parent::getField($fieldName);
+  }
+
+  /**
+   * Override of UcAddressesSchemaAddress::setField().
    *
    * Prevents setting some schema fields directly.
    *
@@ -243,7 +304,15 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   public function setField($fieldName, $value) {
     switch ($fieldName) {
       case 'aid':
-        // Don't set. Throw an Exception here?
+        // Don't set.
+        // @todo Throw an Exception here?
+        break;
+      case 'uid':
+        // Only set if the address is unowned. Else, ignore it.
+        // @todo Throw an Exception here?
+        if (!$this->isOwned()) {
+          $this->setOwner($value);
+        }
         break;
       case 'address_name':
         $this->setName($value);
@@ -374,6 +443,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     if ($this->isDirty()) {
       // Allow other modules to alter the address before saving
       module_invoke_all('uc_addresses_address_presave', $this);
+      entity_get_controller('uc_addresses')->invoke('presave', $this);
 
       $address = $this->getSchemaAddress();
       $address->modified = REQUEST_TIME;
@@ -382,14 +452,14 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
         unset($address->aid);
         $address->created = REQUEST_TIME;
         $result = drupal_write_record('uc_addresses', $address);
-        $hook = 'uc_addresses_address_insert';
+        $hook = 'insert';
 
         // Tell address book the address now has a definitive ID
         $this->addressBook->updateAddress($this);
       }
       else {
         $result = drupal_write_record('uc_addresses', $address, array('aid'));
-        $hook = 'uc_addresses_address_update';
+        $hook = 'update';
       }
       if ($result === FALSE) {
         throw new UcAddressesDbException(t('Failed to write address with id = %aid', array('%aid' => $address->aid)));
@@ -398,7 +468,8 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       $this->clearDirty();
 
       // Notify other modules that an address has been saved
-      module_invoke_all($hook, $this);
+      module_invoke_all('uc_addresses_address_' . $hook, $this);
+      entity_get_controller('uc_addresses')->invoke($hook, $this);
     }
   }
 

@@ -26,6 +26,15 @@ class UcAddressesInvalidFieldException extends UcAddressesException { }
 class UcAddressesDbException extends UcAddressesException { }
 
 /**
+ * UcAddressesUndefinedFunctionException
+ *
+ * Used when a function from outside the class does not
+ * exists. This can happen if the classes are used early
+ * in the Drupal bootstrap phase.
+ */
+class UcAddressesUndefinedFunctionException extends UcAddressesException { }
+
+/**
  * UcAddressesInvalidParameterException
  *
  * Used when a method parameter is invalid.

@@ -413,6 +413,118 @@ function uc_addresses_access($method, $address_user = NULL, UcAddressesAddress $
 }
 
 // -----------------------------------------------------------------------------
+// ENTITY API
+// -----------------------------------------------------------------------------
+
+/**
+ * Implements hook_entity_info().
+ */
+function uc_addresses_entity_info() {
+  $return = array(
+    'uc_addresses' => array(
+      'label' => t('Ubercart Addresses address'),
+      'entity class' => 'UcAddressesAddress',
+      'controller class' => 'UcAddressesEntityController',
+      'base table' => 'uc_addresses',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'aid',
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'module' => 'uc_addresses',
+      'access callback' => 'uc_addresses_entity_access',
+    ),
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function uc_addresses_entity_property_info_alter(&$info) {
+  // Explain address fields to entity API.
+  $fields = uc_addresses_get_address_fields();
+  $properties = &$info['uc_addresses']['properties'];
+  foreach ($fields as $key => $field) {
+    if (isset($properties[$key])) {
+      $properties[$key] = array_merge($properties[$key], $field);
+    }
+    else {
+      $properties[$key] = $field;
+      $properties[$key]['label'] = $properties[$key]['title'];
+    }
+    $properties[$key]['getter callback'] = 'uc_addresses_field_get';
+    if ($key != 'aid' || $key != 'uid') {
+      $properties[$key]['setter callback'] = 'uc_addresses_field_set';
+    }
+  }
+}
+
+/**
+ * Entity API getter callback for an address field.
+ *
+ * @param UcAddressesAddress $address
+ *   An address object.
+ * @param array $options
+ *   Options are ignored, but it is a param that is given
+ *   by Entiy API.
+ * @param string $name
+ *   The name of the field to get.
+ */
+function uc_addresses_field_get(UcAddressesAddress $address, $options, $name) {
+  return $address->getField($name);
+}
+
+/**
+ * Entity API setter callback for an address field.
+ *
+ * @param UcAddressesAddress $address
+ *   An address object.
+ * @param string $name
+ *   The name of the field to set.
+ * @param mixed $value
+ *   The value the field should be set to.
+ */
+function uc_addresses_field_set(UcAddressesAddress $address, $name, $value) {
+  return $address->setField($name, $value);
+}
+
+/**
+ * Access callback for address entity.
+ */
+function uc_addresses_entity_access($op, $entity, $account = NULL, $entity_type = NULL) {
+  if ($entity instanceof UcAddressesAddress) {
+    $address = $entity;
+    $address_user = user_load($address->getUserId());
+
+    switch ($op) {
+      case 'create':
+      case 'update':
+        return UcAddressesPermissions::canEditAddress($address_user, $address, $account);
+      case 'view':
+        return UcAddressesPermissions::canViewAddress($address_user, $address, $account);
+      case 'delete':
+        return UcAddressesPermissions::canDeleteAddress($address_user, $address, $account);
+    }
+  }
+  else {
+    // If no entity is given, check address access for all.
+    switch ($op) {
+      case 'create':
+      case 'update':
+        return UcAddressesPermissions::canEditAll($account);
+      case 'view':
+        return UcAddressesPermissions::canViewAll($account);
+      case 'delete':
+        return UcAddressesPermissions::canDeleteAll($account);
+    }
+  }
+  // All other cases are unknown.
+  return NULL;
+}
+
+// -----------------------------------------------------------------------------
 // FIELDS
 // -----------------------------------------------------------------------------
 
