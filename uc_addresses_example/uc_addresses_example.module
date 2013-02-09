@@ -3,13 +3,9 @@
  * @file
  * Example module for Ubercart Addresses.
  *
- * Adds extra address fields. See uc_addresses_example.fields.inc
- * for which fields are being added.
- *
  * This module can be used as an example for adding extra address fields.
  *
- * Note this example module is work in progress: it needs more examples.
- * Now there is only an example for how to add extra text fields.
+ * See the README.txt for more information.
  */
 
 // ---------------------------------------------------------------------------
@@ -19,7 +15,9 @@
 /**
  * Implements hook_uc_addresses_field_handlers().
  *
- * Registers field handlers.
+ * This tells Ubercart Addresses which field handlers there are.
+ * Every handler must be derived either directly or indirectly
+ * from UcAddressesFieldHandler.
  *
  * @return array
  */
@@ -43,11 +41,57 @@ function uc_addresses_example_uc_addresses_field_handlers() {
 /**
  * Implements hook_uc_addresses_fields().
  *
- * Registers all extra address fields for Ubercart Addresses.
+ * Registers extra address fields for Ubercart Addresses.
+ *
+ * Some of the fields are set to not display by default.
+ * These fields should be shown in forms, but it's value
+ * should not be shown separately. The idea is that these
+ * fields are added to the address format, which can be set
+ * at:
+ * admin/store/settings/countries/uc_addresses_formats
  *
  * @return array
  */
 function uc_addresses_example_uc_addresses_fields() {
-  module_load_include('fields.inc', 'uc_addresses_example');
-  return _uc_addresses_example_schema_fields();
+  return array(
+    'title' => array(
+      'title' => t('Title'),
+      'type' => 'text',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
+      'display_settings' => array(
+        'default' => FALSE,
+        'register' => TRUE,
+        'address_form' => TRUE,
+        'checkout_form' => TRUE,
+        'order_form' => TRUE,
+      ),
+      'compare' => TRUE,
+    ),
+    'surname_prefix' => array(
+      'title' => t('Surname prefix'),
+      'type' => 'text',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
+      'display_settings' => array(
+        'default' => FALSE,
+        'register' => TRUE,
+        'address_form' => TRUE,
+        'checkout_form' => TRUE,
+        'order_form' => TRUE,
+      ),
+      'compare' => TRUE,
+    ),
+    'house_number' => array(
+      'title' => t('House number'),
+      'type' => 'text',
+      'handler' => 'UcAddressesExampleTextFieldHandler',
+      'display_settings' => array(
+        'default' => FALSE,
+        'register' => TRUE,
+        'address_form' => TRUE,
+        'checkout_form' => TRUE,
+        'order_form' => TRUE,
+      ),
+      'compare' => TRUE,
+    ),
+  );
 }

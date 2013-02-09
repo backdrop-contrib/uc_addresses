@@ -16,6 +16,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   be able to check access for other users.
 - Issue #1895918 by MegaChriz: fixed bug where trying to load a non-
   existing address could lead to a PHP notice error.
+- Issue #1911136 by MegaChriz: separated schema definitions from field
+  handler API definitions in the example module.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

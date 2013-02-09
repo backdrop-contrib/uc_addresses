@@ -13,11 +13,17 @@ The schema's of uc_addresses and uc_orders are altered to save
 the extra field values.
 
 For a quick start (and if you only need extra text fields), you
-can alter the field definitions in the file
-uc_addresses_example.fields.inc to your own needs. In that file
-extra address fields for both the schema API and the Ubercart
-Addresses field handler API are defined. Else, follow the
-instructions below.
+can alter the field definitions. In this example module, fields
+are defined for the Ubercart Addresses field handler API and for
+the schema API.
+The field definitions for the field handler API can be found in
+the function uc_addresses_example_uc_addresses_fields() from
+uc_addresses_example.module.
+The field definitions for the schema API can be found in the
+function _uc_addresses_example_schema_fields() from
+uc_addresses_example.install.
+
+If you like to learn more, follow the instructions below.
 
 
 Registering address fields
