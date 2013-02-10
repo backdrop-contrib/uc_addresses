@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Contains UcAddressesTextFieldHandler class.
+ * Contains UcAddressesExampleTextFieldHandler class.
  */
 
 /**

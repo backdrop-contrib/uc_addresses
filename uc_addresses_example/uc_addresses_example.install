@@ -118,14 +118,14 @@ function _uc_addresses_example_schema_fields() {
       'default' => '',
     ),
     'surname_prefix' => array(
-      'description' => 'The addressee\'s surname prefix',
+      'description' => t("The addressee's surname prefix."),
       'type' => 'varchar',
       'length' => 255,
       'not null' => TRUE,
       'default' => '',
     ),
     'house_number' => array(
-      'description' => 'The addressee\'s house number',
+      'description' => t("The addressee's house number."),
       'type' => 'varchar',
       'length' => 10,
       'not null' => TRUE,

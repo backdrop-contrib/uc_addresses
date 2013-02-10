@@ -57,6 +57,7 @@ function uc_addresses_example_uc_addresses_fields() {
     'title' => array(
       'title' => t('Title'),
       'type' => 'text',
+      'description' => t("Person's stating social rank."),
       'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
@@ -70,6 +71,7 @@ function uc_addresses_example_uc_addresses_fields() {
     'surname_prefix' => array(
       'title' => t('Surname prefix'),
       'type' => 'text',
+      'description' => t("The addressee's surname prefix."),
       'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
@@ -83,6 +85,7 @@ function uc_addresses_example_uc_addresses_fields() {
     'house_number' => array(
       'title' => t('House number'),
       'type' => 'text',
+      'description' => t("The addressee's house number."),
       'handler' => 'UcAddressesExampleTextFieldHandler',
       'display_settings' => array(
         'default' => FALSE,
