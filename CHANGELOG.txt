@@ -19,6 +19,7 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1911136 by MegaChriz: separated schema definitions from field
   handler API definitions in the example module.
 - Issue #1831424 by MegaChriz: added Entity integration.
+- Issue #1900150 by MegaChriz: added Views address access filters.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

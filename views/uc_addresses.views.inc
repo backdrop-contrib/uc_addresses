@@ -301,5 +301,37 @@ function uc_addresses_views_data() {
     ),
   );
 
+  // Access filters.
+  $data['uc_addresses']['access_view'] = array(
+    'title' => t('Access'),
+    'help' => t('Filter the Views results by address view access.'),
+    'real field' => 'aid',
+    'filter' => array(
+      'help' => t('Filters the result of the view by checking address view access.') . ' ' . t('Note that this filter does not work well with pager.'),
+      'handler' => 'uc_addresses_handler_filter_access',
+      'uc_addresses_access_type' => 'view',
+    ),
+  );
+  $data['uc_addresses']['access_edit'] = array(
+    'title' => t('Edit access'),
+    'help' => t('Filter the Views results by address edit access.'),
+    'real field' => 'aid',
+    'filter' => array(
+      'help' => t('Filters the result of the view by checking address edit access.') . ' ' . t('Note that this filter does not work well with pager.'),
+      'handler' => 'uc_addresses_handler_filter_access',
+      'uc_addresses_access_type' => 'edit',
+    ),
+  );
+  $data['uc_addresses']['access_delete'] = array(
+    'title' => t('Delete access'),
+    'help' => t('Filter the Views results by address delete access.'),
+    'real field' => 'aid',
+    'filter' => array(
+      'help' => t('Filters the result of the view by checking address delete access.') . ' ' . t('Note that this filter does not work well with pager.'),
+      'handler' => 'uc_addresses_handler_filter_access',
+      'uc_addresses_access_type' => 'delete',
+    ),
+  );
+
   return $data;
 }

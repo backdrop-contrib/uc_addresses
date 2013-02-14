@@ -22,6 +22,9 @@ files[] = handlers/UcAddressesFieldHandler.class.php
 files[] = handlers/ubercart.handlers.inc
 files[] = handlers/uc_addresses.handlers.inc
 
+; Views handlers
+files[] = views/uc_addresses_handler_filter_access.inc
+
 ; Test cases
 files[] = tests/UcAddressesTestCase.class.php
 files[] = tests/uc_addresses.addressbook.test
@@ -31,6 +34,7 @@ files[] = tests/uc_addresses.entity.test
 files[] = tests/uc_addresses.order.test
 files[] = tests/uc_addresses.register.test
 files[] = tests/uc_addresses.tokens.test
+files[] = tests/uc_addresses.views.test
 
 ; Additional files with hook implementations
 files[] = uc_addresses.ubercart.inc

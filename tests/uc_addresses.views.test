@@ -1,0 +1,264 @@
+<?php
+
+/**
+ * @file
+ * Test cases for Views integration.
+ */
+
+// Ensure UcAddressesTestCase is available.
+require_once 'UcAddressesTestCase.class.php';
+
+/**
+ * Test cases for Views integration.
+ */
+class UcAddressesViewsTestCase extends UcAddressesTestCase {
+  /**
+   * Describes this test.
+   *
+   * @return array
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Ubercart Addresses Views tests',
+      'description' => 'Test the Ubercart Addresses Views integration.',
+      'group' => 'Ubercart Addresses',
+      'dependencies' => array('ctools', 'token', 'uc_store', 'views'),
+    );
+  }
+
+  /**
+   * Setup.
+   */
+  public function setUp() {
+    parent::setUp();
+    module_enable(array('views'));
+  }
+
+  /**
+   * Tests if the address access filters work as expected.
+   */
+  public function testAccessFilters() {
+    // Setup View.
+    $this->createView();
+
+    // Create some users.
+    $accounts = array();
+    $accounts['extraUser'] = $this->basicUser;
+    $accounts['customerBasic'] = $this->drupalCreateUser();
+    $accounts['customerViewDef'] = $this->drupalCreateUser(array('view own default addresses'));
+    $accounts['customerView'] = $this->drupalCreateUser(array('view own addresses'));
+    $accounts['customerEdit'] = $this->drupalCreateUser(array('add/edit own addresses'));
+    $accounts['customerDelete'] = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $accounts['adminViewDef'] = $this->drupalCreateUser(array('view all default addresses'));
+    $accounts['adminView'] = $this->drupalCreateUser(array('view all addresses'));
+    $accounts['adminEdit'] = $this->drupalCreateUser(array('add/edit all addresses'));
+    $accounts['adminAll'] = $this->adminUser;
+
+    // Create 2 addresses for each type of user:
+    // - one default address.
+    // - one other address.
+    foreach ($accounts as $account) {
+      $addressBook = UcAddressesAddressBook::get($account->uid);
+      // Create default address.
+      $address = $addressBook->addAddress();
+      $address->setAsDefault();
+      $address->setName($account->name . '_default');
+      // Create other address.
+      $address = $addressBook->addAddress();
+      $address->setName($account->name . '_other');
+      // Save all addresses.
+      $addressBook->save();
+    }
+
+    $this->doAccessFilterTests($accounts['customerBasic'], FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['customerViewDef'], TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['customerView'], TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['customerEdit'], TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['customerDelete'], TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['adminViewDef'], TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['adminView'], TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE);
+    $this->doAccessFilterTests($accounts['adminEdit'], TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE);
+    $this->doAccessFilterTests($accounts['adminAll'], TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
+  }
+
+  /**
+   * Tests if the address access filters work for one particular
+   * account.
+   *
+   * @param object $account
+   *   The account to check access for.
+   * @param boolean $view_own_def
+   *   If the user is supposed to see his own default addresses.
+   * @param boolean $view_own
+   *   If the user is supposed to see all of his own addresses.
+   * @param boolean $edit_own
+   *   If the user is supposed to edit all of his own addresses.
+   * @param boolean $delete_own
+   *   If the user is supposed to delete all of his own addresses.
+   * @param boolean $view_all_def
+   *   If the user is supposed to see his all default addresses.
+   * @param boolean $view_all
+   *   If the user is supposed to see all addresses.
+   * @param boolean $edit_all
+   *   If the user is supposed to edit all addresses.
+   * @param boolean $delete_all
+   *   If the user is supposed to delete all addresses.
+   *
+   * @return void
+   */
+  protected function doAccessFilterTests($account, $view_own_def, $view_own, $edit_own, $delete_own, $view_all_def, $view_all, $edit_all, $delete_all) {
+    $this->drupalLogin($account);
+
+    // Test view access.
+    $this->drupalGet('uc_addresses/view');
+    // View own default addresses.
+    $text = $account->name . '_default';
+    if ($view_own_def) {
+      $this->assertText($text, 'User sees own default address.');
+    }
+    else {
+      $this->assertNoText($text);
+    }
+    // View own addresses.
+    $text = $account->name . '_other';
+    if ($view_own) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+    // View all default addresses.
+    $text = $this->basicUser->name . '_default';
+    if ($view_all_def) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+    // View all addresses.
+    $text = $this->basicUser->name . '_other';
+    if ($view_all) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+
+    // Test edit access.
+    $this->drupalGet('uc_addresses/edit');
+    // Edit own address.
+    $text = $account->name . '_other';
+    if ($edit_own) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+    // Edit all addresses.
+    $text = $this->basicUser->name . '_other';
+    if ($edit_all) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+
+    // Test delete access.
+    $this->drupalGet('uc_addresses/delete');
+    // Delete own address.
+    $text = $account->name . '_other';
+    if ($delete_own) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+    // Delete all addresses.
+    $text = $this->basicUser->name . '_other';
+    if ($delete_all) {
+      $this->assertText($text);
+    }
+    else {
+      $this->assertNoText($text);
+    }
+  }
+
+  /**
+   * Creates a View.
+   *
+   * @return object
+   *   The created View.
+   */
+  protected function createView() {
+    $view = new view();
+    $view->name = 'uc_addresses_access_filters';
+    $view->description = 'Used to test if address access filters work as expected.';
+    $view->tag = 'default';
+    $view->base_table = 'uc_addresses';
+    $view->human_name = 'uc_addresses_access_filters';
+    $view->core = 7;
+    $view->api_version = '3.0';
+    $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+    /* Display: Master */
+    $handler = $view->new_display('default', 'Master', 'default');
+    $handler->display->display_options['use_more_always'] = FALSE;
+    $handler->display->display_options['access']['type'] = 'none';
+    $handler->display->display_options['cache']['type'] = 'none';
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['exposed_form']['type'] = 'basic';
+    $handler->display->display_options['pager']['type'] = 'none';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['style_plugin'] = 'default';
+    $handler->display->display_options['row_plugin'] = 'fields';
+    /* Field: Ubercart Addresses: Address ID */
+    $handler->display->display_options['fields']['aid']['id'] = 'aid';
+    $handler->display->display_options['fields']['aid']['table'] = 'uc_addresses';
+    $handler->display->display_options['fields']['aid']['field'] = 'aid';
+    /* Field: Ubercart Addresses: Address name */
+    $handler->display->display_options['fields']['address_name']['id'] = 'address_name';
+    $handler->display->display_options['fields']['address_name']['table'] = 'uc_addresses';
+    $handler->display->display_options['fields']['address_name']['field'] = 'address_name';
+
+    /* Display: uc_addresses_view_access */
+    $handler = $view->new_display('page', 'uc_addresses_view_access', 'page_1');
+    $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+    $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: Ubercart Addresses: Access */
+    $handler->display->display_options['filters']['access_view']['id'] = 'access_view';
+    $handler->display->display_options['filters']['access_view']['table'] = 'uc_addresses';
+    $handler->display->display_options['filters']['access_view']['field'] = 'access_view';
+    $handler->display->display_options['filters']['access_view']['value'] = '1';
+    $handler->display->display_options['path'] = 'uc_addresses/view';
+
+    /* Display: uc_addresses_edit_access */
+    $handler = $view->new_display('page', 'uc_addresses_edit_access', 'page_2');
+    $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+    $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: Ubercart Addresses: Edit access */
+    $handler->display->display_options['filters']['access_edit']['id'] = 'access_edit';
+    $handler->display->display_options['filters']['access_edit']['table'] = 'uc_addresses';
+    $handler->display->display_options['filters']['access_edit']['field'] = 'access_edit';
+    $handler->display->display_options['filters']['access_edit']['value'] = '1';
+    $handler->display->display_options['path'] = 'uc_addresses/edit';
+
+    /* Display: uc_addresses_delete_access */
+    $handler = $view->new_display('page', 'uc_addresses_delete_access', 'page_3');
+    $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+    $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: Ubercart Addresses: Delete access */
+    $handler->display->display_options['filters']['access_delete']['id'] = 'access_delete';
+    $handler->display->display_options['filters']['access_delete']['table'] = 'uc_addresses';
+    $handler->display->display_options['filters']['access_delete']['field'] = 'access_delete';
+    $handler->display->display_options['filters']['access_delete']['value'] = '1';
+    $handler->display->display_options['path'] = 'uc_addresses/delete';
+
+    // Save View.
+    $view->save();
+
+    return $view;
+  }
+}
