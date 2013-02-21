@@ -142,50 +142,72 @@ function uc_addresses_uc_addresses_fields() {
 
   // Ubercart Core Fields
   $data['first_name'] = array(
+    'type' => 'text',
+    'label' => t('First name'),
     'description' => t('The addressee\'s first name'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['last_name'] = array(
+    'type' => 'text',
+    'label' => t('Last name'),
     'description' => t('The addressee\'s last name'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['phone'] = array(
+    'type' => 'text',
+    'label' => t('Phone'),
     'description' => t('The addressee\'s phone number'),
     'handler' => 'UcAddressesUcTextFieldHandler',
   );
   $data['company'] = array(
+    'type' => 'text',
+    'label' => t('Company'),
     'description' => t('The addressee\'s company name'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['street1'] = array(
+    'type' => 'text',
+    'label' => t('Street line 1'),
     'description' => t('The addressee\'s residence number and street'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['street2'] = array(
+    'type' => 'text',
+    'label' => t('Street line 2'),
     'description' => t('The addressee\'s residence number and street (continued)'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['city'] = array(
+    'type' => 'text',
+    'label' => t('City'),
     'description' => t('The addressee\'s city of residence'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
   );
   $data['country'] = array(
+    'type' => 'integer',
+    'label' => t('Country'),
     'description' => t('The addressee\'s country of residence'),
     'handler' => 'UcAddressesUcCountryFieldHandler',
     'display_settings' => $ubercart_display_settings,
+    'options list' => 'uc_country_option_list',
   );
   $data['zone'] = array(
+    'type' => 'integer',
+    'label' => t('Zone'),
     'description' => t('The addressee\'s zone of residence'),
     'handler' => 'UcAddressesUcZoneFieldHandler',
     'display_settings' => $ubercart_display_settings,
+    'options list' => 'uc_zone_option_list',
   );
   $data['postal_code'] = array(
+    'type' => 'text',
+    'label' => t('Postal code'),
     'description' => t('The addressee\'s postal code'),
     'handler' => 'UcAddressesUcTextFieldHandler',
     'display_settings' => $ubercart_display_settings,
@@ -194,6 +216,7 @@ function uc_addresses_uc_addresses_fields() {
   // Ubercart Addresses fields
   $data['address_name'] = array(
     'title' => t('Address name'),
+    'type' => 'text',
     'description' => t('The name used to access this address'),
     'handler' => 'UcAddressesAddressNameFieldHandler',
     'display_settings' => array(
@@ -207,6 +230,7 @@ function uc_addresses_uc_addresses_fields() {
   );
   $data['default_shipping'] = array(
     'title' => t('Default shipping address'),
+    'type' => 'boolean',
     'description' => t('If the address is the default shipping address'),
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
     'display_settings' => array(
@@ -223,6 +247,7 @@ function uc_addresses_uc_addresses_fields() {
   );
   $data['default_billing'] = array(
     'title' => t('Default billing address'),
+    'type' => 'boolean',
     'description' => t('If the address is the default billing address'),
     'handler' => 'UcAddressesDefaultAddressFieldHandler',
     'display_settings' => array(
@@ -240,6 +265,7 @@ function uc_addresses_uc_addresses_fields() {
   // Non editable fields
   $data['aid'] = array(
     'title' => t('Address ID'),
+    'type' => 'integer',
     'description' => t('The address ID'),
     'handler' => 'UcAddressesHiddenFieldHandler',
     'display_settings' => array(
@@ -250,6 +276,7 @@ function uc_addresses_uc_addresses_fields() {
   );
   $data['uid'] = array(
     'title' => t('User ID'),
+    'type' => 'user',
     'description' => t('The ID of the user who owns this address'),
     'handler' => 'UcAddressesHiddenFieldHandler',
     'display_settings' => array(
@@ -260,6 +287,7 @@ function uc_addresses_uc_addresses_fields() {
   );
   $data['created'] = array(
     'title' => t('Created'),
+    'type' => 'date',
     'description' => t('The date this address was created'),
     'handler' => 'UcAddressesDateFieldHandler',
     'display_settings' => array(
@@ -270,6 +298,7 @@ function uc_addresses_uc_addresses_fields() {
   );
   $data['modified'] = array(
     'title' => t('Modified'),
+    'type' => 'date',
     'description' => t('The date this address was last modified'),
     'handler' => 'UcAddressesDateFieldHandler',
     'display_settings' => array(

@@ -452,13 +452,18 @@ function uc_addresses_entity_property_info_alter(&$info) {
     }
     else {
       $properties[$key] = $field;
-      $properties[$key]['label'] = $properties[$key]['title'];
     }
     $properties[$key]['getter callback'] = 'uc_addresses_field_get';
     if ($key != 'aid' || $key != 'uid') {
       $properties[$key]['setter callback'] = 'uc_addresses_field_set';
     }
   }
+
+  // Special case for user, this should be mapped to 'user' instead
+  // of 'uid' as noted on http://drupal.org/node/1021466.
+  $properties['user'] = $properties['uid'];
+  $properties['user']['label'] = t('User');
+  unset($properties['uid']);
 }
 
 /**
@@ -1125,28 +1130,23 @@ function uc_addresses_get_address_fields() {
     foreach ($fields as $fieldname => $fielddata) {
       // Add name for the field (never set manually).
       $fields[$fieldname]['name'] = $fieldname;
-      // Add title if not set.
-      if (!isset($fielddata['title'])) {
-        $fields[$fieldname]['title'] = check_plain($fieldname);
-      }
-      // Add description if not set.
-      if (!isset($fielddata['description'])) {
-        $fields[$fieldname]['description'] = '';
-      }
-      // Add display settings array
-      if (!isset($fielddata['display_settings'])) {
-        $fields[$fieldname]['display_settings'] = array();
-      }
-      if (!isset($fielddata['display_settings']['default'])) {
-        $fields[$fieldname]['display_settings']['default'] = TRUE;
-      }
-      // Add compare setting
-      if (!isset($fielddata['compare'])) {
-        $fields[$fieldname]['compare'] = TRUE;
-      }
-      // Add hidden setting (only applies for address field settings page)
-      if (!isset($fielddata['hidden'])) {
-        $fields[$fieldname]['hidden'] = FALSE;
+      // Add default values for properties that are not set.
+      $fields[$fieldname] += array(
+        'type' => 'text',
+        'title' => check_plain($fieldname),
+        'description' => '',
+        'display_settings' => array(),
+        'compare' => TRUE,
+        // The hidden setting only applies for the address field settings page.
+        'hidden' => FALSE,
+      );
+      // Add default display settings.
+      $fields[$fieldname]['display_settings'] += array(
+        'default' => TRUE,
+      );
+      // Add label if not set. Used by Entity API.
+      if (!isset($fields[$fieldname]['label'])) {
+        $fields[$fieldname]['label'] = $fields[$fieldname]['title'];
       }
     }
   }

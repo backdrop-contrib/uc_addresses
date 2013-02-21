@@ -20,6 +20,7 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   handler API definitions in the example module.
 - Issue #1831424 by MegaChriz: added Entity integration.
 - Issue #1900150 by MegaChriz: added Views address access filters.
+- Issue #1910626 by MegaChriz: API change: specified field data types.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

@@ -400,10 +400,21 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $wrapper = entity_metadata_wrapper('uc_addresses', $entity);
 
     foreach ($values as $field => $value) {
+      switch ($field) {
+        case 'uid':
+          // The entity property for the 'uid' field is called 'user'.
+          $property = 'user';
+          break;
+        default:
+          // All other entity property names are equal to the field name.
+          $property = $field;
+          break;
+      }
+
       $msgvars = array(
         '@field' => check_plain($field),
       );
-      $this->assertEqual($wrapper->$field->value(), $value, strtr('Entity wrapper returns expected value for @field.', $msgvars));
+      $this->assertEqual($wrapper->$property->raw(), $value, strtr('Entity wrapper returns expected value for @field.', $msgvars));
     }
   }
 
