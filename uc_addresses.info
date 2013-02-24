@@ -23,6 +23,9 @@ files[] = handlers/ubercart.handlers.inc
 files[] = handlers/uc_addresses.handlers.inc
 
 ; Views handlers
+files[] = views/uc_addresses_handler_field_uc_addresses_link.inc
+files[] = views/uc_addresses_handler_field_uc_addresses_link_edit.inc
+files[] = views/uc_addresses_handler_field_uc_addresses_link_delete.inc
 files[] = views/uc_addresses_handler_filter_access.inc
 
 ; Test cases

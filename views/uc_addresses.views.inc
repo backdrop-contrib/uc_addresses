@@ -25,6 +25,9 @@ function uc_addresses_views_data() {
     'help' => t('Addresses in the customers address book that can be referenced when placing an order.'),
   );
 
+  // Declare entity type.
+  $data['uc_addresses']['table']['entity type'] = 'uc_addresses';
+
   // Declare each schema field.
   foreach ($schema['fields'] as $fieldname => $schema_field) {
     if (isset($address_fields[$fieldname])) {
@@ -330,6 +333,29 @@ function uc_addresses_views_data() {
       'help' => t('Filters the result of the view by checking address delete access.') . ' ' . t('Note that this filter does not work well with pager.'),
       'handler' => 'uc_addresses_handler_filter_access',
       'uc_addresses_access_type' => 'delete',
+    ),
+  );
+
+  // View, edit and delete links.
+  $data['uc_addresses']['view'] = array(
+    'field' => array(
+      'title' => t('Link'),
+      'help' => t('Provide a simple link to the address.'),
+      'handler' => 'uc_addresses_handler_field_uc_addresses_link',
+    ),
+  );
+  $data['uc_addresses']['edit'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('Provide a simple link to edit the address.'),
+      'handler' => 'uc_addresses_handler_field_uc_addresses_link_edit',
+    ),
+  );
+  $data['uc_addresses']['delete'] = array(
+    'field' => array(
+      'title' => t('Delete link'),
+      'help' => t('Provide a simple link to delete the address.'),
+      'handler' => 'uc_addresses_handler_field_uc_addresses_link_delete',
     ),
   );
 
