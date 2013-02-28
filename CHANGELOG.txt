@@ -26,6 +26,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   based views.
 - Issue #1900468 by MegaChriz: Entity integration: added address properties
   to user and uc_order.
+- Issue #1927258 by MegaChriz: fixed bug where selecting an address at
+  checkout leaded to checkbox fields always being checked.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

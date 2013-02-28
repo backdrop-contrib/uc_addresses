@@ -246,6 +246,34 @@ class UcAddressesSchemaAddress {
    */
   public function setField($fieldName, $value) {
     self::fieldMustExist($fieldName);
+
+    // Convert value to the right data type.
+    $fields_data = self::getDefinedFields();
+    switch ($fields_data[$fieldName]['type']) {
+      case 'text':
+      case 'string':
+        $value = (string) $value;
+        break;
+      case 'int':
+      case 'integer':
+      case 'date':
+        $value = (int) $value;
+        break;
+      case 'decimal':
+      case 'duration':
+      case 'float':
+      case 'numeric':
+        $value = (float) $value;
+        break;
+      case 'boolean':
+        $value = (bool) $value;
+        break;
+      default:
+        // In all other cases the setted value is
+        // left untouched.
+        break;
+    }
+
     if ($this->schemaAddress->$fieldName !== $value) {
       $this->schemaAddress->$fieldName = $value;
       $this->setDirty();
