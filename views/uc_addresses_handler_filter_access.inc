@@ -21,14 +21,37 @@
  */
 class uc_addresses_handler_filter_access extends views_handler_filter_boolean_operator {
   /**
+   * The assumed name of the aid field in the Views' results.
+   *
+   * @var string
+   * @access protected
+   */
+  protected $aid_field_alias = 'unknown';
+
+  /**
+   * The assumed name of the uid field in the Views' results.
+   *
+   * @var string
+   * @access protected
+   */
+  protected $uid_field_alias = 'unknown';
+
+  /**
    * Implements views_handler_filter#query().
    *
-   * This method needs to be overriden, because else Views
-   * will add an extra WHERE condition to the query. This is
-   * is not needed as this filter alters the *results*, not
-   * the query itself.
+   * This method needs to be overriden for two reasons:
+   * - To prevent Views from adding an extra WHERE condition
+   *   to the query, which is not needed as this filter alters
+   *   the results.
+   * - To add fields 'aid' and 'uid' to the table, so the filter
+   *   is able to check access based on these two fields.
    */
   public function query() {
+    $this->ensure_my_table();
+    // Add our fields.
+    $this->aid_field_alias = $this->query->add_field($this->table_alias, $this->real_field);
+    $this->uid_field_alias = $this->query->add_field($this->table_alias, 'uid');
+
     // Set flag that the access filter is present.
     // This can be handy for other modules to know, for example
     // when they'd like to fix the pager problem.
@@ -65,19 +88,28 @@ class uc_addresses_handler_filter_access extends views_handler_filter_boolean_op
    * @todo This doesn't work with pager.
    */
   public function post_execute(&$values) {
-    // Guess the field name of 'aid' in the results.
-    if (!empty($this->relationship)) {
-      // Used table is assumed to be the relationship.
-      $table = $this->relationship;
-    }
-    else {
-      $table = 'uc_addresses';
-    }
-    $alias = $this->view->query->field_aliases[$table]['aid'];
+    $aid_field_alias = $this->aid_field_alias;
+    $uid_field_alias = $this->uid_field_alias;
 
     foreach ($values as $index => $row) {
-      $aid = $row->$alias;
-      $address = $this->loadAddress($aid);
+      if (!isset($row->$aid_field_alias)) {
+        // The address ID field is not found in the row.
+        // As a result, we can not check address access.
+        continue;
+      }
+      $aid = $row->$aid_field_alias;
+      $uid = NULL;
+      if (isset($row->$uid_field_alias)) {
+        $uid = $row->$uid_field_alias;
+      }
+      if (!$aid) {
+        // The address ID can be missing, for example when used
+        // in Views where a relationship with uc_addresses is
+        // optional. In this case, just skip the row.
+        continue;
+      }
+      $address = $this->loadAddress($aid, $uid);
+      // Reassign user ID, just in case it was empty in the results.
       $uid = $address->getUserId();
       $address_user = user_load($uid);
       // Check for access.
@@ -88,7 +120,9 @@ class uc_addresses_handler_filter_access extends views_handler_filter_boolean_op
         // No access. Remove the row from the results and decrease the calculated
         // number of rows.
         unset($values[$index]);
-        $this->view->total_rows--;
+        if (isset($this->view->total_rows)) {
+          $this->view->total_rows--;
+        }
       }
     }
   }

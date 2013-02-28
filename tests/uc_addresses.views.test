@@ -91,7 +91,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    */
   public function testAccessFilters() {
     // Setup View.
-    $this->createView();
+    $this->createAccessFiltersView();
 
     $this->doAccessFilterTests($this->accounts['customerBasic'], FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
     $this->doAccessFilterTests($this->accounts['customerViewDef'], TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
@@ -325,12 +325,12 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
   }
 
   /**
-   * Creates a View.
+   * Creates a View for access filters test.
    *
    * @return object
    *   The created View.
    */
-  protected function createView() {
+  protected function createAccessFiltersView() {
     $view = new view();
     $view->name = 'uc_addresses_access_filters';
     $view->description = 'Used to test if address access filters work as expected.';
