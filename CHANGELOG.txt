@@ -24,6 +24,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1900176 by MegaChriz: added Views address action links.
 - Issue #1908904 by MegaChriz: added uc_addresses relationship in user
   based views.
+- Issue #1900468 by MegaChriz: Entity integration: added address properties
+  to user and uc_order.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

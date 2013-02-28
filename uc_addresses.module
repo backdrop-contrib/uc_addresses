@@ -464,6 +464,30 @@ function uc_addresses_entity_property_info_alter(&$info) {
   $properties['user'] = $properties['uid'];
   $properties['user']['label'] = t('User');
   unset($properties['uid']);
+
+  // Expose default addresses of user.
+  $info['user']['properties']['uc_addresses_default_shipping_address'] = array(
+    'type' => 'uc_addresses',
+    'label' => t('Default shipping address'),
+    'getter callback' => 'uc_addresses_user_address_property_get',
+  );
+  $info['user']['properties']['uc_addresses_default_billing_address'] = array(
+    'type' => 'uc_addresses',
+    'label' => t('Default billing address'),
+    'getter callback' => 'uc_addresses_user_address_property_get',
+  );
+
+  // Explain the attached addresses from uc_addresses on the Ubercart order.
+  $info['uc_order']['properties']['uc_addresses_delivery_address'] = array(
+    'type' => 'uc_addresses',
+    'label' => t('!address_type (Ubercart Addresses)', array('!address_type' => t('Delivery address'))),
+    'getter callback' => 'uc_addresses_uc_order_address_property_get',
+  );
+  $info['uc_order']['properties']['uc_addresses_billing_address'] = array(
+    'type' => 'uc_addresses',
+    'label' => t('!address_type (Ubercart Addresses)', array('!address_type' => t('Billing address'))),
+    'getter callback' => 'uc_addresses_uc_order_address_property_get',
+  );
 }
 
 /**
@@ -493,6 +517,62 @@ function uc_addresses_field_get(UcAddressesAddress $address, $options, $name) {
  */
 function uc_addresses_field_set(UcAddressesAddress $address, $name, $value) {
   return $address->setField($name, $value);
+}
+
+/**
+ * Entity API getter callback for a default address of an user.
+ *
+ * @param object $account
+ *   The account to get a default address for.
+ * @param array $options
+ *   An array of options, passed by Entity API, but ignored
+ *   in this implementation.
+ * @param string $name
+ *   The address to get.
+ *
+ * @return UcAddressesAddress
+ *   An instance of UcAddressesAddress, if found.
+ *   NULL otherwise.
+ */
+function uc_addresses_user_address_property_get($account, $options, $name) {
+  switch ($name) {
+    case 'uc_addresses_default_shipping_address':
+      return UcAddressesAddressBook::get($account->uid)->getDefaultAddress('shipping');
+
+    case 'uc_addresses_default_billing_address':
+      return UcAddressesAddressBook::get($account->uid)->getDefaultAddress('billing');
+  }
+  return NULL;
+}
+
+/**
+ * Entity API getter callback for an address attached to the order.
+ *
+ * @param object $order
+ *   The Ubercart order.
+ * @param array $options
+ *   An array of options, passed by Entity API, but ignored
+ *   in this implementation.
+ * @param string $name
+ *   The address to get.
+ *
+ * @return UcAddressesAddress
+ *   An instance of UcAddressesAddress, if found.
+ *   NULL otherwise.
+ */
+function uc_addresses_uc_order_address_property_get($order, $options, $name) {
+  switch ($name) {
+    case 'uc_addresses_delivery_address':
+      return $order->uc_addresses['shipping'];
+      break;
+
+    case 'uc_addresses_billing_address':
+      return $order->uc_addresses['billing'];
+      break;
+
+    default:
+      return NULL;
+  }
 }
 
 /**
