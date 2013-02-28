@@ -359,5 +359,18 @@ function uc_addresses_views_data() {
     ),
   );
 
+  // Make address fields available in user based views.
+  $data['users']['uc_addresses'] = array(
+    'title' => t('Ubercart addresses address'),
+    'help' => t('Addresses of the given user.'),
+    'real field' => 'uid',
+    'relationship' => array(
+      'base' => 'uc_addresses',
+      'base field' => 'uid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('Ubercart addresses address'),
+    ),
+  );
+
   return $data;
 }
