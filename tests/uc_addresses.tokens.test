@@ -1,11 +1,9 @@
 <?php
+
 /**
  * @file
  * Test cases for the token replacement.
  */
-
-// Ensure UcAddressesTestCase is available.
-require_once 'UcAddressesTestCase.class.php';
 
 /**
  * Test cases for the api component.

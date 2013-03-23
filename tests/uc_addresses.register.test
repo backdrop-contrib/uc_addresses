@@ -1,11 +1,9 @@
 <?php
+
 /**
  * @file
  * Test cases for registering with an address.
  */
-
-// Ensure UcAddressesTestCase is available.
-require_once 'UcAddressesTestCase.class.php';
 
 /**
  * Test cases for registering with an address.

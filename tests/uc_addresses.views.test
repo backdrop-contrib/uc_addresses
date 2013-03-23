@@ -5,9 +5,6 @@
  * Test cases for Views integration.
  */
 
-// Ensure UcAddressesTestCase is available.
-require_once 'UcAddressesTestCase.class.php';
-
 /**
  * Test cases for Views integration.
  */
@@ -43,7 +40,11 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     // Create a number of users with two addresses each.
     $this->UcAddressesCreateUsers();
-    $this->UcAddressesCreateAddresses();
+    foreach ($this->accounts as $account) {
+      $this->UcAddressesCreateAddresses($account);
+    }
+    // Create addresses for the basic user too.
+    $this->UcAddressesCreateAddresses($this->basicUser);
   }
 
   /**
@@ -51,39 +52,15 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    */
   protected function UcAddressesCreateUsers() {
     $this->accounts = array();
-    $this->accounts['extraUser'] = $this->basicUser;
-    $this->accounts['customerBasic'] = $this->drupalCreateUser();
-    $this->accounts['customerViewDef'] = $this->drupalCreateUser(array('view own default addresses'));
-    $this->accounts['customerView'] = $this->drupalCreateUser(array('view own addresses'));
-    $this->accounts['customerEdit'] = $this->drupalCreateUser(array('add/edit own addresses'));
-    $this->accounts['customerDelete'] = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
-    $this->accounts['adminViewDef'] = $this->drupalCreateUser(array('view all default addresses'));
-    $this->accounts['adminView'] = $this->drupalCreateUser(array('view all addresses'));
-    $this->accounts['adminEdit'] = $this->drupalCreateUser(array('add/edit all addresses'));
-    $this->accounts['adminAll'] = $this->adminUser;
-  }
-
-  /**
-   * Create 2 addresses for each type of user:
-   * - one default address.
-   * - one other address.
-   */
-  protected function UcAddressesCreateAddresses() {
-    foreach ($this->accounts as $account) {
-      $addressBook = UcAddressesAddressBook::get($account->uid);
-      // Clear address book cache to clear up leftover addresses
-      // from previous tests.
-      $addressBook->reset();
-      // Create default address.
-      $address = $addressBook->addAddress();
-      $address->setAsDefault();
-      $address->setName($account->name . '_default');
-      // Create other address.
-      $address = $addressBook->addAddress();
-      $address->setName($account->name . '_other');
-      // Save all addresses.
-      $addressBook->save();
-    }
+    $this->accounts['customerBasic'] = $this->UcAddressesCreateUser('customerBasic');
+    $this->accounts['customerViewDef'] = $this->UcAddressesCreateUser('customerViewDef', array('view own default addresses'), TRUE);
+    $this->accounts['customerView'] = $this->UcAddressesCreateUser('customerView', array('view own addresses'), TRUE, TRUE);
+    $this->accounts['customerEdit'] = $this->UcAddressesCreateUser('customerEdit', array('add/edit own addresses'), TRUE, TRUE, TRUE);
+    $this->accounts['customerDelete'] = $this->UcAddressesCreateUser('customerDelete', array('add/edit own addresses', 'delete own addresses'), TRUE, TRUE, TRUE, TRUE);
+    $this->accounts['adminViewDef'] = $this->UcAddressesCreateUser('adminViewDef', array('view all default addresses'), TRUE, FALSE, FALSE, FALSE, TRUE);
+    $this->accounts['adminView'] = $this->UcAddressesCreateUser('adminView', array('view all addresses'), TRUE, TRUE, FALSE, FALSE, TRUE, TRUE);
+    $this->accounts['adminEdit'] = $this->UcAddressesCreateUser('adminEdit', array('add/edit all addresses'), TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE);
+    $this->accounts['adminAll'] = $this->UcAddressesCreateUser('adminAll', array('add/edit all addresses', 'delete all addresses'), TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
   }
 
   /**
@@ -93,15 +70,15 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     // Setup View.
     $this->createAccessFiltersView();
 
-    $this->doAccessFilterTests($this->accounts['customerBasic'], FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['customerViewDef'], TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['customerView'], TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['customerEdit'], TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['customerDelete'], TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['adminViewDef'], TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['adminView'], TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE);
-    $this->doAccessFilterTests($this->accounts['adminEdit'], TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE);
-    $this->doAccessFilterTests($this->accounts['adminAll'], TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
+    $this->doAccessFilterTests($this->accounts['customerBasic']);
+    $this->doAccessFilterTests($this->accounts['customerViewDef']);
+    $this->doAccessFilterTests($this->accounts['customerView']);
+    $this->doAccessFilterTests($this->accounts['customerEdit']);
+    $this->doAccessFilterTests($this->accounts['customerDelete']);
+    $this->doAccessFilterTests($this->accounts['adminViewDef']);
+    $this->doAccessFilterTests($this->accounts['adminView']);
+    $this->doAccessFilterTests($this->accounts['adminEdit']);
+    $this->doAccessFilterTests($this->accounts['adminAll']);
   }
 
   /**
@@ -110,57 +87,41 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    *
    * @param object $account
    *   The account to check access for.
-   * @param boolean $view_own_def
-   *   If the user is supposed to see his own default addresses.
-   * @param boolean $view_own
-   *   If the user is supposed to see all of his own addresses.
-   * @param boolean $edit_own
-   *   If the user is supposed to edit all of his own addresses.
-   * @param boolean $delete_own
-   *   If the user is supposed to delete all of his own addresses.
-   * @param boolean $view_all_def
-   *   If the user is supposed to see his all default addresses.
-   * @param boolean $view_all
-   *   If the user is supposed to see all addresses.
-   * @param boolean $edit_all
-   *   If the user is supposed to edit all addresses.
-   * @param boolean $delete_all
-   *   If the user is supposed to delete all addresses.
    *
    * @return void
    */
-  protected function doAccessFilterTests($account, $view_own_def, $view_own, $edit_own, $delete_own, $view_all_def, $view_all, $edit_all, $delete_all) {
+  protected function doAccessFilterTests($account) {
     $this->drupalLogin($account);
 
     // Test view access.
     $this->drupalGet('uc_addresses/view');
     // View own default addresses.
-    $text = $account->name . '_default';
-    if ($view_own_def) {
+    $text = $account->uid . '_default';
+    if ($account->uc_addresses_permissions['view_own_def']) {
       $this->assertText($text, 'User sees own default address.');
     }
     else {
       $this->assertNoText($text);
     }
     // View own addresses.
-    $text = $account->name . '_other';
-    if ($view_own) {
+    $text = $account->uid . '_other';
+    if ($account->uc_addresses_permissions['view_own']) {
       $this->assertText($text);
     }
     else {
       $this->assertNoText($text);
     }
     // View all default addresses.
-    $text = $this->basicUser->name . '_default';
-    if ($view_all_def) {
+    $text = $this->basicUser->uid . '_default';
+    if ($account->uc_addresses_permissions['view_all_def']) {
       $this->assertText($text);
     }
     else {
       $this->assertNoText($text);
     }
     // View all addresses.
-    $text = $this->basicUser->name . '_other';
-    if ($view_all) {
+    $text = $this->basicUser->uid . '_other';
+    if ($account->uc_addresses_permissions['view_all']) {
       $this->assertText($text);
     }
     else {
@@ -170,16 +131,16 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     // Test edit access.
     $this->drupalGet('uc_addresses/edit');
     // Edit own address.
-    $text = $account->name . '_other';
-    if ($edit_own) {
+    $text = $account->uid . '_other';
+    if ($account->uc_addresses_permissions['edit_own']) {
       $this->assertText($text);
     }
     else {
       $this->assertNoText($text);
     }
     // Edit all addresses.
-    $text = $this->basicUser->name . '_other';
-    if ($edit_all) {
+    $text = $this->basicUser->uid . '_other';
+    if ($account->uc_addresses_permissions['edit_all']) {
       $this->assertText($text);
     }
     else {
@@ -189,16 +150,16 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     // Test delete access.
     $this->drupalGet('uc_addresses/delete');
     // Delete own address.
-    $text = $account->name . '_other';
-    if ($delete_own) {
+    $text = $account->uid . '_other';
+    if ($account->uc_addresses_permissions['delete_own']) {
       $this->assertText($text);
     }
     else {
       $this->assertNoText($text);
     }
     // Delete all addresses.
-    $text = $this->basicUser->name . '_other';
-    if ($delete_all) {
+    $text = $this->basicUser->uid . '_other';
+    if ($account->uc_addresses_permissions['delete_all']) {
       $this->assertText($text);
     }
     else {
@@ -214,15 +175,15 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     // Setup View.
     $this->createActionLinksView();
 
-    $this->doActionLinksTests($this->accounts['customerBasic'], FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['customerViewDef'], TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['customerView'], TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['customerEdit'], TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['customerDelete'], TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['adminViewDef'], TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['adminView'], TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE);
-    $this->doActionLinksTests($this->accounts['adminEdit'], TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE);
-    $this->doActionLinksTests($this->accounts['adminAll'], TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
+    $this->doActionLinksTests($this->accounts['customerBasic']);
+    $this->doActionLinksTests($this->accounts['customerViewDef']);
+    $this->doActionLinksTests($this->accounts['customerView']);
+    $this->doActionLinksTests($this->accounts['customerEdit']);
+    $this->doActionLinksTests($this->accounts['customerDelete']);
+    $this->doActionLinksTests($this->accounts['adminViewDef']);
+    $this->doActionLinksTests($this->accounts['adminView']);
+    $this->doActionLinksTests($this->accounts['adminEdit']);
+    $this->doActionLinksTests($this->accounts['adminAll']);
   }
 
   /**
@@ -231,26 +192,10 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    *
    * @param object $account
    *   The account to check access for.
-   * @param boolean $view_own_def
-   *   If the user is supposed to see his own default addresses.
-   * @param boolean $view_own
-   *   If the user is supposed to see all of his own addresses.
-   * @param boolean $edit_own
-   *   If the user is supposed to edit all of his own addresses.
-   * @param boolean $delete_own
-   *   If the user is supposed to delete all of his own addresses.
-   * @param boolean $view_all_def
-   *   If the user is supposed to see his all default addresses.
-   * @param boolean $view_all
-   *   If the user is supposed to see all addresses.
-   * @param boolean $edit_all
-   *   If the user is supposed to edit all addresses.
-   * @param boolean $delete_all
-   *   If the user is supposed to delete all addresses.
    *
    * @return void
    */
-  protected function doActionLinksTests($account, $view_own_def, $view_own, $edit_own, $delete_own, $view_all_def, $view_all, $edit_all, $delete_all) {
+  protected function doActionLinksTests($account) {
     $this->drupalLogin($account);
 
     // Test view access.
@@ -258,35 +203,35 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     // Get own addresses uri's.
     $own_address_default_uri = UcAddressesAddressBook::get($account->uid)->getDefaultAddress()->uri();
-    $own_address_other_uri = UcAddressesAddressBook::get($account->uid)->getAddressByName($account->name . '_other')->uri();
+    $own_address_other_uri = UcAddressesAddressBook::get($account->uid)->getAddressByName($account->uid . '_other')->uri();
 
     // Get addresses of other user.
-    $other_user_address_default_uri = UcAddressesAddressBook::get($this->accounts['extraUser']->uid)->getDefaultAddress()->uri();
-    $other_user_address_other_uri = UcAddressesAddressBook::get($this->accounts['extraUser']->uid)->getAddressByName($this->accounts['extraUser']->name . '_other')->uri();
+    $other_user_address_default_uri = UcAddressesAddressBook::get($this->basicUser->uid)->getDefaultAddress()->uri();
+    $other_user_address_other_uri = UcAddressesAddressBook::get($this->basicUser->uid)->getAddressByName($this->basicUser->uid . '_other')->uri();
 
     // View own default addresses.
-    if ($view_own_def) {
+    if ($account->uc_addresses_permissions['view_own_def']) {
       $this->assertRaw($own_address_default_uri['path'], 'User can see own default address.');
     }
     else {
       $this->assertNoRaw($own_address_default_uri['path']);
     }
     // View own addresses.
-    if ($view_own) {
+    if ($account->uc_addresses_permissions['view_own']) {
       $this->assertRaw($own_address_other_uri['path'], 'User can see own addresses.');
     }
     else {
       $this->assertNoRaw($own_address_other_uri['path']);
     }
     // View all default addresses.
-    if ($view_all_def) {
+    if ($account->uc_addresses_permissions['view_all_def']) {
       $this->assertRaw($other_user_address_default_uri['path'], 'User can see all default addresses.');
     }
     else {
       $this->assertNoRaw($other_user_address_default_uri['path']);
     }
     // View all addresses.
-    if ($view_all) {
+    if ($account->uc_addresses_permissions['view_all']) {
       $this->assertRaw($other_user_address_other_uri['path'], 'User can see all addresses.');
     }
     else {
@@ -294,14 +239,14 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     }
 
     // Edit own addresses.
-    if ($edit_own) {
+    if ($account->uc_addresses_permissions['edit_own']) {
       $this->assertRaw($own_address_other_uri['path'] . '/edit', 'User can edit own addresses.');
     }
     else {
       $this->assertNoRaw($own_address_other_uri['path'] . '/edit');
     }
     // Edit all addresses.
-    if ($edit_all) {
+    if ($account->uc_addresses_permissions['edit_all']) {
       $this->assertRaw($other_user_address_other_uri['path'] . '/edit', 'User can edit all addresses.');
     }
     else {
@@ -309,14 +254,14 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     }
 
     // Delete own addresses.
-    if ($delete_own) {
+    if ($account->uc_addresses_permissions['delete_own']) {
       $this->assertRaw($own_address_other_uri['path'] . '/delete', 'User can delete own addresses.');
     }
     else {
       $this->assertNoRaw($own_address_other_uri['path'] . '/delete');
     }
     // Delete all addresses.
-    if ($delete_all) {
+    if ($account->uc_addresses_permissions['delete_all']) {
       $this->assertRaw($other_user_address_other_uri['path'] . '/delete', 'User can delete all addresses.');
     }
     else {

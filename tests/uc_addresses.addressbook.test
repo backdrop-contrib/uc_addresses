@@ -1,11 +1,9 @@
 <?php
+
 /**
  * @file
  * Test cases for the address book component.
  */
-
-// Ensure UcAddressesTestCase is available.
-require_once 'UcAddressesTestCase.class.php';
 
 /**
  * Base class for test cases for the address book component.

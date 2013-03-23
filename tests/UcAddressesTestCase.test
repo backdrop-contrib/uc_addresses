@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains base class for Ubercart Addresses tests.
@@ -425,12 +426,91 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       case 'zone':
         // Random zone based on the defined country
         if (!isset($values['country'])) {
-          $values['country'] = self::generateAddressFieldValue('country', &$values);
+          $values['country'] = self::generateAddressFieldValue('country', $values);
         }
         return db_query("SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :zone_country_id ORDER BY rand()", array(':zone_country_id' => $values['country']))->fetchField();
       default:
         // In all other cases it is assummed that it's a textfield that needs to be filled in.
         return self::randomString(12);
     }
+  }
+
+  /**
+   * Creates a single user and registers which permissions this user should get.
+   *
+   * @param string $name
+   *   The user's username.
+   * @param array $permissions
+   *   (optional) The user's permissions.
+   * @param boolean $view_own_def
+   *   (optional) If the user is supposed to see his own default addresses.
+   *   Default to false.
+   * @param boolean $view_own
+   *   (optional) If the user is supposed to see all of his own addresses.
+   *   Default to false.
+   * @param boolean $edit_own
+   *   (optional) If the user is supposed to edit all of his own addresses.
+   *   Default to false.
+   * @param boolean $delete_own
+   *   (optional) If the user is supposed to delete all of his own addresses.
+   *   Default to false.
+   * @param boolean $view_all_def
+   *   (optional) If the user is supposed to see his all default addresses.
+   *   Default to false.
+   * @param boolean $view_all
+   *   (optional) If the user is supposed to see all addresses.
+   *   Default to false.
+   * @param boolean $edit_all
+   *   (optional) If the user is supposed to edit all addresses.
+   *   Default to false.
+   * @param boolean $delete_all
+   *   (optional) If the user is supposed to delete all addresses.
+   *   Default to false.
+   *
+   * @return void
+   */
+  protected function UcAddressesCreateUser($name, $permissions = array(), $view_own_def = FALSE, $view_own = FALSE, $edit_own = FALSE, $delete_own = FALSE, $view_all_def = FALSE, $view_all = FALSE, $edit_all = FALSE, $delete_all = FALSE) {
+    $account = $this->drupalCreateUser($permissions);
+    $account->name = $name;
+    user_save($account);
+    $account->uc_addresses_permissions = array(
+      'view_own_def' => $view_own_def,
+      'view_own' => $view_own,
+      'edit_own' => $edit_own,
+      'delete_own' => $delete_own,
+      'view_all_def' => $view_all_def,
+      'view_all' => $view_all,
+      'edit_all' => $edit_all,
+      'delete_all' => $delete_all,
+    );
+    return $account;
+  }
+
+  /**
+   * Create 2 addresses for each passed user:
+   * - one default address.
+   * - one other address.
+   *
+   * @param object $account
+   *   The account to create addresses for.
+   *
+   * @return void
+   */
+  protected function UcAddressesCreateAddresses($account) {
+    $addressBook = UcAddressesAddressBook::get($account->uid);
+    // Clear address book cache to clear up leftover addresses
+    // from previous tests.
+    $addressBook->reset();
+    // Create default address.
+    $address = $addressBook->addAddress();
+    $address->setField('last_name', self::randomName());
+    $address->setAsDefault();
+    $address->setName($account->uid . '_default');
+    // Create other address.
+    $address = $addressBook->addAddress();
+    $address->setField('last_name', self::randomName());
+    $address->setName($account->uid . '_other');
+    // Save all addresses.
+    $addressBook->save();
   }
 }

@@ -29,7 +29,7 @@ files[] = views/uc_addresses_handler_field_uc_addresses_link_delete.inc
 files[] = views/uc_addresses_handler_filter_access.inc
 
 ; Test cases
-files[] = tests/UcAddressesTestCase.class.php
+files[] = tests/UcAddressesTestCase.test
 files[] = tests/uc_addresses.addressbook.test
 files[] = tests/uc_addresses.api.test
 files[] = tests/uc_addresses.checkout.test

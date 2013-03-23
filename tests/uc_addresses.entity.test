@@ -5,9 +5,6 @@
  * Test cases address entity.
  */
 
-// Ensure UcAddressesTestCase is available.
-require_once 'UcAddressesTestCase.class.php';
-
 /**
  * Tests for Entity API integration.
  */
