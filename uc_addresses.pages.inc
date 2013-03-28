@@ -121,91 +121,170 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
  *   The themed address.
  */
 function uc_addresses_list_one_address($address_user, UcAddressesAddress $address, $options = array()) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
-
   if (UcAddressesPermissions::canViewAddress($address_user, $address)) {
-    // Check if address may be edited too.
-    if (UcAddressesPermissions::canEditAddress($address_user, $address)) {
-      // Show edit link
-      $options['edit_link'] = TRUE;
-    }
-    if (UcAddressesPermissions::canDeleteAddress($address_user, $address)) {
-      // Show delete link
-      $options['delete_link'] = TRUE;
-    }
+    $options['edit_link'] = TRUE;
+    $options['delete_link'] = TRUE;
     return theme('uc_addresses_list_address', array('address' => $address, 'options' => $options));
   }
 }
 
 /**
- * Prepare variables for one address
+ * Prepare variables for one address.
  *
  * @param array $vars
  *   An array with the following:
  *   - address (instance of UcAddressesAddress)
  *   - options (array):
- *     - edit_link (boolean): whether or not display an edit address link.
- *     - delete_link (boolean): whether or not display an delete address link.
+ *     - view_link (boolean): whether or not display a link to the address.
+ *     - edit_link (boolean): whether or not display a link to edit the address.
+ *     - delete_link (boolean): whether or not display a link to delete the address.
  *     - destination (string): path to return to after editing the address.
+ *     - default_flags (boolean): whether or not display "default address" labels.
+ *     - context (string): the context to use for display the addresses. This has
+ *       effect on which fields are displayed. Defaults to "address_view".
  *
  * @return void
  *
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_list_address(&$vars) {
-  // Initialize variables
+  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  $address = $vars['address'];
+
+  // Initialize variables.
   $vars['options'] += array(
+    'view_link' => FALSE,
     'edit_link' => FALSE,
     'delete_link' => FALSE,
     'destination' => '',
+    'default_flags' => FALSE,
+    'context' => 'address_view',
   );
+  $vars['label'] = NULL;
   $vars['admin_links'] = NULL;
 
-  // User ID
-  $vars['aid'] = $vars['address']->getId();
-  $vars['uid'] = $vars['address']->getUserId();
+  // Retrieve ID's.
+  $vars['aid'] = $address->getId();
+  $vars['uid'] = $address->getUserId();
 
-  // Preprocess address fields, context is 'address_view' in this case.
-  $vars['fields'] = uc_addresses_preprocess_address($vars['address'], 'address_view');
+  // Preprocess address fields, context is 'address_view' by default.
+  $vars['fields'] = uc_addresses_preprocess_address($address, $vars['options']['context']);
 
-  // Setup admin links
-  if (isset($vars['options']['edit_link']) && $vars['options']['edit_link']) {
-    $link_options = array(
-      'attributes' => array('class' => 'address-link edit-address-link'),
-    );
-    if (isset($vars['options']['destination']) && $vars['options']['destination']) {
-      $link_options['query'] = array('destination' => $vars['options']['destination']);
-    }
-    $vars['edit_address_link'] = l(t('Edit address'), 'user/' . $vars['uid'] . '/addresses/' . $vars['aid'] . '/edit', $link_options);
-    $vars['admin_links'] = $vars['edit_address_link'];
+  // Setup admin links.
+  $link_options = array();
+  $links = array();
+  if ($vars['options']['destination']) {
+    // Add destinations for all admin links.
+    $link_options['query'] = array('destination' => $vars['options']['destination']);
   }
-  if (isset($vars['options']['delete_link']) && $vars['options']['delete_link']) {
-    $link_options = array(
-      'attributes' => array('class' => 'address-link delete-address-link'),
-    );
-    if (isset($vars['options']['destination']) && $vars['options']['destination']) {
-      $link_options['query'] = array('destination' => $vars['options']['destination']);
-    }
-    $vars['delete_address_link'] = l(t('Delete address'), 'user/' . $vars['uid'] . '/addresses/' . $vars['aid'] . '/delete', $link_options);
-    if (isset($vars['options']['edit_link']) && $vars['options']['edit_link']) {
-      $vars['admin_links'] .= ' <span class="separator">|</span> ' . $vars['delete_address_link'];
-    }
-    else {
-      $vars['admin_links'] = $vars['delete_address_link'];
+  if ($vars['options']['view_link']) {
+    // Create view link.
+    $vars['view_address_link'] = uc_addresses_render_link($address, 'view', $link_options);
+    if ($vars['view_address_link']) {
+      $links['view'] = $vars['view_address_link'];
     }
   }
+  if ($vars['options']['edit_link']) {
+    // Create edit link.
+    $vars['edit_address_link'] = uc_addresses_render_link($address, 'edit', $link_options);
+    if ($vars['edit_address_link']) {
+      $links['edit'] = $vars['edit_address_link'];
+    }
+  }
+  if ($vars['options']['delete_link']) {
+    // Create delete link.
+    $vars['delete_address_link'] = uc_addresses_render_link($address, 'delete', $link_options);
+    if ($vars['delete_address_link']) {
+      $links['delete'] = $vars['delete_address_link'];
+    }
+  }
+  if (count($links) > 0) {
+    // Combine all links into a single variable.
+    $vars['admin_links'] = implode(' <span class="separator uc-addresses-separator">|</span> ', $links);
+  }
 
-  // CSS classes
+  // Setup labels.
+  if ($vars['options']['default_flags']) {
+    $flags = array();
+    if ($address->isDefault('billing') && variable_get('uc_addresses_use_default_billing', TRUE)) {
+      $flags['billing'] = t('Default billing address');
+    }
+    if ($address->isDefault('shipping') && variable_get('uc_addresses_use_default_shipping', TRUE)) {
+      $flags['shipping'] = t('Default shipping address');
+    }
+    if (count($flags) > 0) {
+      $vars['label'] = implode(' <span class="separator uc-addresses-separator">|</span> ', $flags);
+    }
+  }
+
+  // CSS classes.
   $vars['classes_array'] = array();
-  if (isset($vars['default_shipping']) && $vars['default_shipping']) {
-    $vars['classes_array'][] = 'addresses-default-address';
-    $vars['classes_array'][] = 'addresses-default-shipping-address';
+  if ($address->isDefault('billing')) {
+    $vars['classes_array']['default'] = 'uc-addresses-default-address';
+    $vars['classes_array']['default_billing'] = 'uc-addresses-default-billing-address';
   }
-  if (isset($vars['default_billing']) && $vars['default_billing']) {
-    $vars['classes_array'][] = 'addresses-default-address';
-    $vars['classes_array'][] = 'addresses-default-billing-address';
+  if ($address->isDefault('shipping')) {
+    $vars['classes_array']['default'] = 'uc-addresses-default-address';
+    $vars['classes_array']['default_shipping'] = 'uc-addresses-default-shipping-address';
   }
   $vars['classes'] = implode(' ', $vars['classes_array']);
+}
+
+/**
+ * Renders a link to an address if the user has access to
+ * the given operation of the address.
+ *
+ * @param UcAddressesAddress $address
+ *   An instance of UcAddressesAddress.
+ * @param string $op
+ *   The type of link to render: 'view', 'edit' or 'delete'.
+ * @param array $options
+ *   (optional) A list of options to pass to l().
+ *
+ * @return string
+ *   The rendered link or an empty string if the user has no access.
+ *
+ * @todo Maybe move this to module file?
+ * @todo Good for views address links too?
+ */
+function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = array()) {
+  $address_user = user_load($address->getUserId());
+  $uri = $address->uri();
+  switch ($op) {
+    case 'view':
+      if (!UcAddressesPermissions::canViewAddress($address_user, $address)) {
+        return '';
+      }
+      $title = t('View address');
+      $path = $uri['path'];
+      break;
+    case 'edit':
+      if (!UcAddressesPermissions::canEditAddress($address_user, $address)) {
+        return '';
+      }
+      $title = t('Edit address');
+      $path = $uri['path'] . '/edit';
+      break;
+    case 'delete':
+      if (!UcAddressesPermissions::canDeleteAddress($address_user, $address)) {
+        return '';
+      }
+      $title = t('Delete address');
+      $path = $uri['path'] . '/delete';
+      break;
+  }
+
+  // Add CSS classes to the link.
+  $classes = array(
+    'address-link',
+    $op . '-address-link',
+  );
+  if (!isset($options['attributes']['class'])) {
+    $options['attributes']['class'] = array();
+  }
+  $options['attributes']['class'] = array_merge($options['attributes']['class'], $classes);
+
+  return l($title, $path, $options);
 }
 
 // -----------------------------------------------------------------------------

@@ -374,3 +374,22 @@ function uc_addresses_views_data() {
 
   return $data;
 }
+
+/**
+ * Implements hook_views_plugins().
+ */
+function uc_addresses_views_plugins() {
+  return array(
+    'row' => array(
+      'uc_addresses' => array(
+        'title' => t('Ubercart Addresses address'),
+        'help' => t('Display the address with standard address view.'),
+        'handler' => 'uc_addresses_views_plugin_row_address_view',
+        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+        'base' => array('uc_addresses'), // only works with 'uc_addresses' as base.
+        'uses options' => TRUE,
+        'type' => 'normal',
+      ),
+    ),
+  );
+}

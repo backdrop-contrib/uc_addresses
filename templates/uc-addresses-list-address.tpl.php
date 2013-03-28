@@ -4,6 +4,7 @@
  * Displays a single address.
  *
  * Available variables:
+ * - $label: A string that can indicate if the address is a default address.
  * - $fields: An array of field values to display. Each $field in $fields can contain:
  *   - $title: The field's label.
  *   - $data: The field's value.
@@ -25,10 +26,13 @@
  * Other variables:
  * - $address: The address object, instance of UcAddressesAddress.
  * - $options: An array of options for how the variables should be set:
+ *   - $view_link: if the view link may be printed.
  *   - $edit_link: if the edit link may be printed.
  *   - $delete_link: if the delete link may be printed.
  *   - $destination: if set, the edit and delete links will be outputted with
  *     ?destination=...
+ *   - $default_flags: if the "default address" label may be displayed.
+ *   - $context: the context in which the address is displayed.
  * - $classes_array: Same as $classes, but then listed in an array instead of a string.
  *
  * @see template_preprocess_uc_addresses_list_address()
@@ -37,6 +41,9 @@
  * @ingroup themeable
  */
 ?>
+<?php if ($label): ?>
+  <h3><?php print $label; ?></h3>
+<?php endif; ?>
 <table class="list-address <?php print $classes; ?>">
   <tbody>
     <?php if (is_array($fields) && count($fields) > 0): ?>

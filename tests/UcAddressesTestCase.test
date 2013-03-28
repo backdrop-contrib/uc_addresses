@@ -513,4 +513,40 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
     // Save all addresses.
     $addressBook->save();
   }
+
+  // -----------------------------------------------------------------------------
+  // ASSERTS
+  // -----------------------------------------------------------------------------
+
+  /**
+   * Pass if an address label is found on the page.
+   *
+   * @param UcAddressesAddress $address
+   *   The address to find on the page.
+   * @param string $message
+   *   Message to display.
+   *
+   * @return
+   *   TRUE if the assertion succeeded, FALSE otherwise.
+   */
+  protected function assertAddressLabel(UcAddressesAddress $address, $message = '') {
+    $message = ($message ?  $message : t('Address %id found.', array('%id' => $address->getId())));
+    $this->assertRaw(uc_addresses_format_address($address), $message, 'uc_addresses');
+  }
+
+  /**
+   * Pass if an address label is NOT found on the page.
+   *
+   * @param UcAddressesAddress $address
+   *   The address that should NOT be found on the page.
+   * @param string $message
+   *   Message to display.
+   *
+   * @return
+   *   TRUE if the assertion succeeded, FALSE otherwise.
+   */
+  protected function assertNoAddressLabel(UcAddressesAddress $address, $message = '') {
+    $message = ($message ?  $message : t('Address %id found.', array('%id' => $address->getId())));
+    $this->assertNoRaw(uc_addresses_format_address($address), $message, 'uc_addresses');
+  }
 }

@@ -28,6 +28,7 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   to user and uc_order.
 - Issue #1927258 by MegaChriz: fixed bug where selecting an address at
   checkout leaded to checkbox fields always being checked.
+- Issue #1942748 by MegaChriz: added Views address row style plugin.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

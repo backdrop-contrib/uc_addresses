@@ -270,6 +270,99 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
   }
 
   /**
+   * Tests if the row plugin works as expected.
+   */
+  function testAddressRowStyle() {
+    // Setup View.
+    $view = $this->createAddressRowStyleView();
+
+    // Test Views page for each type of user.
+    foreach ($this->accounts as $account) {
+      $this->drupalLogin($account);
+      $addressBook = UcAddressesAddressBook::get($account->uid);
+      $default_address = $addressBook->getDefaultAddress();
+      $other_address = $addressBook->getAddressByName($account->uid . '_other');
+
+      // Go to Views page with the user's default address.
+      $this->drupalGet('uc_addresses/address-row-style/' . $default_address->getId());
+      $this->assertAddressLabel($default_address);
+      // Assert that the "default" label is presented.
+      $this->assertText(t('Default billing address'));
+      // Assert view, edit and delete links.
+      if ($account->uc_addresses_permissions['view_own_def']) {
+        $this->assertLink(t('View address'));
+      }
+      else {
+        $this->assertNoLink(t('View address'));
+      }
+      if ($account->uc_addresses_permissions['edit_own']) {
+        $this->assertLink(t('Edit address'));
+      }
+      else {
+        $this->assertNoLink(t('Edit address'));
+      }
+      $this->assertNoLink(t('Delete address'));
+
+      // Go to Views page with the user's other address.
+      $this->drupalGet('uc_addresses/address-row-style/' . $other_address->getId());
+      $this->assertAddressLabel($other_address);
+      // Assert that the "default" label is NOT presented.
+      $this->assertNoText(t('Default billing address'));
+      // Assert view, edit and delete links.
+      if ($account->uc_addresses_permissions['view_own']) {
+        $this->assertLink(t('View address'));
+      }
+      else {
+        $this->assertNoLink(t('View address'));
+      }
+      if ($account->uc_addresses_permissions['edit_own']) {
+        $this->assertLink(t('Edit address'));
+      }
+      else {
+        $this->assertNoLink(t('Edit address'));
+      }
+      if ($account->uc_addresses_permissions['delete_own']) {
+        $this->assertLink(t('Delete address'));
+      }
+      else {
+        $this->assertNoLink(t('Delete address'));
+      }
+    }
+
+    // Login as an user that may view, edit and delete all addresses.
+    $account = $this->accounts['adminAll'];
+    $this->drupalLogin($account);
+    $addressBook = UcAddressesAddressBook::get($account->uid);
+    $default_address = $addressBook->getDefaultAddress();
+    $other_address = $addressBook->getAddressByName($account->uid . '_other');
+
+    // Turn off all options of the address row style.
+    $display = $view->display['default'];
+    $display->display_options['row_options']['view_link'] = 0;
+    $display->display_options['row_options']['edit_link'] = 0;
+    $display->display_options['row_options']['delete_link'] = 0;
+    $display->display_options['row_options']['default_flags'] = 0;
+    // Save View.
+    $view->save();
+
+    // Go to Views page with the user's default address again and
+    // ensure various elements are gone now.
+    $this->drupalGet('uc_addresses/address-row-style/' . $default_address->getId());
+    $this->assertAddressLabel($default_address);
+    $this->assertNoText(t('Default billing address'));
+    $this->assertNoLink(t('View address'));
+    $this->assertNoLink(t('Edit address'));
+    $this->assertNoLink(t('Delete address'));
+    // Do the same for the user's other address.
+    $this->drupalGet('uc_addresses/address-row-style/' . $other_address->getId());
+    $this->assertAddressLabel($other_address);
+    $this->assertNoText(t('Default billing address'));
+    $this->assertNoLink(t('View address'));
+    $this->assertNoLink(t('Edit address'));
+    $this->assertNoLink(t('Delete address'));
+  }
+
+  /**
    * Creates a View for access filters test.
    *
    * @return object
@@ -401,6 +494,59 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     $handler = $view->new_display('page', 'Page', 'page_1');
     $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
     $handler->display->display_options['path'] = 'uc_addresses/action-links';
+
+    // Save View.
+    $view->save();
+
+    return $view;
+  }
+
+  /**
+   * Creates a View for address row style View.
+   */
+  public function createAddressRowStyleView() {
+    $view = new view();
+    $view->name = 'uc_addresses_address_row_style';
+    $view->description = '';
+    $view->tag = 'default';
+    $view->base_table = 'uc_addresses';
+    $view->human_name = 'uc_addresses_address_row_style';
+    $view->core = 7;
+    $view->api_version = '3.0';
+    $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+    /* Display: Master */
+    $handler = $view->new_display('default', 'Master', 'default');
+    $handler->display->display_options['use_more_always'] = FALSE;
+    $handler->display->display_options['access']['type'] = 'none';
+    $handler->display->display_options['cache']['type'] = 'none';
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['exposed_form']['type'] = 'basic';
+    $handler->display->display_options['pager']['type'] = 'none';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['style_plugin'] = 'default';
+    $handler->display->display_options['row_plugin'] = 'uc_addresses';
+    $handler->display->display_options['row_options']['view_link'] = 1;
+    $handler->display->display_options['row_options']['edit_link'] = 1;
+    $handler->display->display_options['row_options']['delete_link'] = 1;
+    $handler->display->display_options['row_options']['default_flags'] = 1;
+    /* Field: Ubercart Addresses: Address ID */
+    $handler->display->display_options['fields']['aid']['id'] = 'aid';
+    $handler->display->display_options['fields']['aid']['table'] = 'uc_addresses';
+    $handler->display->display_options['fields']['aid']['field'] = 'aid';
+    /* Contextual filter: Ubercart Addresses: Address ID */
+    $handler->display->display_options['arguments']['aid']['id'] = 'aid';
+    $handler->display->display_options['arguments']['aid']['table'] = 'uc_addresses';
+    $handler->display->display_options['arguments']['aid']['field'] = 'aid';
+    $handler->display->display_options['arguments']['aid']['default_argument_type'] = 'fixed';
+    $handler->display->display_options['arguments']['aid']['summary']['number_of_records'] = '0';
+    $handler->display->display_options['arguments']['aid']['summary']['format'] = 'default_summary';
+    $handler->display->display_options['arguments']['aid']['summary_options']['items_per_page'] = '25';
+
+    /* Display: Page */
+    $handler = $view->new_display('page', 'Page', 'page');
+    $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+    $handler->display->display_options['path'] = 'uc_addresses/address-row-style/%';
 
     // Save View.
     $view->save();
