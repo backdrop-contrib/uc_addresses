@@ -391,5 +391,28 @@ function uc_addresses_views_plugins() {
         'type' => 'normal',
       ),
     ),
+    'access' => array(
+      'uc_addresses_views_access' => array(
+        'title' => t('Ubercart Addresses Views Access'),
+        'help' => t('Check for address access based on a user ID or address ID argument.'),
+        'handler' => 'uc_addresses_views_access',
+        'uses options' => TRUE,
+        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+      ),
+    ),
+    'argument validator' => array(
+      'uc_addresses_address_access' => array(
+        'title' => t('Address access'),
+        'parent' => 'views_plugin_argument_validate',
+        'handler' => 'uc_addresses_views_plugin_argument_address_access',
+        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+      ),
+      'uc_addresses_user_address_access' => array(
+        'title' => t('User: address access'),
+        'parent' => 'views_plugin_argument_validate_user',
+        'handler' => 'uc_addresses_views_plugin_argument_user_address_access',
+        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+      ),
+    ),
   );
 }

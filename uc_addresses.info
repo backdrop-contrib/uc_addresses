@@ -27,6 +27,9 @@ files[] = views/uc_addresses_handler_field_uc_addresses_link.inc
 files[] = views/uc_addresses_handler_field_uc_addresses_link_edit.inc
 files[] = views/uc_addresses_handler_field_uc_addresses_link_delete.inc
 files[] = views/uc_addresses_handler_filter_access.inc
+files[] = views/uc_addresses_views_access.inc
+files[] = views/uc_addresses_views_plugin_argument_address_access.inc
+files[] = views/uc_addresses_views_plugin_argument_user_address_access.inc
 files[] = views/uc_addresses_views_plugin_row_address_view.inc
 
 ; Test cases
