@@ -946,4 +946,67 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     return $view;
   }
+
+  /**
+   * Tests if the default view works as expected.
+   */
+  public function testDefaultView() {
+    // Enable the default view.
+    $view = views_get_view('uc_addresses_address_book');
+    $view->disabled = FALSE;
+    $view->save();
+
+    // Get addresses for basic user.
+    $other_user_address_default = UcAddressesAddressBook::get($this->basicUser->uid)->getDefaultAddress();
+    $other_user_address_other = UcAddressesAddressBook::get($this->basicUser->uid)->getAddressByName($this->basicUser->uid . '_other');
+
+    foreach ($this->accounts as $account) {
+      $this->drupalLogin($account);
+      $addressBook = UcAddressesAddressBook::get($account->uid);
+      $default_address = $addressBook->getDefaultAddress();
+      $other_address = $addressBook->getAddressByName($account->uid . '_other');
+
+      // Test if the user can view his/her own address book if he/she
+      // has access.
+      $this->viewAddressBook($account, $account->uc_addresses_permissions['view_own_def']);
+      // Test if the user's default address is displayed when the user
+      // may view his/her own default addresses.
+      if ($account->uc_addresses_permissions['view_own_def']) {
+        $this->assertAddressLabel($default_address);
+        // Ensure the View is used to display the address book.
+        $this->assertRaw('view-uc-addresses-address-book');
+      }
+      else {
+        $this->assertNoAddressLabel($default_address);
+      }
+      // Test if the user's other address is displayed when the user
+      // may view all of his/her own addresses.
+      if ($account->uc_addresses_permissions['view_own']) {
+        $this->assertAddressLabel($other_address);
+      }
+      else {
+        $this->assertNoAddressLabel($other_address);
+      }
+
+      // Test if the user can view other address books if he/she is allowed
+      // to view them.
+      $this->viewAddressBook($this->basicUser, $account->uc_addresses_permissions['view_all_def']);
+      // Test if the other user's default address is displayed when
+      // the user may view all default addresses.
+      if ($account->uc_addresses_permissions['view_all_def']) {
+        $this->assertAddressLabel($other_user_address_default);
+      }
+      else {
+        $this->assertNoAddressLabel($other_user_address_default);
+      }
+      // Test if the other user's other address is displayed when
+      // the user may view all addresses.
+      if ($account->uc_addresses_permissions['view_all']) {
+        $this->assertAddressLabel($other_user_address_other);
+      }
+      else {
+        $this->assertNoAddressLabel($other_user_address_other);
+      }
+    }
+  }
 }

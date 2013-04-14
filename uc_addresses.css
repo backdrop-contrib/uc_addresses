@@ -31,7 +31,12 @@
   width: 48.5%;
 }
 
-.address-book .default-addresses li.address-item {
+.view-uc-addresses-address-book td.address-item {
+  vertical-align: top;
+}
+
+.address-book .default-addresses li.address-item .list-address-wrapper,
+.view-uc-addresses-address-book td.address-item .list-address-wrapper {
   background: #FFFFFF;
   border: 1px solid #CCCCCC;
   padding: 10px 13px;
@@ -58,6 +63,11 @@
 /* @group Single address */
 .list-address {
   width: 20em;
+  border: 0px;
+}
+
+.list-address td {
+  border: 0px;
 }
 
 .list-address .title-col {

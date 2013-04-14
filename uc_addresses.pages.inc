@@ -207,13 +207,13 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
   if ($vars['options']['default_flags']) {
     $flags = array();
     if ($address->isDefault('billing') && variable_get('uc_addresses_use_default_billing', TRUE)) {
-      $flags['billing'] = t('Default billing address');
+      $flags['billing'] = '<span class="uc-addresses-default-address-label uc-addresses-default-billing-address-label">' . t('Default billing address') . '</span>';
     }
     if ($address->isDefault('shipping') && variable_get('uc_addresses_use_default_shipping', TRUE)) {
-      $flags['shipping'] = t('Default shipping address');
+      $flags['shipping'] = '<span class="uc-addresses-default-address-label uc-addresses-default-shipping-address-label">' . t('Default shipping address') . '</span>';
     }
     if (count($flags) > 0) {
-      $vars['label'] = implode(' <span class="separator uc-addresses-separator">|</span> ', $flags);
+      $vars['label'] = implode(' <span class="separator uc-addresses-separator"><br /></span> ', $flags);
     }
   }
 
