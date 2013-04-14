@@ -32,6 +32,7 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1942746 by MegaChriz: added Views display access plugin and Views
   argument validator plugins for addresses.
 - Issue #1433034 by MegaChriz: added default View for the address book page.
+- Issue #1961590 by MegaChriz: fixed "empty" address format.
 
 Ubercart Addresses 7.x-1.0-alpha1, 2012-10-11
 ------------------------------

@@ -97,6 +97,18 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
     $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
     $country_id = (isset($form_values['country'])) ? $form_values['country'] : $this->getAddress()->getField('country');
 
+    if (!empty($country_id)) {
+      // Check if country exists.
+      $result = db_select('uc_countries')
+        ->fields('uc_countries', array('country_id'))
+        ->condition('country_id', $country_id)
+        ->execute()
+        ->fetchField();
+      if (!$result) {
+        $country_id = uc_store_default_country();
+      }
+    }
+
     if (empty($country_id)) {
       $country_id = uc_store_default_country();
     }
@@ -311,7 +323,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
    * @return int
    */
   public function getDefaultValue() {
-    return variable_get('uc_store_country', 840);
+    return uc_store_default_country();
   }
 
   /**
@@ -400,8 +412,8 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
     }
 
     $result = db_select('uc_countries')
-      ->condition('country_id', $country_id)
       ->fields('uc_countries')
+      ->condition('country_id', $country_id)
       ->execute();
 
     if ($country = $result->fetch()) {

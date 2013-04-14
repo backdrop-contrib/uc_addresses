@@ -1826,26 +1826,25 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
 }
 
 /**
- * Returns address format for specific country
+ * Returns address format for specific country.
  *
  * First is checked if there is an Ubercart Addresses specific
  * address format. This country format can be set at
- * admin/store/settings/countries/edit/uc_addresses_formats
+ * admin/store/settings/countries/uc_addresses_formats
  *
  * When there is no Ubercart Addresses address format found, the
  * address format defined by Ubercart core will be taken and this
  * format will be converted to an Ubercart Addresses address format
  * before it's returned.
  *
- * If there is also no Ubercart core address format found, an empty
- * string will be returned.
+ * If there is also no Ubercart core address format found, a default
+ * address format will be returned.
  *
  * @param int $country_id
- *   The ID of the country to retrieve the address format for
+ *   The ID of the country to retrieve the address format for.
  *
  * @return string
- *
- * @todo Don't return an empty string!
+ *   An address format consisting of tokens.
  */
 function uc_addresses_get_address_format($country_id) {
   $formats = &drupal_static(__FUNCTION__, array());
@@ -1866,7 +1865,8 @@ function uc_addresses_get_address_format($country_id) {
     $formats[$country_id] = $format;
     return $format;
   }
-  return '';
+  // If nothing is returned by now, return a default address format.
+  return "[uc_addresses:company]\r\n[uc_addresses:first_name] [uc_addresses:last_name]\r\n[uc_addresses:street1]\r\n[uc_addresses:street2]\r\n[uc_addresses:city], [uc_addresses:zone:zone_code] [uc_addresses:postal_code]\r\n[uc_addresses:country:country_name_if]";
 }
 
 /**
