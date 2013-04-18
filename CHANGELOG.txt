@@ -1,4 +1,4 @@
-Ubercart Addresses 7.x-1.x, xxxx-xx-xx
+Ubercart Addresses 7.x-1.0-alpha2, 2012-04-18
 ------------------------------
 - Issue #1829348 by MegaChriz: sort countries list after translation.
 - Issue #1843562 by MegaChriz: respect Ubercart's "same address for billing
