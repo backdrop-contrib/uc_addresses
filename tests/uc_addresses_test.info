@@ -15,6 +15,7 @@ dependencies[] = uc_product
 dependencies[] = uc_payment
 dependencies[] = uc_payment_pack
 dependencies[] = uc_addresses
+dependencies[] = feeds (>7.x-2.0-alpha8)
 core = 7.x
 files[] = uc_addresses_test.module
 hidden = TRUE
