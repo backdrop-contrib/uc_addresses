@@ -24,150 +24,191 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
   }
 
   /**
-   * Test the address book API.
+   * Tests if addresses can be added, saved and deleted.
    */
-  public function testAddressBookApi() {
+  public function testAddressBookCrud() {
     // First, get the address book of the admin user.
-    $addressBook = UcAddressesAddressBook::get($this->adminUser->uid);
-    // Ensure we have the right address book in front of us!
-    $this->assertEqual($addressBook->getUserId(), $this->adminUser->uid, t('Address book is of user %uid', array('%uid' => $this->adminUser->uid)));
+    $addressBook = $this->UcAddressesGetAddressBook($this->adminUser->uid);
 
-    // -----------------------------
-    // Test if addresses can be added, saved and deleted.
-    // -----------------------------
-    // Add a new address
-    $address = $addressBook->addAddress();
-    // Ensure the address book has exactly one address in it's registry.
-    $this->assertEqual(count($addressBook->getAddresses()), 1, t('The address book contains exactly one address.'));
+    // Add a new address.
+    $address1 = $addressBook->addAddress();
+    // Ensure the address book has exactly one address in its registry.
+    $this->assertEqual(count($addressBook->getAddresses()), 1, 'The address book contains exactly one address.');
     // Try to delete the address again and test again how many addresses the address book contains (should be 0).
-    $address->delete();
-    $this->assertEqual(count($addressBook->getAddresses()), 0, t('The address book contains no addresses.'));
+    $address1->delete();
+    $this->assertEqual(count($addressBook->getAddresses()), 0, 'The address book contains no addresses.');
 
     // Add a new address and ensure it is new.
-    $address = $addressBook->addAddress();
-    $this->assertTrue($address->isNew(), t('The address is new.'));
+    $address2 = $addressBook->addAddress();
+    $this->assertTrue($address2->isNew(), 'The address is new.');
 
-    // Fill the address (all field values should be present)
+    // Fill the address (all field values should be present).
     $values = self::getEditAddressValues();
-    $address->setMultipleFields($values['values'], TRUE);
+    $address2->setMultipleFields($values['values'], TRUE);
 
     // Save all addresses in the address book and ensure the address is no longer new (thus has a definitive address ID).
     $addressBook->save();
-    $this->assertFalse($address->isNew(), t('The address is no longer new.'));
-    // Check if the address exists in the database
-    $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), t('The address is correctly saved to the database.'));
-
-    // Set the address as the default billing address.
-    $addressBook->setAddressAsDefault($address, 'billing');
-    $addressBook->save();
-    // Ensure that the address is the default billing address.
-    $default_billing_aid = db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = :default_billing", array(':default_billing' => 1))->fetchField();
-    $this->assertEqual($address->getId(), $default_billing_aid, t('The address is the default billing address.'));
+    $this->assertFalse($address2->isNew(), 'The address is no longer new.');
+    // Check if the address exists in the database.
+    $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), 'The address is correctly saved to the database.');
 
     // Reset the address book.
     $addressBook->reset();
 
-    // Try to get the address for the user
-    $address2 = $addressBook->getAddressById($address->getId());
+    // Try to get the address for the user.
+    $address2_2 = $addressBook->getAddressById($address2->getId());
     // Ensure these two addresses have the same ID.
-    $this->assertEqual($address2->getId(), $address->getId(), t('Address %aid succesfully loaded from the database.', array('%aid' => $address->getId())));
+    $this->assertEqual($address2_2->getId(), $address2->getId(), format_string('Address %aid succesfully loaded from the database.', array('%aid' => $address2->getId())));
 
     // Reset the address book again.
     $addressBook->reset();
 
-    // Try to delete the address (should not be possible, because address should be a default address).
-    $this->assertFalse($addressBook->deleteAddressById($address->getId()), t('Address %aid is not deleted.', array('%aid' => $address->getId())));
+    // Try to delete the address.
+    $this->assertTrue($addressBook->deleteAddressById($address2->getId()), format_string('Address %aid is deleted.', array('%aid' => $address2->getId())));
+    // Ensure the database table is empty now.
+    $number_of_addresses = db_query("SELECT COUNT(aid) AS number_of_addresses FROM {uc_addresses}")->fetchField();
+    $this->assertEqual($number_of_addresses, 0, 'There are no addresses in the uc_addresses table.');
+  }
+
+  /**
+   * Tests unique address names.
+   */
+  public function testAddressNames() {
+    $addressBook = $this->UcAddressesGetAddressBook($this->adminUser->uid);
+
+    // Add a new address and give it a name.
+    $address1 = $addressBook->addAddress();
+    $addressBook->setAddressAsDefault($address1, 'billing');
+    $name = self::randomName(12);
+    $address1->setName($name);
+    $address1->save();
+    // Ensure the address has the name assigned.
+    $this->assertEqual($address1->getName(), $name, format_string('Address %aid got the name %name.', array('%aid' => $address1->getId(), '%name' => $name)));
+
+    // Reset the address book.
+    $addressBook->reset();
+
+    // Add a new address and try to give it the same name as address1.
+    $address2 = $addressBook->addAddress();
+    $address2->setName($name);
+    // Ensure address2 has NOT the name assigned.
+    $this->assertNotEqual($address2->getName(), $name, format_string('Address %aid does not got the name %name.', array('%aid' => $address2->getId(), '%name' => $name)));
+
+    // Try to delete address1 (should not be possible, because address should be a default address).
+    $this->assertFalse($addressBook->deleteAddressByName($name), format_string('Address %name is not deleted.', array('%name' => $name)));
+    // Make address2 the default and try again.
+    $addressBook->setAddressAsDefault($address2, 'billing');
+    $this->assertTrue($addressBook->deleteAddressByName($name), format_string('Address %name is deleted.', array('%name' => $name)));
+  }
+
+  /**
+   * Tests default addresses.
+   */
+  public function testDefaultAddresses() {
+    $addressBook = $this->UcAddressesGetAddressBook($this->adminUser->uid);
+
+    // Create a new address and mark it as default billing.
+    $address1 = $addressBook->addAddress();
+    $addressBook->setAddressAsDefault($address1, 'billing');
+    $address1->save();
+    // Ensure that the address is the default billing address.
+    $default_billing_aid = db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = :default_billing", array(':default_billing' => 1))->fetchField();
+    $this->assertEqual($address1->getId(), $default_billing_aid, 'The address is the default billing address.');
+
+    // Reset the address book.
+    $addressBook->reset();
+
+    // Try to delete address1. This should not be possible, because
+    // deleting default addresses is not allowed.
+    $this->assertFalse($addressBook->deleteAddressById($address1->getId()), format_string('Address %aid is not deleted.', array('%aid' => $address1->getId())));
     // Create a new address and delete the first one.
     $address2 = $addressBook->addAddress();
     $addressBook->setAddressAsDefault($address2, 'billing');
-    $this->assertTrue($addressBook->deleteAddressById($address->getId()), t('Address %aid is deleted.', array('%aid' => $address->getId())));
+    $this->assertTrue($addressBook->deleteAddressById($address1->getId()), format_string('Address %aid is deleted.', array('%aid' => $address1->getId())));
     // Ensure the database table is empty now ($address2 is not yet saved).
     $number_of_addresses = db_query("SELECT COUNT(aid) AS number_of_addresses FROM {uc_addresses}")->fetchField();
-    $this->assertEqual($number_of_addresses, 0, t('There no addresses in the uc_addresses table'));
+    $this->assertEqual($number_of_addresses, 0, 'There are no addresses in the uc_addresses table.');
 
-    // -----------------------------
-    // Test unique address names
-    // -----------------------------
-    // Give address2 a name and save it.
-    $name = self::randomName(12);
-    $address2->setName($name);
-    $addressBook->save();
-    // Ensure address2 has the name assigned.
-    $this->assertEqual($address2->getName(), $name, t('Address %aid got the name %name', array('%aid' => $address2->getId(), '%name' => $name)));
+    // Now save $address2 and ensure that this address is the default
+    // billing address in the database.
+    $address2->save();
+    $default_billing_aid = db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = :default_billing", array(':default_billing' => 1))->fetchField();
+    $this->assertEqual($address2->getId(), $default_billing_aid, 'The address is the default billing address.');
+  }
 
-    // Reset the address book again.
-    $addressBook->reset();
+  /**
+   * Tests the address book's performance hint setting.
+   */
+  public function testPerformanceHintSetting() {
+    $addressBook = $this->UcAddressesGetAddressBook($this->adminUser->uid);
 
-    // Add a new address and try to give it the same name as address2.
-    $address3 = $addressBook->addAddress();
-    $address3->setName($name);
-    // Ensure address3 has NOT the name assigned.
-    $this->assertNotEqual($address3->getName(), $name, t('Address %aid does not got the name %name', array('%aid' => $address3->getId(), '%name' => $name)));
-
-    // Try to delete address2 (should not be possible, because address should be a default address).
-    $this->assertFalse($addressBook->deleteAddressByName($name), t('Address %name is not deleted.', array('%name' => $name)));
-    // Make address3 the default and try again.
-    $addressBook->setAddressAsDefault($address3, 'billing');
-    $this->assertTrue($addressBook->deleteAddressByName($name), t('Address %name is deleted.', array('%name' => $name)));
-
-    // -----------------------------
-    // Test performance hint setting
-    // -----------------------------
-    // Add three other addresses and save them all.
+    // Add three addresses and save them all.
     for ($i = 0; $i < 3; $i++) {
       $address = $addressBook->addAddress();
       $values = self::getEditAddressValues();
       $address->setMultipleFields($values['values'], TRUE);
     }
-    $values = self::getEditAddressValues();
-    $address3->setMultipleFields($values['values'], TRUE);
     $addressBook->save();
     // Get addresses for later use.
     $addresses = $addressBook->getAddresses();
-    // Make sure we have four addresses
-    $this->assertEqual(count($addresses), 4, t('The address book contains 4 addresses'));
+    // Make sure we have three addresses.
+    $this->assertEqual(count($addresses), 3, 'The address book contains 3 addresses.');
 
-    // Reset the address book again.
+    // Reset the address book.
     $addressBook->reset();
 
     // Ensure the performance hint is set to load a single address.
     $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ONE);
-    $this->assertEqual($addressBook->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ONE, t('Performance hint is set to %setting', array('%setting' => 'PERF_HINT_LOAD_ONE')));
-    // Load address3
-    $addressBook->getAddressById($address3->getId());
-    // Check if the only address that exists now is $address3.
+    $this->assertEqual($addressBook->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ONE, 'Performance hint is set to PERF_HINT_LOAD_ONE.');
+    // Load the first address.
+    $address1 = reset($addresses);
+    $addressBook->getAddressById($address1->getId());
+    // Check if the only address that is loaded now is $address1.
     foreach ($addresses as $address) {
-      if ($address->getId() == $address3->getId()) {
+      if ($address->getId() == $address1->getId()) {
         // The address should be loaded.
-        $this->assertTrue($addressBook->addressExists($address->getId()), t('Address %aid is loaded.', array('%aid' => $address->getId())));
+        $this->assertTrue($addressBook->addressExists($address->getId()), format_string('Address %aid is loaded.', array('%aid' => $address->getId())));
       }
       else {
         // The address should not be loaded.
-        $this->assertFalse($addressBook->addressExists($address->getId()), t('Address %aid is not loaded.', array('%aid' => $address->getId())));
+        $this->assertFalse($addressBook->addressExists($address->getId()), format_string('Address %aid is not loaded.', array('%aid' => $address->getId())));
       }
     }
 
     // Reset the address book again.
     $addressBook->reset();
 
-    // Ensure the performance hint is set to load a all address.
+    // Ensure the performance hint is set to load all address.
     $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
-    $this->assertEqual($addressBook->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ALL, t('Performance hint is set to %setting', array('%setting' => 'PERF_HINT_LOAD_ALL')));
-    // Load address3
-    $addressBook->getAddressById($address3->getId());
+    $this->assertEqual($addressBook->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ALL, 'Performance hint is set to PERF_HINT_LOAD_ALL.');
+    // Load address1.
+    $addressBook->getAddressById($address1->getId());
     // Check if all address are loaded.
     foreach ($addresses as $address) {
       // Each address should be loaded.
-      $this->assertTrue($addressBook->addressExists($address->getId()), t('Address %aid is loaded.', array('%aid' => $address->getId())));
+      $this->assertTrue($addressBook->addressExists($address->getId()), format_string('Address %aid is loaded.', array('%aid' => $address->getId())));
     }
     // Set performance hint back to load one.
     $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ONE);
+  }
 
-    // -----------------------------
-    // Test output (__toString())
-    // -----------------------------
-    $this->verbose(theme('uc_addresses_list_address', array('address' => $address)));
-    $this->verbose($address->__toString());
+  /**
+   * Tests if address objects can be converted to a string.
+   */
+  public function testAddressOutput() {
+    $addressBook = $this->UcAddressesGetAddressBook($this->adminUser->uid);
+
+    // Add three addresses.
+    for ($i = 0; $i < 3; $i++) {
+      $address = $addressBook->addAddress();
+      $values = self::getEditAddressValues();
+      $address->setMultipleFields($values['values'], TRUE);
+    }
+    $addresses = $addressBook->getAddresses();
+
+    $address1 = reset($addresses);
+    $this->verbose(theme('uc_addresses_list_address', array('address' => $address1)));
+    $this->verbose($address1->__toString());
     $output = (string) $addressBook;
     $this->verbose($output);
 
@@ -175,32 +216,43 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     foreach ($addresses as $address) {
       $this->doAddressValuesDisplayedTests($address->getRawFieldData(), 'address_view', $output);
     }
+  }
 
-    // -----------------------------
-    // Test across multiple address books.
-    // -----------------------------
-    // Reset the address book.
-    $addressBook->reset();
+  /**
+   * Tests if address loading works as expected across
+   * multiple address books.
+   */
+  public function testMultipleAddressBooks() {
+    // Get address books from two users.
+    $addressBook1 = $this->UcAddressesGetAddressBook($this->adminUser->uid);
+    $addressBook2 = $this->UcAddressesGetAddressBook($this->customer->uid);
 
-    // Create a new address book.
-    $addressBook2 = UcAddressesAddressBook::get($this->customer->uid);
-    // Ensure that address 3 can't be get from addressbook 2.
-    $this->assertFalse($addressBook2->getAddressById($address3->getId()), t('Address %aid does not belong to user %uid.', array('%aid' => $address3->getId(), '%uid' => $addressBook2->getUserId())));
+    // Add an address to the first address book.
+    $address1 = $addressBook1->addAddress();
+    $values = self::getEditAddressValues();
+    $address1->setMultipleFields($values['values'], TRUE);
+    $address1->save();
+
+    // Ensure this address can't be get from address book 2.
+    $this->assertFalse($addressBook2->getAddressById($address1->getId()), format_string('Address %aid does not belong to user %uid.', array('%aid' => $address1->getId(), '%uid' => $addressBook2->getUserId())));
+
+    // Reset the first address book.
+    $addressBook1->reset();
 
     // Ensure addresses are equal when either getAddressById() or loadAddress() is used.
-    $address3_1 = $addressBook->getAddressById($address3->getId());
-    $address3_2 = UcAddressesAddressBook::loadAddress($address3->getId());
-    $this->assertTrue($address3_1 === $address3_2, 'UcAddressesAddressBook::loadAddress() loads exactly the same address as $addressBook->getAddressById().');
+    $address1_1 = $addressBook1->getAddressById($address1->getId());
+    $address1_2 = UcAddressesAddressBook::loadAddress($address1->getId());
+    $this->assertTrue($address1_1 === $address1_2, 'UcAddressesAddressBook::loadAddress() loads exactly the same address as $addressBook->getAddressById().');
 
     // Try to load a non-existent address using the addressBook's getAddressById() method.
-    $this->assertFalse($addressBook->getAddressById(997), t('Address %aid does not exists.', array('%aid' => 997)));
+    $this->assertFalse($addressBook1->getAddressById(997), 'Address 997 does not exists.');
     // Try again, but now using the loadAddress() method.
-    $this->assertFalse(UcAddressesAddressBook::loadAddress(998), t('Address %aid does not exists.', array('%aid' => 998)));
+    $this->assertFalse(UcAddressesAddressBook::loadAddress(998), 'Address 998 does not exists.');
 
     // Set performance hint of address book 1 to load all and ensure that this setting
     // is unchanged in address book 2.
-    $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
-    $this->assertEqual($addressBook2->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ONE, t('Performance hint is set to %setting', array('%setting' => 'PERF_HINT_LOAD_ONE')));
+    $addressBook1->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
+    $this->assertEqual($addressBook2->getPerformanceHint(), UcAddressesAddressBook::PERF_HINT_LOAD_ONE, 'Performance hint is set to PERF_HINT_LOAD_ONE.');
   }
 
   /**
@@ -240,7 +292,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $address = $addressBook->getAddressById($aid);
     if ($address instanceof UcAddressesAddress) {
       // Ensure Canada is used for the address.
-      $this->assertEqual($address->getField('country'), '124', strtr('Canada is used as the default country. (ID = !country_id)', array('!country_id' => $address->getField('country'))));
+      $this->assertEqual($address->getField('country'), '124', format_string('Canada is used as the default country. (ID = !country_id)', array('!country_id' => $address->getField('country'))));
 
       // Output the address for display.
       $this->viewAddress($this->adminUser, $address->getId());

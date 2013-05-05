@@ -450,6 +450,25 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Returns an empty address book to be used in tests.
+   *
+   * @param int $uid
+   *   User ID of the owner of the address book.
+   *
+   * @return UcAddressesAddressBook
+   *   An instance of UcAddressesAddressBook, emptied.
+   */
+  protected function UcAddressesGetAddressBook($uid) {
+    $addressBook = UcAddressesAddressBook::get($uid);
+    // Ensure we have the right address book in front of us!
+    $this->assertEqual($addressBook->getUserId(), $uid, format_string('Address book is of user %uid.', array('%uid' => $uid)));
+    // Clear address book cache to clear up leftover addresses
+    // from previous tests.
+    $addressBook->reset();
+    return $addressBook;
+  }
+
+  /**
    * Creates a single user and registers which permissions this user should get.
    *
    * @param string $name
