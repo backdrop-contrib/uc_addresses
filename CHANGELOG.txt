@@ -1,5 +1,7 @@
 Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 ------------------------------
+- Issue #1974976 by MegaChriz: fixed failing upgrade path from uc_addresses
+  6.x-1.x.
 
 Ubercart Addresses 7.x-1.0-alpha2, 2013-04-18
 ------------------------------

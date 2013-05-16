@@ -175,11 +175,6 @@ function uc_addresses_install() {
  * @todo delete variables explecit
  */
 function uc_addresses_uninstall() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('uc_addresses')
-
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {variable} WHERE name LIKE 'uc_addresses%'") */
   db_delete('variable')
   ->condition('name', 'uc_addresses%', 'LIKE')
   ->execute();
@@ -291,12 +286,24 @@ function uc_addresses_update_6200() {
 
   // Setup default permissions. Authenticated users will automatically
   // be granted with permissions to manage their own addresses.
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array(
+  // Note: the function user_role_grant_permissions() can't be used here
+  // since it is not able to install permissions for disabled modules.
+  // See also http://drupal.org/node/737816
+  $permissions = array(
     'view own addresses',
     'add/edit own addresses',
     'delete own addresses',
-  ));
-  drupal_set_message(t("Ubercart Addresses has new permissions. The authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => t('view own addresses'), '%edit_own' => t('add/edit own addresses'), '%delete_own' => t('delete own addresses'))), 'status');
+  );
+  foreach ($permissions as $name) {
+    db_merge('role_permission')->key(array(
+      'rid' => DRUPAL_AUTHENTICATED_RID,
+      'permission' => $name,
+    ))->fields(array(
+      'module' => 'uc_addresses',
+    ))->execute();
+  }
+
+  return t("Ubercart Addresses has new permissions. The authenticated user automatically was granted the permissions %view_own, %edit_own and %delete_own.", array('%view_own' => t('view own addresses'), '%edit_own' => t('add/edit own addresses'), '%delete_own' => t('delete own addresses')));
 }
 
 /**
@@ -311,17 +318,25 @@ function uc_addresses_update_6200() {
  * Drupal 7 token style.
  */
 function uc_addresses_update_7100() {
+  // Test if the install file of the token module exists.
+  if (!module_load_include('install', 'token')) {
+    throw new Exception(t('The contrib token module is needed to perform the upgrade.'));
+  }
+
+  $count = 0;
   $result = db_select('uc_countries')
     ->condition('version', 0, '>')
     ->fields('uc_countries', array('country_id'))
     ->execute();
   foreach ($result as $country) {
     if ($format = variable_get('uc_addresses_address_format_' . $country->country_id, NULL)) {
-      // Update this format
+      // Update this format.
       $format = uc_addresses_update_token_text($format);
       variable_set('uc_addresses_address_format_' . $country->country_id, $format);
+      $count++;
     }
   }
+  return t('!number address formats have been updated to the Drupal 7 token style.', array('!number' => $count));
 }
 
 /**
@@ -343,4 +358,5 @@ function uc_addresses_update_7101() {
     ->fields(array('weight' => $weight + 1))
     ->condition('name', 'uc_addresses', '=')
     ->execute();
+  return t('The weight of the uc_addresses module has been set to !weight.', array('!weight' => $weight + 1));
 }

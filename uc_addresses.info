@@ -41,6 +41,7 @@ files[] = tests/uc_addresses.entity.test
 files[] = tests/uc_addresses.order.test
 files[] = tests/uc_addresses.register.test
 files[] = tests/uc_addresses.tokens.test
+files[] = tests/uc_addresses.upgrade.test
 files[] = tests/uc_addresses.views.test
 
 ; Additional files with hook implementations
