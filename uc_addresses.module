@@ -392,6 +392,34 @@ function uc_addresses_element_info() {
 }
 
 /**
+ * Implements hook_field_extra_fields().
+ *
+ * Exposes address form field at user register form so the address
+ * form can be moved in the UI at admin/config/people/accounts/fields.
+ *
+ * @return array
+ *   Definition of extra fields.
+ */
+function uc_addresses_field_extra_fields() {
+  $return = array();
+
+  // Only expose the form field if it's enabled in the address settings.
+  if (variable_get('uc_addresses_require_address', TRUE) || variable_get('uc_addresses_require_address_admin', TRUE)) {
+    $return['user']['user'] = array(
+      'form' => array(
+        'uc_addresses' => array(
+          'label' => t('Address'),
+          'description' => t('Ubercart Addresses module address form element on user registration form.'),
+          'weight' => 0,
+        ),
+      ),
+    );
+  }
+
+  return $return;
+}
+
+/**
  * Check address access.
  *
  * Wrapper function for permissions class
