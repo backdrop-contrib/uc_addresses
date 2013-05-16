@@ -467,6 +467,30 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       // Address is saved and no longer 'dirty'.
       $this->clearDirty();
 
+      // If this a default address, ensure no other addresses are marked as
+      // default in the database.
+      if (function_exists('uc_addresses_address_types')) {
+        // During installation the function 'uc_addresses_address_types()'
+        // may not be available yet.
+        $default_types = uc_addresses_address_types();
+      }
+      else {
+        $default_types = array('shipping', 'billing');
+      }
+      foreach ($default_types as $default_type) {
+        if ($this->isDefault($default_type)) {
+          // Mark all addresses of the address owner as non-default except
+          // the current address.
+          db_update('uc_addresses')
+            ->fields(array(
+              'default_' . $default_type => 0,
+            ))
+            ->condition('uid', $address->uid)
+            ->condition('aid', $address->aid, '!=')
+            ->execute();
+        }
+      }
+
       // Notify other modules that an address has been saved
       module_invoke_all('uc_addresses_address_' . $hook, $this);
       entity_get_controller('uc_addresses')->invoke($hook, $this);

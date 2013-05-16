@@ -134,6 +134,19 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $address2->save();
     $default_billing_aid = db_query("SELECT aid FROM {uc_addresses} WHERE default_billing = :default_billing", array(':default_billing' => 1))->fetchField();
     $this->assertEqual($address2->getId(), $default_billing_aid, 'The address is the default billing address.');
+
+    // Create a third address and mark this as default billing as well.
+    $address3 = $addressBook->addAddress();
+    $addressBook->setAddressAsDefault($address3, 'billing');
+    $address3->save();
+
+    // Ensure the user has only one default billing address.
+    $aids = db_select('uc_addresses')
+      ->fields('uc_addresses', array('aid'))
+      ->condition('default_billing', 1)
+      ->execute()
+      ->fetchAll();
+    $this->assertEqual(count($aids), 1, 'The database contains one default billing address.');
   }
 
   /**

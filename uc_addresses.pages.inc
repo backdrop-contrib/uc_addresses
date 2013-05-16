@@ -411,7 +411,7 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses/' . $address->getId() . '/delete';
     }
     elseif ($form_state['clicked_button']['#value']) {
-      $address->getAddressBook()->save();
+      $address->save();
       drupal_set_message(t('The address is saved.'));
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses';
     }

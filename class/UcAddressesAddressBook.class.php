@@ -623,14 +623,15 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Returns a default address
+   * Returns a default address.
    *
    * @param string $type
-   *   The address type to get (shipping, billing)
+   *   The address type to get (shipping, billing).
+   *
    * @access public
    * @return
-   *   UcAddressesAddress if the address is found
-   *   NULL otherwise
+   *   UcAddressesAddress if the address is found.
+   *   NULL otherwise.
    */
   public function getDefaultAddress($type = 'billing') {
     if (isset($this->defaultAddresses[$type])) {
@@ -646,35 +647,39 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Set an address as a default address
+   * Set an address as a default address.
    *
    * @param UcAddressesAddress $address
+   *   The address to set as default.
    * @param string $type
-   *   The address type to set (shipping, billing)
+   *   The address type to set (shipping, billing).
+   *
    * @access public
    * @return boolean
    */
   public function setAddressAsDefault($address, $type = 'billing') {
-    // Reasons to skip out early
+    // Reasons to skip out early.
     if (!$this->isOwned()) {
       // Address is not owned, so it can't be set as default
       // in this stage.
       return FALSE;
     }
-    // Check to make sure this is one of our addresses
+    // Check to make sure this is one of our addresses.
     if ($address->getAddressBook() !== $this) {
       return FALSE;
     }
 
-    if (!$this->allLoaded) {
-      $this->loadAll();
-    }
+    // Make sure the previous default address is loaded.
+    $this->getDefaultAddress($type);
 
+    // Loop through all addresses to make sure no other
+    // addresses are marked as default.
     foreach ($this->addresses as $aid => $addr) {
       if ($address !== $addr && $addr->isDefault($type)) {
         $addr->privSetUcAddressField($type, FALSE);
       }
     }
+    // Set given address as the default.
     $address->privSetUcAddressField($type, TRUE);
     $this->defaultAddresses[$type] = $address;
     return TRUE;
