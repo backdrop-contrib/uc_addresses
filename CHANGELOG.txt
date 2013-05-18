@@ -7,6 +7,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 - Issue #1986732 by MegaChriz: added feature to change the weight of the
   address form element on the user registration page.
 - Issue #1309546 by MegaChriz: added Feeds integration.
+- Issue #1424038 by MegaChriz: added "copy address" feature in order
+  administration section.
 
 Ubercart Addresses 7.x-1.0-alpha2, 2013-04-18
 ------------------------------

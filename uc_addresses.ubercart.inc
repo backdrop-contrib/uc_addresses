@@ -59,12 +59,16 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
   global $user;
 
   if ($type == 'shipping') {
-    $other_pane = 'billing';
     $pane = 'delivery';
+    $other_pane = 'billing';
+    $order_fieldname_prefix = 'delivery';
+    $other_order_fieldname_prefix = 'billing';
   }
   else {
-    $other_pane = 'delivery';
     $pane = 'billing';
+    $other_pane = 'delivery';
+    $order_fieldname_prefix = 'billing';
+    $other_order_fieldname_prefix = 'delivery';
   }
 
   // Source pane for "copy address" checkbox.
@@ -284,12 +288,18 @@ function uc_addresses_order_pane_ship_to($op, $order, &$form = NULL, &$form_stat
  */
 function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$form_state = NULL) {
   if ($type == 'shipping') {
-    $other_pane = 'billing';
-    $pane = 'delivery';
+    $pane = 'ship_to';
+    $other_pane = 'bill_to';
+    $order_fieldname_prefix = 'delivery';
+    $other_order_fieldname_prefix = 'billing';
+    $copy_text = t('Copy billing information');
   }
   else {
-    $other_pane = 'delivery';
-    $pane = 'billing';
+    $pane = 'bill_to';
+    $other_pane = 'ship_to';
+    $order_fieldname_prefix = 'billing';
+    $other_order_fieldname_prefix = 'delivery';
+    $copy_text = t('Copy shipping information');
   }
 
   switch ($op) {
@@ -317,7 +327,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         '#tree' => TRUE,
       );
 
-      // Get address for order if set
+      // Get address for order if set.
       if (isset($order->uc_addresses[$type])) {
         $address = $order->uc_addresses[$type];
       }
@@ -325,7 +335,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         $address = UcAddressesAddress::newAddress();
       }
 
-      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $pane)) {
+      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $order_fieldname_prefix)) {
         $form[$pane]['select_address'] = $select + array(
           '#ajax' => array(
             'callback' => 'uc_addresses_address_render',
@@ -341,22 +351,67 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         );
       }
 
+      // Show copy address button if other pane is enabled.
+      $panes = _uc_order_pane_list('edit');
+      if (in_array('edit', $panes[$other_pane]['show']) && variable_get('uc_order_pane_' . $other_pane . '_show_edit', $panes[$other_pane]['enabled'])) {
+        $form[$pane]['copy'] = array(
+          '#type' => 'button',
+          '#name' => $pane . '_copy',
+          '#value' => $copy_text,
+          '#ajax' => array(
+            'callback' => 'uc_checkout_pane_address_render',
+            'wrapper' => $pane . '-address-pane',
+            'progress' => array(
+              'type' => 'throbber',
+            ),
+          ),
+          '#attributes' => array(
+            'class' => array('rules-switch-button', 'uc-addresses-button', 'uc-addresses-copy-button'),
+            'title' => $copy_text,
+          ),
+        );
+      }
+
       if (isset($form_state['triggering_element'])) {
         $element = &$form_state['triggering_element'];
 
-        if ($element['#name'] == $pane . '[select_address]') {
-          $address_id = $element['#value'];
-          $address_source = UcAddressesAddressBook::get($order->uid)->getAddressById($address_id);
-          if ($address_source instanceof UcAddressesAddress) {
-            $address = $address_source->copyAddress(UcAddressesAddressBook::get(0));
-            $address_data = $address->getRawFieldData();
-            foreach ($address_data as $field => $value) {
-              if (isset($order->{$pane . '_' . $field})) {
-                $form_state['input'][$pane]['address'][$pane . '_' . $field] = $value;
-                $order->{$pane . '_' . $field} = $value;
+        switch ($element['#name']) {
+          case $pane . '[select_address]':
+            // An address is selected.
+            $address_id = $element['#value'];
+            $address_source = UcAddressesAddressBook::get($order->uid)->getAddressById($address_id);
+            if ($address_source instanceof UcAddressesAddress) {
+              $address = $address_source->copyAddress(UcAddressesAddressBook::get(0));
+              $address_data = $address->getRawFieldData();
+              foreach ($address_data as $field => $value) {
+                if (isset($order->{$order_fieldname_prefix . '_' . $field})) {
+                  $form_state['input'][$pane]['address'][$order_fieldname_prefix . '_' . $field] = $value;
+                  $order->{$order_fieldname_prefix . '_' . $field} = $value;
+                }
               }
             }
-          }
+            break;
+          case $pane . '_copy':
+            // Copy over address information from the other address pane
+            // if the other address pane exists.
+            if (isset($form_state['input'][$other_pane])) {
+              foreach ($form_state['input'][$other_pane]['address'] as $source_fieldname => $value) {
+                // Substract prefix from fieldname.
+                $fieldname = substr($source_fieldname, strlen($other_order_fieldname_prefix) + 1);
+                $target_fieldname = $order_fieldname_prefix . '_' . $fieldname;
+                // Copy over value to current address pane if the fieldname is not 'aid'.
+                if ($fieldname != 'aid' && isset($order->$target_fieldname)) {
+                  // Copy.
+                  $value = $form_state['input'][$other_pane]['address'][$source_fieldname];
+                  if ($address->fieldExists($fieldname)) {
+                    $address->setField($fieldname, $value);
+                  }
+                  $order->$target_fieldname = $value;
+                  $form_state['input'][$pane]['address'][$target_fieldname] = $value;
+                }
+              }
+            }
+            break;
         }
 
         // Forget any previous Ajax submissions, as we send new default values.
@@ -370,7 +425,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         '#uc_addresses_context' => 'order_form',
         '#prefix' => '<div id="' . $pane . '-address-pane">',
         '#suffix' => '</div>',
-        '#key_prefix' => $pane,
+        '#key_prefix' => $order_fieldname_prefix,
       );
 /*
       // Form element for debug purposes, displays the address that is taken.
@@ -392,12 +447,12 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       $changes = array();
       foreach ($order_values[$pane]['address'] as $key => $value) {
         // Check if this is an address field
-        if (strpos($key, $pane . '_') !== 0) {
+        if (strpos($key, $order_fieldname_prefix . '_') !== 0) {
           continue;
         }
 
         // Check if the value was changed
-        $fieldname = substr($key, strlen($pane) + 1);
+        $fieldname = substr($key, strlen($order_fieldname_prefix) + 1);
         try {
           if ($address->getField($fieldname) != $value && isset($order->$key)) {
             $changes[$key] = $value;
