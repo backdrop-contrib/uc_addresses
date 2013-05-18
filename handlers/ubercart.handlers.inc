@@ -181,6 +181,50 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
+   * Returns supported mapping targets for Feeds.
+   *
+   * @return array
+   */
+  public function getMappingTargets() {
+    $targets = parent::getMappingTargets();
+
+    // Specify clearer names and descriptions.
+    $targets['zone:zone_name']['name'] = t('Zone name');
+    $targets['zone:zone_code']['name'] = t('Zone code');
+    $targets['zone']['description'] = t('Zone ID as known to Ubercart');
+
+    return $targets;
+  }
+
+  /**
+   * Set a fields value based on the output format.
+   *
+   * @param mixed $value
+   *  The formatted value.
+   * @param string $format
+   *  (optional) The format in which the value exists.
+   *
+   * @see outputValue()
+   */
+  public function mapValue($value, $format = '') {
+    switch ($format) {
+      case 'zone_code':
+      case 'zone_name':
+        // Lookup zone data.
+        $zone_id = db_select('uc_zones', 'uc_zones')
+          ->condition($format, $value)
+          ->fields('uc_zones', array('zone_id'))
+          ->execute()
+          ->fetchField();
+        if ($zone_id) {
+          $value = $zone_id;
+        }
+        break;
+    }
+    parent::mapValue($value, $format);
+  }
+
+  /**
    * Returns an array of output formats for the zone field.
    *
    * @access public
@@ -327,6 +371,123 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
+   * Returns supported mapping targets for Feeds.
+   *
+   * @return array
+   */
+  public function getMappingTargets() {
+    $targets = parent::getMappingTargets();
+    // Formats ending on "if" have no use for Feeds.
+    unset($targets['country:country_name_if']);
+    unset($targets['country:country_code2_if']);
+    unset($targets['country:country_code3_if']);
+
+    // Specify clearer names and descriptions.
+    $targets['country:country_name']['name'] = t('Country name (@language)', array('@language' => 'English'));
+    $targets['country:country_code2']['name'] = t('Country code 2');
+    $targets['country:country_code3']['name'] = t('Country code 3');
+    $targets['country']['description'] = t('Country ID as known to Ubercart');
+    $targets['country:country_name']['description'] = t('The name of the country in English.');
+
+    // Add support for countries in native language.
+    $targets['country:country_name:current'] = array(
+      'name' => t('Country name (current language)'),
+      'description' => t('Name of the country in the current language. Country names are expected to be in the language that is active when importing addresses. For example, if are you viewing the site in Dutch when importing addresses, country names should be in Dutch. If you then switch the site to French, country names are expected to be in French.'),
+    );
+    $languages = language_list();
+    foreach ($languages as $key => $language) {
+      if ($key == 'en') {
+        // English is already handled.
+        continue;
+      }
+      $targets['country:country_name:' . $key] = array(
+        'name' => t('Country name (@language)', array('@language' => $language->name)),
+        'description' => t('The name of the country in @language-native', array('@language-native' => $language->native)),
+      );
+    }
+
+    return $targets;
+  }
+
+  /**
+   * Sets a fields value based on the output format.
+   *
+   * @param mixed $value
+   *   The formatted value.
+   * @param string $format
+   *   (optional) The format in which the value exists.
+   *
+   * @see outputValue()
+   */
+  public function mapValue($value, $format = '') {
+    if (strpos($format, 'country_name:') === 0) {
+      // Country is specified in native or current language.
+      $explode = explode(':', $format);
+      $langcode = $explode[1];
+      if ($langcode == 'current') {
+        // Country is expected to be specified in the current language.
+        global $language;
+        $langcode = $language->language;
+      }
+      // Look through complete country list and find one that matches.
+      $countries = $this->getAllCountries();
+      foreach ($countries as $country) {
+        $translated_country = t($country->country_name, array(), array('langcode' => $langcode));
+        if ($value == $translated_country) {
+          // Country in native language found!
+          return parent::mapValue($country->country_id, $format);
+        }
+      }
+      // No country found. Report error.
+      $message = t('Country %name not found.', array('%name' => $value));
+      if (user_access('administer store')) {
+        $message .= ' ' . t('Check if the country is spelled correctly and if it is installed in the store.');
+      }
+      else {
+        $message .= ' ' . t('Check if the country is spelled correctly or contact the site administrator.');
+      }
+      throw new UcAddressesException($message);
+    }
+
+    switch ($format) {
+      case 'country_code2':
+      case 'country_code2_if':
+        $format = 'country_iso_code_2';
+        break;
+      case 'country_code3':
+      case 'country_code3_if':
+        $format = 'country_iso_code_3';
+        break;
+    }
+    switch ($format) {
+      case 'country_name':
+      case 'country_iso_code_2':
+      case 'country_iso_code_3':
+        // Lookup country data.
+        $country_id = db_select('uc_countries', 'uc_countries')
+          ->condition($format, $value)
+          ->fields('uc_countries', array('country_id'))
+          ->execute()
+          ->fetchField();
+        if ($country_id) {
+          $value = $country_id;
+        }
+        else {
+          $message = t('Country @name not found.', array('@name' => $value));
+          if (user_access('administer store')) {
+            $message .= ' ' . t('Check if the country is spelled correctly and if it is enabled in the store.');
+          }
+          else {
+            $message .= ' ' . t('Check if the country is spelled correctly or contact the site administrator.');
+          }
+          throw new UcAddressesException($message);
+        }
+        break;
+    }
+    parent::mapValue($value, $format);
+  }
+
+  /**
    * Returns an array of output formats country field.
    *
    * @access public
@@ -421,5 +582,28 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       return $country;
     }
     return NULL;
+  }
+
+  /**
+   * Returns all countries installed for Ubercart.
+   *
+   * @return array
+   *   List of installed countries in Ubercart.
+   */
+  private function getAllCountries() {
+    static $all_loaded = FALSE;
+    if ($all_loaded) {
+      return self::$countries;
+    }
+    $countries = db_select('uc_countries')
+      ->fields('uc_countries')
+      ->execute()
+      ->fetchAll();
+    // Index countries.
+    foreach ($countries as $country) {
+      self::$countries[$country->country_id] = $country;
+    }
+    $all_loaded = TRUE;
+    return self::$countries;
   }
 }

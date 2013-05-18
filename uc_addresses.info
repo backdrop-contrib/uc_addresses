@@ -32,12 +32,16 @@ files[] = views/uc_addresses_views_plugin_argument_address_access.inc
 files[] = views/uc_addresses_views_plugin_argument_user_address_access.inc
 files[] = views/uc_addresses_views_plugin_row_address_view.inc
 
+; Feeds plugins
+files[] = feeds/FeedsUcAddressesProcessor.inc
+
 ; Test cases
 files[] = tests/UcAddressesTestCase.test
 files[] = tests/uc_addresses.addressbook.test
 files[] = tests/uc_addresses.api.test
 files[] = tests/uc_addresses.checkout.test
 files[] = tests/uc_addresses.entity.test
+files[] = tests/uc_addresses.feeds.test
 files[] = tests/uc_addresses.order.test
 files[] = tests/uc_addresses.register.test
 files[] = tests/uc_addresses.tokens.test

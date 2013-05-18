@@ -1254,6 +1254,16 @@ function uc_addresses_ctools_plugin_api($owner, $api) {
       'version' => 2,
     );
   }
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array(
+      'version' => 1,
+    );
+  }
+  if ($owner == 'feeds' && $api == 'feeds_importer_default') {
+    return array(
+      'version' => 1,
+    );
+  }
 }
 
 /**
@@ -1376,6 +1386,34 @@ function uc_addresses_views_api() {
     'api' => 3,
     'path' => drupal_get_path('module', 'uc_addresses') . '/views',
   );
+}
+
+// ---------------------------------------------------------------------------
+// FEEDS HOOKS
+// ---------------------------------------------------------------------------
+
+/**
+ * Implements hook_feeds_plugins().
+ *
+ * Declares the following:
+ * - Processor for Ubercart Addresses.
+ *
+ * @return array
+ *   An array of Feeds plugins.
+ */
+function uc_addresses_feeds_plugins() {
+  $info = array();
+  $info['FeedsUcAddressesProcessor'] = array(
+    'name' => t('Ubercart Addresses processor'),
+    'description' => t('Create and update Ubercart Addresses.'),
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsUcAddressesProcessor',
+      'file' => 'FeedsUcAddressesProcessor.inc',
+      'path' => drupal_get_path('module', 'uc_addresses') . '/feeds',
+    ),
+  );
+  return $info;
 }
 
 // -----------------------------------------------------------------------------

@@ -512,6 +512,26 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     return theme('uc_addresses_list_address', array('address' => $this));
   }
 
+  /**
+   * Export address instance to PHP code.
+   *
+   * @return string
+   *   PHP-code.
+   */
+  public function varExport() {
+    $data = $this->getRawFieldData();
+    $code = '$fields = ' . var_export($data, TRUE) . ";\n";
+    $uid = $this->getUserId();
+    if ($uid) {
+      $code .= '$address = UcAddressesAddressBook::get(' . $uid . ')->addAddress();' . "\n";
+    }
+    else {
+      $code .= '$address = UcAddressesAddressBook::newAddress();' . "\n";
+    }
+    $code .= '$address->setMultipleFields($fields);' . "\n";
+    return $code;
+  }
+
   // -----------------------------------------------------------------------------
   // Low-level calls intended only for UcAddressesAddressBook
   // -----------------------------------------------------------------------------

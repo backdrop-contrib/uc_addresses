@@ -265,6 +265,39 @@ abstract class UcAddressesFieldHandler {
   }
 
   // -----------------------------------------------------------------------------
+  // FEEDS
+  // Methods for integration with Feeds.
+  // -----------------------------------------------------------------------------
+
+  /**
+   * Returns supported mapping targets for Feeds.
+   *
+   * Is usually equal to the token info, but may differ in some cases.
+   *
+   * @return array
+   */
+  public function getMappingTargets() {
+    return $this->getTokenInfo();
+  }
+
+  /**
+   * Set a fields value based on the output format.
+   *
+   * Field handlers that support specific output formats should
+   * override this method.
+   *
+   * @param mixed $value
+   *   The formatted value.
+   * @param string $format
+   *   (optional) The format in which the value exists.
+   *
+   * @see outputValue()
+   */
+  public function mapValue($value, $format = '') {
+    $this->setValue($value);
+  }
+
+  // -----------------------------------------------------------------------------
   // OUTPUT
   // -----------------------------------------------------------------------------
 

@@ -151,6 +151,16 @@ class UcAddressesAddressBook {
   }
 
   /**
+   * Returns all currently loaded address books.
+   *
+   * @return array
+   *   An array of UcAddressesAddressBook instances.
+   */
+  static public function getAddressBooks() {
+    return self::$singleton;
+  }
+
+  /**
    * Looks up a single address
    *
    * This method will first look in all the loaded address books if the address
