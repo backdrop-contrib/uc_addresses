@@ -8,7 +8,6 @@
 /**
  * Implements hook_schema_alter().
  *
- * @param array $schema
  * @return void
  */
 function uc_addresses_example_schema_alter(&$schema) {
@@ -31,6 +30,7 @@ function uc_addresses_example_schema_alter(&$schema) {
  * in tables defined by _uc_addresses_example_schema_tables().
  *
  * @return array
+ *   A list of changes in the database.
  */
 function uc_addresses_example_install() {
   $ret = array();
@@ -56,6 +56,7 @@ function uc_addresses_example_install() {
  * in tables defined by _uc_addresses_example_schema_tables().
  *
  * @return array
+ *   A list of changes in the database.
  */
 function uc_addresses_example_uninstall() {
   $ret = array();
@@ -107,6 +108,7 @@ function _uc_addresses_example_schema_tables() {
  * to the uc_addresses and uc_orders table.
  *
  * @return array
+ *   The schema fields to add.
  */
 function _uc_addresses_example_schema_fields() {
   return array(
