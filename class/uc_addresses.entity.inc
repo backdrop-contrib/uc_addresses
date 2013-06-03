@@ -82,7 +82,7 @@ class UcAddressesEntityController extends EntityAPIController {
   }
 
   /**
-   * Implements EntityAPIControllerInterface.
+   * Implements EntityAPIControllerInterface::save().
    *
    * Uses UcAddressesAddress save logics.
    *
@@ -111,7 +111,7 @@ class UcAddressesEntityController extends EntityAPIController {
   }
 
   /**
-   * Implements EntityAPIControllerInterface.
+   * Implements EntityAPIControllerInterface::delete().
    *
    * Overridden to follow Ubercart Addresses logics.
    *

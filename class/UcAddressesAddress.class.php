@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the UcAddressesAddress class.
@@ -11,8 +12,8 @@
  * provide specific address book features, such as an address nickname and flags
  * for being the default shipping and/or the default billing address.
  *
- * Each instance is created through the address book, so the address book is able
- * to keep track of all the addresses it contains.
+ * Each instance is created through the address book, so the address book is
+ * able to keep track of all the addresses it contains.
  *
  * The class extends UcAddressesSchemaAddress.
  */
@@ -40,7 +41,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * The address book the address belongs to
+   * The address book the address belongs to.
    *
    * @var UcAddressesAddressBook
    * @access private
@@ -55,7 +56,10 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * UcAddressesAddress object constructor.
    *
    * @param UcAddressesAddressBook $addressBook
+   *   An instance of UcAddressesAddressBook.
    * @param object $schemaAddress
+   *   Values to fill the address with.
+   *
    * @access public
    * @return void
    */
@@ -64,11 +68,11 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     $this->addressBook = $addressBook;
 
     if (!is_object($schemaAddress) || !$schemaAddress->aid) {
-      // We always need an ID
+      // We always need an ID.
       $this->getSchemaAddress()->aid = self::$nextNewAid--;
     }
 
-    // Set other given values
+    // Set other given values.
     if ($schemaAddress) {
       foreach ($schemaAddress as $fieldName => $value) {
         $this->privSetUcAddressField($fieldName, $value);
@@ -80,7 +84,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       $this->clearDirty();
     }
 
-    // All addresses need to be contained by an address book
+    // All addresses need to be contained by an address book.
     $addressBook->addAddress($this);
   }
 
@@ -89,6 +93,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return array
+   *   An array of members to keep upon serialization.
    */
   public function __sleep() {
     $this->getSchemaAddress()->uid = $this->getUserId();
@@ -96,7 +101,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   }
 
   /**
-   * Restore variables when the address is unserialized
+   * Restore variables when the address is unserialized.
    *
    * @access public
    * @return void
@@ -111,7 +116,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       $this->addressBook->addAddress($this);
     }
     catch (UcAddressesException $e) {
-      // Ignore any exceptions
+      // Ignore any exceptions.
     }
   }
 
@@ -120,13 +125,14 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * This method will create an empty address without an owner.
    * This is useful when you want to ask an anonymous user for an address
-   * (e.g. when registering)
+   * (e.g., when registering).
    * However, unonwed addresses can not be saved. In order to save this
    * address, the UcAddressesAddress method setOwner() should be called.
    *
    * @access public
    * @static
    * @return UcAddressesAddress
+   *   A new instance of UcAddressesAddress.
    */
   public static function newAddress() {
     return UcAddressesAddressBook::newAddress();
@@ -140,8 +146,12 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * will be emptied.
    *
    * @param UcAddressesAddressBook $addressBook
+   *   (optional) The address book to copy the address to.
+   *   Defaults to the address book the current address belongs to.
+   *
    * @access public
    * @return UcAddressesAddress
+   *   A new instance of UcAddressesAddress.
    */
   public function copyAddress(UcAddressesAddressBook $addressBook = NULL) {
     if (!$addressBook) {
@@ -157,7 +167,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     $schemaAddress->default_billing = 0;
     $schemaAddress->uid = $addressBook->getUserId();
 
-    // Create new address
+    // Create a new address.
     $address = new UcAddressesAddress($addressBook, $schemaAddress);
 
     return $address;
@@ -168,10 +178,11 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns the addressbook the address is in.
+   * Returns the address book the address is in.
    *
    * @access public
    * @return UcAddressesAddressBook
+   *   The address book attached to this address.
    */
   public function getAddressBook() {
     return $this->addressBook;
@@ -182,6 +193,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return int
+   *   The address ID.
    */
   public function getId() {
     return $this->getSchemaAddress()->aid;
@@ -192,7 +204,6 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @return int
    *   The address ID.
-   *
    * @see entity_id()
    */
   public function identifier() {
@@ -204,6 +215,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return int
+   *   ID of the owner of this address.
    */
   public function getUserId() {
     return $this->addressBook->getUserId();
@@ -217,6 +229,8 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return boolean
+   *   TRUE if the address is owned.
+   *   FALSE otherwise.
    */
   public function isOwned() {
     return ($this->getUserId() > 0);
@@ -224,12 +238,14 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
 
   /**
    * Checks if the address is a temporary unsaved
-   * address
+   * address.
    *
-   * The address is new if it has negative ID
+   * The address is new if it has a negative ID.
    *
    * @access public
    * @return boolean
+   *   TRUE if the address is new.
+   *   FALSE if the address is saved in the database.
    */
   public function isNew() {
     return ($this->getId() < 1);
@@ -246,7 +262,8 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * @todo better alternative for address name?
    */
   public function label() {
-    if ($name = $this->getName()) {
+    $name = $this->getName();
+    if ($name) {
       return $name;
     }
     return preg_replace('/<.*?>/', ', ', trim(uc_addresses_format_address($this)));
@@ -273,6 +290,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @param string $fieldName
    *	 The name of the field whose value we want.
+   *
    * @access public
    * @return mixed
    *	 The field value.
@@ -294,9 +312,10 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Prevents setting some schema fields directly.
    *
    * @param string $fieldName
-   *	 The name of the field whose value we will set.
+   *   The name of the field whose value we will set.
    * @param mixed $value
-   *	 The value to which to set the field.
+   *   The value to which to set the field.
+   *
    * @access public
    * @return void
    * @throws UcAddressInvalidFieldException
@@ -339,18 +358,22 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return string
+   *   The name of this address.
    */
   public function getName() {
     return $this->getSchemaAddress()->address_name;
   }
 
   /**
-   * Sets the nickname of the address
+   * Sets the nickname of the address.
    *
    * @param string $name
+   *   The name to give to the address.
+   *
    * @access public
    * @return boolean
-   *   TRUE if setting name was succesful
+   *   TRUE if setting name was succesful.
+   *   FALSE otherwise.
    */
   public function setName($name) {
     if ($this->getName() === $name) {
@@ -368,9 +391,12 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Tells if the address is a default address of type $type.
    *
    * @param string $type
-   *   The type of default
+   *   The type of default.
+   *
    * @access public
    * @return boolean
+   *   TRUE if the address is a default address of type $type.
+   *   FALSE otherwise.
    */
   public function isDefault($type = 'billing') {
     return $this->getSchemaAddress()->{'default_' . $type};
@@ -380,13 +406,15 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Sets this address as a default address of type $type
    *
    * @param string $type
-   *   The type of default to set (e.g. delivery, billing)
+   *   The type of default to set (e.g., delivery, billing).
+   *
    * @access public
    * @return void
    */
   public function setAsDefault($type = 'billing') {
     if ($this->isDefault($type)) {
-      // Is already default $type, do nothing
+      // Is already default $type, do nothing so the address doesn't
+      // get unnecessary "dirty".
       return;
     }
     $this->addressBook->setAddressAsDefault($this, $type);
@@ -397,27 +425,32 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Changes the owner of this address.
    *
    * @param int $uid
-   *   The new owner of the address
+   *   The new owner of the address.
+   *
    * @access public
    * @return UcAddressesAddressBook
+   *   The address book the address will belong to;
+   *   or NULL if the address was already owned.
    */
   public function setOwner($uid) {
     // The owner of this address may only be changed if it doesn't belong to
     // anyone yet.
     if ($this->isOwned()) {
-      // Changing the owner not allowed
+      // Changing the owner not allowed.
       return;
     }
 
-    // Setting the owner goes via the address book
+    // Setting the owner goes via the address book.
     return $this->addressBook->setAddressOwner($this, $uid);
   }
 
   /**
-   * Deletes address from address book
+   * Deletes address from address book.
    *
    * @access public
    * @return boolean
+   *   TRUE if the address was deleted.
+   *   FALSE otherwise.
    */
   public function delete() {
     return $this->addressBook->deleteAddress($this);
@@ -441,7 +474,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     }
 
     if ($this->isDirty()) {
-      // Allow other modules to alter the address before saving
+      // Allow other modules to alter the address before saving.
       module_invoke_all('uc_addresses_address_presave', $this);
       entity_get_controller('uc_addresses')->invoke('presave', $this);
 
@@ -454,7 +487,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
         $result = drupal_write_record('uc_addresses', $address);
         $hook = 'insert';
 
-        // Tell address book the address now has a definitive ID
+        // Tell address book the address now has a definitive ID.
         $this->addressBook->updateAddress($this);
       }
       else {
@@ -491,7 +524,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
         }
       }
 
-      // Notify other modules that an address has been saved
+      // Notify other modules that an address has been saved.
       module_invoke_all('uc_addresses_address_' . $hook, $this);
       entity_get_controller('uc_addresses')->invoke($hook, $this);
     }
@@ -506,6 +539,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    *
    * @access public
    * @return string
+   *   The themed address, as HTML.
    * @todo Should maybe return "address display" instead.
    */
   public function __toString() {
@@ -516,7 +550,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Export address instance to PHP code.
    *
    * @return string
-   *   PHP-code.
+   *   PHP-code to reconstruct the address with.
    */
   public function varExport() {
     $data = $this->getRawFieldData();
@@ -542,7 +576,10 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * This method should only be called by the address book.
    *
    * @param string $fieldName
+   *   The field to set a value for.
    * @param string $value
+   *   The value to set.
+   *
    * @access public
    * @return void
    */
@@ -571,14 +608,17 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * the address as one of it's addresses.
    *
    * @param UcAddressesAddressBook $addressBook
+   *   The address book to move this address to.
+   *
    * @access public
    * @return boolean
-   *   TRUE on success, FALSE otherwise
+   *   TRUE on success.
+   *   FALSE otherwise.
    */
   public function privChangeAddressBook(UcAddressesAddressBook $addressBook) {
     foreach ($addressBook->getAddresses() as $address) {
       if ($address === $this) {
-        // Address appears in address book, changing address book approved
+        // Address appears in address book, changing address book approved.
         $this->addressBook = $addressBook;
         return TRUE;
       }

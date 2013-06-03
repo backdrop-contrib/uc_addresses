@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the UcAddressesAddressBook class.
@@ -20,11 +21,11 @@ class UcAddressesAddressBook {
   // CONSTANTS
   // -----------------------------------------------------------------------------
 
-  // Performance hint setting
+  // Performance hint setting.
   const PERF_HINT_LOAD_ONE = 0;
   const PERF_HINT_LOAD_ALL = 1;
 
-  // Load by
+  // Load by.
   const BY_AID = 0;
   const BY_NAME = 1;
 
@@ -33,9 +34,9 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * An array of UcAddressesAddressBook objects
+   * An array of UcAddressesAddressBook objects.
    *
-   * Holds all constructed address books
+   * Holds all constructed address books.
    *
    * @var array
    * @access private
@@ -48,7 +49,7 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Performance hint setting
+   * Performance hint setting.
    *
    * This setting determines how the address book should operate when it loads
    * addresses. The performance hint setting can be set to:
@@ -69,7 +70,7 @@ class UcAddressesAddressBook {
   private $uid;
 
   /**
-   * A list of addresses in the address book
+   * A list of addresses in the address book.
    *
    * @var array
    * @access private
@@ -77,7 +78,7 @@ class UcAddressesAddressBook {
   private $addresses = array();
 
   /**
-   * An array of default addresses
+   * An array of default addresses.
    *
    * @var array
    * @access private
@@ -85,7 +86,7 @@ class UcAddressesAddressBook {
   private $defaultAddresses = array();
 
   /**
-   * Whether or not the default addresses for this address book are loaded
+   * Whether or not the default addresses for this address book are loaded.
    *
    * @var boolean
    * @access private
@@ -93,7 +94,7 @@ class UcAddressesAddressBook {
   private $defaultsLoaded = FALSE;
 
   /**
-   * Whether or not all addresses for this address book are loaded
+   * Whether or not all addresses for this address book are loaded.
    *
    * @var boolean
    * @access private
@@ -105,10 +106,11 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * AddressBook object constructor
+   * AddressBook object constructor.
    *
    * @param mixed $user
-   *  Either an user id or an user object
+   *   Either an user id or an user object.
+   *
    * @access private
    * @return void
    */
@@ -120,7 +122,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Disallow cloning the address book
+   * Disallow cloning the address book.
    *
    * @access private
    * @return void
@@ -128,13 +130,14 @@ class UcAddressesAddressBook {
   private function __clone() { }
 
   /**
-   * Returns address book for the given user
+   * Returns address book for the given user.
    *
    * @param mixed $user
-   *  Either an user id or an user object
+   *   Either an user id or an user object.
    * @access public
    * @static
    * @return UcAddressesAddressBook
+   *   An instance of this class.
    */
   static public function get($user) {
     if (is_object($user)) {
@@ -161,7 +164,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Looks up a single address
+   * Looks up a single address.
    *
    * This method will first look in all the loaded address books if the address
    * is already known. It it is known, then it will return the found address.
@@ -171,10 +174,13 @@ class UcAddressesAddressBook {
    * The address will be added to the user's address book.
    *
    * @param int $aid
+   *   ID of the address to load.
    * @access public
    * @static
    * @return UcAddressesAddress
-   * @todo Think of a better name for this method
+   *   An instance of UcAddressesAddress if the address was found.
+   *   FALSE otherwise.
+   * @todo Think of a better name for this method.
    */
   static public function loadAddress($aid) {
     self::loadStatic($aid);
@@ -189,17 +195,18 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Create a new unowned address
+   * Create a new unowned address.
    *
    * This method will create an empty address without an owner.
    * This is useful when you want to ask an anonymous user for an address
-   * (e.g. when registering)
+   * (e.g., when registering).
    * However, unonwed addresses can not be saved. In order to save this
    * address, the UcAddressesAddress method setOwner() should be called.
    *
    * @access public
    * @static
    * @return UcAddressesAddress
+   *   A new instance of UcAddressesAddress.
    */
   static public function newAddress() {
     return self::get(0)->addAddress();
@@ -210,9 +217,10 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Sets the performance hint setting
+   * Sets the performance hint setting.
    *
    * @param int $hint
+   *   The hint to set.
    * @return void
    * @throws UcAddressesInvalidParameterException
    */
@@ -228,9 +236,10 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Returns the performance hint setting
+   * Returns the performance hint setting.
    *
    * @return int
+   *   The performance hint setting.
    */
   public function getPerformanceHint() {
     return $this->performanceHint;
@@ -241,29 +250,33 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Adds address to address book
+   * Adds address to address book.
    *
    * @param UcAddressesAddress $address
+   *   (optional) An instance of UcAddressesAddress to add.
+   *   Defaults to a new instance of UcAddressesAddress.
+   *
    * @access public
    * @return UcAddressesAddress
+   *   The instance of UcAddressesAddress that was added.
    * @throws UcAddressesInvalidParameterException
    * @throws UcAddressesNameCollisionException
    */
   public function addAddress(UcAddressesAddress $address = NULL) {
     // If we add an address, then we'll probably save it, which
-    // requires loading all addresses for error checking
+    // requires loading all addresses for error checking.
     if ($this->performanceHint == self::PERF_HINT_LOAD_ONE) {
       $this->performanceHint = self::PERF_HINT_LOAD_ALL;
     }
 
     if ($address) {
       // In case of a new address with an address name,
-      // load other addresses to do a name check comparison
+      // load other addresses to do a name check comparison.
       if ($address->isNew() && $address->getName() && !$this->allLoaded) {
         $this->loadAll();
       }
 
-      // Check if address is already in addressbook
+      // Check if address is already in addressbook.
       foreach ($this->addresses as $aid => $addressBookAddress) {
         if ($address === $addressBookAddress) {
           throw new UcAddressesInvalidParameterException(t('Tried to add an address already in the address book'));
@@ -273,7 +286,7 @@ class UcAddressesAddressBook {
         }
       }
 
-      // Check if address belongs to this address book
+      // Check if address belongs to this address book.
       if ($address->getAddressBook() !== $this && $address->isOwned()) {
         throw new UcAddressesInvalidParameterException(t('Tried to add an address already in an other address book'));
       }
@@ -291,7 +304,7 @@ class UcAddressesAddressBook {
       $this->defaultAddresses['billing'] = $address;
     }
 
-    // Make sure this becomes one of our addresses
+    // Make sure this becomes one of our addresses.
     if ($address->getAddressBook() !== $this) {
       $address->privChangeAddressBook($this);
     }
@@ -307,12 +320,13 @@ class UcAddressesAddressBook {
    *
    * @param UcAddressesAddress $address
    *   The address to reindex.
+   *
    * @access public
    * @return void
    * @throws UcAddressesInvalidParameterException
    */
   public function updateAddress(UcAddressesAddress $address) {
-    // Check if address belongs to this address book
+    // Check if address belongs to this address book.
     if ($address->getAddressBook() !== $this) {
       throw new UcAddressesInvalidParameterException(t('Tried to update an address from an other address book'));
     }
@@ -388,15 +402,19 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Checks if an address exists in the addresses array
+   * Checks if an address exists in the addresses array.
    *
    * This method doesn't do any database calls.
    * It just checks if an address is already available in the address book.
    * Called in loadAddress().
    *
    * @param int $aid
+   *   The ID of the address to check existence for.
+   *
    * @access public
    * @return boolean
+   *   TRUE if the address exists.
+   *   FALSE otherwise.
    */
   public function addressExists($aid) {
     if (isset($this->addresses[$aid])) {
@@ -406,7 +424,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Get an address by ID
+   * Get an address by ID.
    *
    * First a check is done to see if the address is already available in $addresses
    * array. If it's not available, then a database request is send.
@@ -414,11 +432,12 @@ class UcAddressesAddressBook {
    * address book, an UcAddressesDbException is thrown.
    *
    * @param int $aid
-   *   The id of the address
+   *   The ID of the address to get.
+   *
    * @access public
    * @return
-   *   UcAddressesAddress if the address is found
-   *   FALSE otherwise
+   *   UcAddressesAddress if the address is found.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   public function getAddressById($aid) {
@@ -430,7 +449,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Get an address by it's nickname
+   * Get an address by it's nickname.
    *
    * First, the $addresses array is searched to see if the address is already
    * available. If it's not available, then a database request is send.
@@ -438,11 +457,12 @@ class UcAddressesAddressBook {
    * address book, an UcAddressesDbException is thrown.
    *
    * @param string $name
-   *   The nickname of the address
+   *   The nickname of the address.
+   *
    * @access public
    * @return
-   *   UcAddressesAddress if the address is found
-   *   FALSE otherwise
+   *   UcAddressesAddress if the address is found.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   public function getAddressByName($name) {
@@ -451,12 +471,14 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Deletes an addres by giving the addres object
+   * Deletes an addres by giving the addres object.
    *
    * @param UcAddressesAddress $address
+   *   The address to delete.
+   *
    * @return boolean
-   *   TRUE if the address is deleted
-   *   FALSE otherwise
+   *   TRUE if the address is deleted.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   public function deleteAddress(UcAddressesAddress $address) {
@@ -469,16 +491,17 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Deletes an address by ID
+   * Deletes an address by ID.
    *
    * This will delete an address from the database.
    *
    * @param int $aid
-   *   The id of the address
+   *   The id of the address to delete.
+   *
    * @access public
    * @return boolean
-   *   TRUE if the address is deleted
-   *   FALSE otherwise
+   *   TRUE if the address is deleted.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   public function deleteAddressById($aid) {
@@ -486,14 +509,15 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Deletes an address by name
+   * Deletes an address by name.
    *
    * @param string $name
-   *   The nickname of the address
+   *   The nickname of the address.
+   *
    * @access public
    * @return boolean
-   *   TRUE if the address is deleted
-   *   FALSE otherwise
+   *   TRUE if the address is deleted.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   public function deleteAddressByName($name) {
@@ -501,7 +525,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Returns user ID, the owner of this address book
+   * Returns user ID, the owner of this address book.
    *
    * @access public
    * @return int
@@ -511,7 +535,7 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Returns all addresses of the user
+   * Returns all addresses of the user.
    *
    * @access public
    * @return array
@@ -531,21 +555,26 @@ class UcAddressesAddressBook {
    * This is the case when an address is asked at registering
    * or when the user anonymously checked out.
    *
-   * Should only be called by UcAddressesAddress
+   * Should only be called by UcAddressesAddress.
    *
    * @param UcAddressesAddress $address
+   *   The address to change the owner for.
    * @param int $uid
+   *   The user who should be the owner of the address.
+   *
    * @access public
    * @return UcAddressesAddressBook
+   *   The address book the address was transferred to;
+   *   Or NULL if the address was already owned.
    */
   public function setAddressOwner(UcAddressesAddress $address, $uid) {
-    // Reasons to skip out early
+    // Reasons to skip out early.
     if ($this->isOwned()) {
-      // Address is already owned
+      // Address is already owned.
       return;
     }
     if ($address->getAddressBook() !== $this) {
-      // The address does not belong to this address book
+      // The address does not belong to this address book.
       return $address->setOwner($uid);
     }
 
@@ -553,20 +582,22 @@ class UcAddressesAddressBook {
     $addressBook = self::get($uid);
     $addressBook->addAddress($address);
 
-    // Remove address from this address book
+    // Remove address from this address book.
     $this->removeAddressFromAddressBook($address);
 
     return $addressBook;
   }
 
   /**
-   * Checks if the address book is owned by an user
+   * Checks if the address book is owned by an user.
    *
    * An address is owned by an user if the owner's user id
    * is not zero (= anonymous user).
    *
    * @access public
    * @return boolean
+   *   TRUE if the address is owned.
+   *   FALSE otherwise.
    */
   public function isOwned() {
     return ($this->getUserId() > 0);
@@ -599,20 +630,24 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Sets the name of the address
+   * Sets the name of the address.
    *
    * @param UcAddressesAddress $address
+   *   The address to set a name for.
    * @param string $name
-   *   The nickname the address will get
+   *   The nickname the address will get.
+   *
    * @access public
    * @return boolean
+   *   TRUE if the name was changed.
+   *   FALSE otherwise.
    */
   public function setAddressName($address, $name) {
     if (!$this->allLoaded) {
       $this->loadAll();
     }
 
-    // Check to make sure this is one of our addresses
+    // Check to make sure this is one of our addresses.
     if ($address->getAddressBook() !== $this) {
       return FALSE;
     }
@@ -666,6 +701,8 @@ class UcAddressesAddressBook {
    *
    * @access public
    * @return boolean
+   *   TRUE if the address was set as default.
+   *   FALSE otherwise.
    */
   public function setAddressAsDefault($address, $type = 'billing') {
     // Reasons to skip out early.
@@ -716,10 +753,11 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns address book html
+   * Returns address book html.
    *
    * @access public
    * @return string
+   *   The themed address, as HTML.
    */
   public function __toString() {
     $addresses = array();
@@ -742,22 +780,23 @@ class UcAddressesAddressBook {
   // -----------------------------------------------------------------------------
 
   /**
-   * Loads a single address from the database if not already loaded
+   * Loads a single address from the database if not already loaded.
    *
    * No database call is done in these cases:
-   * - Address is already loaded
-   * - All addresses are already loaded
+   * - Address is already loaded;
+   * - All addresses are already loaded.
    *
    * @param int $type
-   *   Type of the argument given, can be the address id (BY_AID) or the address nickname (BY_NAME)
+   *   Type of the argument given, can be the address id (BY_AID) or the address nickname (BY_NAME).
    * @param mixed $arg
-   *   Either the address id or the address nickname
+   *   Either the address id or the address nickname.
+   *
    * @access private
    * @return void
    * @throws UcAddressesDbException
    */
   private function loadOne($type, $arg) {
-    // Reasons to skip out early
+    // Reasons to skip out early.
     if ($this->allLoaded) {
       return;
     }
@@ -773,7 +812,7 @@ class UcAddressesAddressBook {
 
     // If we're going to save an address, we'll need to know about
     // possible name collisions and what the current default
-    // addresses are
+    // addresses are.
     if ($this->performanceHint == self::PERF_HINT_LOAD_ALL) {
       $this->loadAll();
       return;
@@ -781,7 +820,7 @@ class UcAddressesAddressBook {
 
     // Read the database. Note that we ensure that this requested
     // address is in this address book by including $uid in the
-    // query
+    // query.
     if ($type == self::BY_AID) {
       $result = db_select('uc_addresses')
         ->condition('uid', $this->uid)
@@ -801,13 +840,13 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Loads all addresses from database when they not already loaded
+   * Loads all addresses from database when they not already loaded.
    *
    * @access private
    * @return void
    */
   private function loadDefaults() {
-    // Reason to skip out early
+    // Reason to skip out early.
     if ($this->defaultsLoaded) {
       return;
     }
@@ -825,7 +864,7 @@ class UcAddressesAddressBook {
       return;
     }
 
-    // Get all addresses for this user
+    // Get all addresses for this user.
     $result = db_select('uc_addresses')
       ->condition('uid', $this->uid)
       ->condition(db_or()
@@ -836,20 +875,20 @@ class UcAddressesAddressBook {
       ->orderBy('created', 'ASC')
       ->execute();
 
-    // Set flag that default addresses are loaded
+    // Set flag that default addresses are loaded.
     $this->defaultsLoaded = TRUE;
 
     $this->dbResultToAddresses($result);
   }
 
   /**
-   * Loads all addresses from database when they not already loaded
+   * Loads all addresses from database when they not already loaded.
    *
    * @access private
    * @return void
    */
   private function loadAll() {
-    // Reason to skip out early
+    // Reason to skip out early.
     if ($this->allLoaded) {
       return;
     }
@@ -857,37 +896,38 @@ class UcAddressesAddressBook {
       return;
     }
 
-    // Update the performance hint setting
+    // Update the performance hint setting.
     $this->performanceHint = self::PERF_HINT_LOAD_ALL;
 
-    // Get all addresses for this user
+    // Get all addresses for this user.
     $result = db_select('uc_addresses')
       ->condition('uid', $this->uid)
       ->fields('uc_addresses')
       ->orderBy('created', 'ASC')
       ->execute();
 
-    // Set flag that all addresses are loaded
+    // Set flag that all addresses are loaded.
     $this->allLoaded = TRUE;
-    // Set flag that default addresses are loaded
+    // Set flag that default addresses are loaded.
     $this->defaultsLoaded = TRUE;
 
     $this->dbResultToAddresses($result);
   }
 
   /**
-   * Loads a single address from the database if not already loaded
+   * Loads a single address from the database if not already loaded.
    *
    * @param int $aid
-   *   The id of the address
+   *   The id of the address.
+   *
    * @access private
    * @return boolean
    *   TRUE if the address has been loaded or found.
    *   FALSE otherwise.
    */
   private static function loadStatic($aid) {
-    // Reasons to skip out early
-    // Lookup in all address books if the address is already loaded
+    // Reasons to skip out early.
+    // Lookup in all address books if the address is already loaded.
     foreach (self::$singleton as $addressbook) {
       if ($addressbook->addressExists($aid)) {
         return TRUE;
@@ -900,7 +940,7 @@ class UcAddressesAddressBook {
       ->orderBy('created', 'ASC')
       ->execute();
 
-    // Create an object from the database record
+    // Create an object from the database record.
     $obj = $result->fetch();
 
     if (!$obj) {
@@ -908,13 +948,13 @@ class UcAddressesAddressBook {
       return FALSE;
     }
 
-    // Get address book for loaded user
+    // Get address book for loaded user.
     $addressbook = self::get($obj->uid);
 
-    // Create UcAddressesAddress object
+    // Create UcAddressesAddress object.
     $address = new UcAddressesAddress($addressbook, $obj);
 
-    // Give other modules a chance to add their fields
+    // Give other modules a chance to add their fields.
     module_invoke_all('uc_addresses_address_load', $address, $obj);
     // Invoke entity load hook.
     entity_get_controller('uc_addresses')->invokeLoad(array($address));
@@ -925,15 +965,16 @@ class UcAddressesAddressBook {
    * Creates UcAddressesAddress objects from a database resource.
    *
    * @param resource $result
-   *   Database result
+   *   Database result.
+   *
    * @access private
    * @return void
    */
   private function dbResultToAddresses($result) {
-    // Create each UcAddressesAddress object from the database record
+    // Create each UcAddressesAddress object from the database record.
     $loaded_addresses = array();
     foreach ($result as $obj) {
-      // Skip addresses that have already been loaded (and perhaps modified)
+      // Skip addresses that have already been loaded (and perhaps modified).
       if (!isset($this->addresses[$obj->aid])) {
         $address = new UcAddressesAddress($this, $obj);
         if ($address->isDefault('shipping')) {
@@ -955,14 +996,17 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Deletes one address
+   * Deletes one address.
    *
    * @param int $type
-   *   Type of the argument given, can be the address id (BY_AID) or the address nickname (BY_NAME)
+   *   Type of the argument given, can be the address id (BY_AID) or the address nickname (BY_NAME).
    * @param mixed $arg
-   *   Either the address id or the address nickname
+   *   Either the address id or the address nickname.
+   *
    * @access private
    * @return boolean
+   *   TRUE if the address was deleted.
+   *   FALSE otherwise.
    * @throws UcAddressesDbException
    */
   private function deleteOne($type, $arg) {
@@ -972,7 +1016,7 @@ class UcAddressesAddressBook {
     }
 
     // We can't delete an address that is a default address, so
-    // we'll need to make sure this address is loaded
+    // we'll need to make sure this address is loaded.
     $this->loadOne($type, $arg);
     if ($type == self::BY_AID) {
       $address = $this->getAddressById($arg);
@@ -994,10 +1038,10 @@ class UcAddressesAddressBook {
         ->execute();
     }
 
-    // Remove from address book object
+    // Remove from address book object.
     $this->removeAddressFromAddressBook($address);
 
-    // Give other modules a chance to react on this
+    // Give other modules a chance to react on this.
     module_invoke_all('uc_addresses_address_delete', $address);
     entity_get_controller('uc_addresses')->invoke('delete', $address);
 
@@ -1005,12 +1049,14 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Removes an address from this address book
+   * Removes an address from this address book.
    *
    * This method is called when an address is deleted
    * or when the owner of an address is set.
    *
    * @param UcAddressesAddress $address
+   *   The address to remove from the address book.
+   *
    * @access private
    * @return void
    */
@@ -1029,14 +1075,15 @@ class UcAddressesAddressBook {
   }
 
   /**
-   * Search for an address by giving the name
+   * Search for an address by giving the name.
    *
    * @param string $name
-   *   The nickname of the address
+   *   The nickname of the address.
+   *
    * @access private
    * @return
-   *   UcAddressesAddress if address is found
-   *   FALSE otherwise
+   *   UcAddressesAddress if address is found.
+   *   FALSE otherwise.
    */
   private function findByName($name) {
     if ($name) {

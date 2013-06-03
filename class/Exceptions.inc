@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Exception classes for Ubercart Addresses
+ * Exception classes for Ubercart Addresses.
  */
 
 /**
@@ -12,21 +13,21 @@
 class UcAddressesException extends Exception { }
 
 /**
- * UcAddressesInvalidFieldException
+ * UcAddressesInvalidFieldException.
  *
  * Used when trying to access an address field that doesn't exist.
  */
 class UcAddressesInvalidFieldException extends UcAddressesException { }
 
 /**
- * UcAddressesDbException
+ * UcAddressesDbException.
  *
  * Used when a database error occurs.
  */
 class UcAddressesDbException extends UcAddressesException { }
 
 /**
- * UcAddressesUndefinedFunctionException
+ * UcAddressesUndefinedFunctionException.
  *
  * Used when a function from outside the class does not
  * exists. This can happen if the classes are used early
@@ -35,14 +36,14 @@ class UcAddressesDbException extends UcAddressesException { }
 class UcAddressesUndefinedFunctionException extends UcAddressesException { }
 
 /**
- * UcAddressesInvalidParameterException
+ * UcAddressesInvalidParameterException.
  *
  * Used when a method parameter is invalid.
  */
 class UcAddressesInvalidParameterException extends UcAddressesException { }
 
 /**
- * UcAddressesNameCollisionException
+ * UcAddressesNameCollisionException.
  *
  * Used when an address attempts to use the same name as another
  * address in the same address book.
@@ -50,7 +51,7 @@ class UcAddressesInvalidParameterException extends UcAddressesException { }
 class UcAddressesNameCollisionException extends UcAddressesException { }
 
 /**
- * UcAddressesUnownedException
+ * UcAddressesUnownedException.
  *
  * Used when an address is not owned yet.
  */

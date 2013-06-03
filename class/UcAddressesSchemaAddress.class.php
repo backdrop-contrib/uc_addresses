@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the UcAddressesSchemaAddress class.
@@ -11,9 +12,10 @@
  * for address fields. You can get and set address field values. For this it's
  * connected with the field handler system. Unlike the UcAddressesAddress class
  * it's not connected with the address book class, which means you *could* use
- * this class if you want to make use of the field handler system and you want to
- * bypass any restrictions implied with UcAddressesAddress (such as having unique
- * nicknames), but in most cases you should not interact with this class directly.
+ * this class if you want to make use of the field handler system and you want
+ * to bypass any restrictions implied with UcAddressesAddress (such as having
+ * unique nicknames), but in most cases you should not interact with this class
+ * directly.
  *
  * The class doesn't interact with the database itself: this should be done in
  * subclasses (such as UcAddressesAddress).
@@ -58,8 +60,9 @@ class UcAddressesSchemaAddress {
    * Construct a schema address.
    *
    * @param object $schemaAddress
-   *	The schema address array to wrap. If null, a new stdClass
-   * 	object is created.
+   *   The schema address array to wrap. If null, a new stdClass
+   *   object is created.
+   *
    * @access public
    * @return void
    */
@@ -68,7 +71,7 @@ class UcAddressesSchemaAddress {
     if (is_object($schemaAddress)) {
       $this->schemaAddress = $schemaAddress;
     }
-    // Make sure all fields are present
+    // Make sure all fields are present.
     $fields = self::getDefinedFields();
     foreach ($fields as $fieldName => $fielddata) {
       if (!isset($this->schemaAddress->$fieldName)) {
@@ -83,6 +86,7 @@ class UcAddressesSchemaAddress {
    *
    * @access public
    * @return array
+   *   An array of members to keep upon serialization.
    */
   public function __sleep() {
     $vars = get_object_vars($this);
@@ -103,11 +107,11 @@ class UcAddressesSchemaAddress {
    * @return array
    */
   public function __wakeup() {
-    // Restore variables saved in sleep
+    // Restore variables saved in sleep.
     foreach ($this->sleep as $key => $value) {
       $this->$key = $value;
     }
-    // Clear out sleep
+    // Clear out sleep.
     $this->sleep = array();
   }
 
@@ -142,11 +146,12 @@ class UcAddressesSchemaAddress {
   }
 
   /**
-   * Reports if the address needs to be saved to the database.
+   * Reports if the address is modified since it was loaded from the database.
    *
    * @access protected
    * @return boolean
-   *	 TRUE if the address needs to be saved to the database.
+   *   TRUE if the address is modified.
+   *   FALSE otherwise.
    */
   protected function isDirty() {
     return $this->dirty;
@@ -184,7 +189,7 @@ class UcAddressesSchemaAddress {
    * Passes values to the address object.
    *
    * @return void
-   * @throw UcAddressesException
+   * @throws UcAddressesException
    */
   public function __set($property, $value) {
     try {
@@ -222,7 +227,8 @@ class UcAddressesSchemaAddress {
    * Get a field's value.
    *
    * @param string $fieldName
-   *	 The name of the field whose value we want.
+   *   The name of the field whose value we want.
+   *
    * @access public
    * @return mixed
    *	 The field value.
@@ -237,9 +243,10 @@ class UcAddressesSchemaAddress {
    * Set a field's value.
    *
    * @param string $fieldName
-   *	 The name of the field whose value we will set.
+   *   The name of the field whose value we will set.
    * @param mixed $value
-   *	 The value to which to set the field.
+   *   The value to which to set the field.
+   *
    * @access public
    * @return void
    * @throws UcAddressInvalidFieldException
@@ -269,8 +276,7 @@ class UcAddressesSchemaAddress {
         $value = (bool) $value;
         break;
       default:
-        // In all other cases the setted value is
-        // left untouched.
+        // In all other cases the setted value is left untouched.
         break;
     }
 
@@ -308,11 +314,13 @@ class UcAddressesSchemaAddress {
    * Returns TRUE if field is registered through the API.
    *
    * @param string $fieldName
-   *	 The name of the field whose existence we want to check.
+   *   The name of the field whose existence we want to check.
+   *
    * @access public
    * @static
    * @return boolean
-   *	 TRUE if addresses have a field with the given name.
+   *   TRUE if addresses have a field with the given name.
+   *   FALSE otherwise.
    */
   static public function fieldExists($fieldName) {
     $fields_data = self::getDefinedFields();
@@ -322,11 +330,14 @@ class UcAddressesSchemaAddress {
   /**
    * Throws an exception if the field does not exist.
    *
-   * @param $fieldName The name of the field.
+   * @param string $fieldName
+   *   The name of the field whose existence is required.
+   *
    * @access private
    * @static
    * @return void
    * @throws UcAddressInvalidFieldException
+   *   When the field does not exists.
    */
   static private function fieldMustExist($fieldName) {
     if (!self::fieldExists($fieldName)) {
@@ -339,6 +350,7 @@ class UcAddressesSchemaAddress {
    *
    * @access public
    * @return array
+   *   Address values that are safe for output.
    */
   public function getFieldData() {
     $values = array();
@@ -355,6 +367,7 @@ class UcAddressesSchemaAddress {
    *
    * @access public
    * @return array
+   *   The saved address values, NOT safe for output.
    */
   public function getRawFieldData() {
     return (array) $this->schemaAddress;
@@ -437,7 +450,7 @@ class UcAddressesSchemaAddress {
    *
    * @access protected
    * @return object
-   *	 The aggregated address object.
+   *   The aggregated address object.
    */
   protected function getSchemaAddress() {
     return $this->schemaAddress;
@@ -447,7 +460,8 @@ class UcAddressesSchemaAddress {
    * Set the aggregated schema address.
    *
    * @param object $address
-   *	 The address object to wrap.
+   *   The address object to wrap.
+   *
    * @access protected
    * @return void
    */
@@ -462,11 +476,13 @@ class UcAddressesSchemaAddress {
    * Returns TRUE if field is part of the schema.
    *
    * @param string $fieldName
-   *	 The name of the field whose existence we want to check.
+   *   The name of the field whose existence we want to check.
+   *
    * @access public
    * @static
    * @return boolean
-   *	 TRUE if addresses have a field with the given name.
+   *   TRUE if addresses have a field with the given name.
+   *   FALSE otherwise.
    */
   static public function schemaFieldExists($fieldName) {
     $schema = drupal_get_schema('uc_addresses');
@@ -479,11 +495,14 @@ class UcAddressesSchemaAddress {
   /**
    * Throws an exception if the schema field does not exist.
    *
-   * @param $fieldName The name of the field.
+   * @param $fieldName
+   *   The name of the field whose existence is required.
+   *
    * @access private
    * @static
    * @return void
    * @throws UcAddressInvalidFieldException
+   *   When the schema field does not exists.
    */
   static private function schemaFieldMustExist($fieldName) {
     if (!self::schemaFieldExists($fieldName)) {
@@ -496,8 +515,12 @@ class UcAddressesSchemaAddress {
    * is equal to the schema address of this.
    *
    * @param UcAddressesSchemaAddress $address
+   *   The address to compare against.
+   *
    * @access public
    * @return boolean
+   *   TRUE if the addresses are considered equal.
+   *   FALSE otherwise.
    */
   public function compareAddress(UcAddressesSchemaAddress $address) {
     $fields_to_compare = &drupal_static('UcAddressesSchemaAddress::compareAddress', array());
