@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * uc_addresses_feature.views_default.inc
+ * Contains a View to replace the address book page.
  */
 
 /**

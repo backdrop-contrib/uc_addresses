@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Hook implementations for the Views module.
@@ -6,8 +7,6 @@
 
 /**
  * Implements hook_views_data().
- *
- * @return array
  */
 function uc_addresses_views_data() {
   $data = array();
@@ -161,7 +160,8 @@ function uc_addresses_views_data() {
         case 'city':
         case 'postal_code':
         case 'phone':
-          if ($title = uc_get_field_name($fieldname)) {
+          $title = uc_get_field_name($fieldname);
+          if ($title) {
             $data['uc_addresses'][$fieldname]['title'] = $title;
           }
           break;

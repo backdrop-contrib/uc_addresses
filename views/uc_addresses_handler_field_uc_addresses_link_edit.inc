@@ -11,7 +11,6 @@
  * @ingroup views_field_handlers
  */
 class uc_addresses_handler_field_uc_addresses_link_edit extends uc_addresses_handler_field_uc_addresses_link {
-
   /**
    * Renders the link if the user may edit the address.
    */

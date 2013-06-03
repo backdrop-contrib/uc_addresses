@@ -58,7 +58,7 @@ class uc_addresses_views_plugin_argument_address_access extends views_plugin_arg
       case 'edit':
         return UcAddressesPermissions::canEditAddress($address_user, $address);
       case 'delete':
-       return UcAddressesPermissions::canDeleteAddress($address_user, $address);
+        return UcAddressesPermissions::canDeleteAddress($address_user, $address);
     }
     return FALSE;
   }
