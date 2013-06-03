@@ -1,8 +1,15 @@
 <?php
+
 /**
  * @file
  * Field handlers for Ubercart Addresses address fields:
- * address_name, default_shipping, default_billing
+ * - address_name;
+ * - default_shipping;
+ * - default_billing;
+ * - created;
+ * - modified;
+ * - aid;
+ * - uid.
  */
 
 /**
@@ -10,16 +17,7 @@
  */
 class UcAddressesTextFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Returns the editable field.
-   *
-   * @param array $form
-   *   The address form element.
-   * @param array $form_values
-   *   An array of filled in values for one address.
-   *
-   * @access public
-   * @return array
-   *   A Drupal Form API field.
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -39,24 +37,14 @@ class UcAddressesTextFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
-   *   FALSE otherwise.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return TRUE;
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
-   *   FALSE otherwise.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     return FALSE;
@@ -64,16 +52,11 @@ class UcAddressesTextFieldHandler extends UcAddressesFieldHandler {
 }
 
 /**
- * Class for the address name field
+ * Class for the address name field.
  */
 class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -94,33 +77,23 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return variable_get('uc_addresses_use_address_name', TRUE);
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     return FALSE;
   }
 
   /**
-   * Check if given name is unique
+   * Implements UcAddressesFieldHandler::validateValue().
    *
-   * @param mixed $value
-   * @access public
-   * @return void
+   * Checks if the given name is unique.
    */
   public function validateValue(&$value) {
     $fieldName = $this->getFieldName();
@@ -136,18 +109,13 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
  * Class for default address field.
  *
  * This class requires extra properties in the field definition:
- * - default_type: lowercase string that specifies the kind of default address (e.g. shipping)
+ * - default_type: lowercase string that specifies the kind of default
+ *   address (e.g., shipping);
  * - suffix: used as a suffix to the form field in address edit forms.
  */
 class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -155,7 +123,7 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
     $default = (isset($form_values[$fieldName])) ? $form_values[$fieldName] : $fieldValue;
     $default_type = $this->getProperty('default_type');
 
-    // Check if user already has a default address of type $type
+    // Check if user already has a default address of type $type.
     $default_address = $this->getAddress()->getAddressBook()->getDefaultAddress($default_type);
 
     if (!is_null($default_address)) {
@@ -192,32 +160,21 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return variable_get('uc_addresses_use_default_' . $this->getProperty('default_type'), TRUE);
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     return FALSE;
   }
 
   /**
-   * Returns a default value for this field.
-   *
-   * @access public
-   * @return int
+   * Overrides UcAddressesFieldHandler::getDefaultValue().
    */
   public function getDefaultValue() {
     return 0;
@@ -225,17 +182,11 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
 }
 
 /**
- * Class for the created/modified field
+ * Class for the created/modified field.
  */
 class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -263,22 +214,14 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return TRUE;
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     return FALSE;
@@ -289,13 +232,9 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Check a fields' value
+   * Implements UcAddressesFieldHandler::validateValue().
    *
-   * Can be used by subclasses to do some validation based on the value.
-   *
-   * @param mixed $value
-   * @access public
-   * @return void
+   * Makes sure the value is converted to a timestamp.
    */
   public function validateValue(&$value) {
     $value = mktime(0, 0, 0, $value['month'], $value['day'], $value['year']);
@@ -306,9 +245,9 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns supported tokens
+   * Overrides UcAddressesFieldHandler::getTokenInfo().
    *
-   * @return array
+   * Specifies that tokens of this field are of type 'date'.
    */
   public function getTokenInfo() {
     $fieldname = $this->getFieldName();
@@ -323,16 +262,11 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Output a fields value.
+   * Overrides UcAddressesFieldHandler::outputValue().
    *
-   * @param mixed $value
-   *   The value to output
-   * @param string $format
-   *   The format in which the value should be outputted.
-   *   Possible formats are declared by field handlers: getOutputFormats().
-   * @access public
-   * @return string
-   * @see getOutputFormats()
+   * If a format is specified, the value will be formatted using that (date) format.
+   * If no format is specified, the value will be formatted using the site default
+   * date format.
    */
   public function outputValue($value = '', $format = '') {
     $values = &drupal_static('UcAddressesDateFieldHandler::outputValue', array());
@@ -358,17 +292,11 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
 }
 
 /**
- * Class for aid/uid field (which can not be set directly)
+ * Class for aid/uid field (which can not be set directly).
  */
 class UcAddressesHiddenFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -385,22 +313,14 @@ class UcAddressesHiddenFieldHandler extends UcAddressesFieldHandler {
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return TRUE;
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     return FALSE;

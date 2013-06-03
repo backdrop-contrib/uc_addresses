@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Field handlers for Ubercart core address fields:
@@ -10,35 +11,23 @@
  */
 abstract class UcAddressesUcFieldHandler extends UcAddressesFieldHandler {
   /**
-   * Override of UcAddressesFieldHandler::getFieldTitle().
+   * Overrides UcAddressesFieldHandler::getFieldTitle().
    *
    * Returns the title to use when displaying the field.
-   *
-   * @access public
-   * @return string
-   *	 The field title.
    */
   public function getFieldTitle() {
     return uc_get_field_name($this->getFieldName());
   }
 
   /**
-   * Check to see if the field is enabled.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is enabled.
+   * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
     return uc_address_field_enabled($this->getFieldName());
   }
 
   /**
-   * Check to see if the field is required.
-   *
-   * @access public
-   * @return boolean
-   *	 TRUE if the field is required.
+   * Implements UcAddressesFieldHandler::isFieldRequired().
    */
   public function isFieldRequired() {
     if ($this->getContext() == 'order_form') {
@@ -49,17 +38,11 @@ abstract class UcAddressesUcFieldHandler extends UcAddressesFieldHandler {
 }
 
 /**
- * Class for an Ubercart core address text field
+ * Class for an Ubercart core address text field.
  */
 class UcAddressesUcTextFieldHandler extends UcAddressesUcFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -79,17 +62,11 @@ class UcAddressesUcTextFieldHandler extends UcAddressesUcFieldHandler {
 }
 
 /**
- * Class for the Ubercart zone field
+ * Class for the Ubercart zone field.
  */
 class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   /**
-   * Returns the editable field
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -168,22 +145,18 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Returns a default value for this field.
+   * Overrides UcAddressesFieldHandler::getDefaultValue().
    *
-   * Subclasses can override this method to provide a default
-   * value for their field.
-   *
-   * @access public
-   * @return int
+   * The zone ID should always be an integer.
    */
   public function getDefaultValue() {
     return 0;
   }
 
   /**
-   * Returns supported mapping targets for Feeds.
+   * Overrides UcAddressesFieldHandler::getMappingTargets().
    *
-   * @return array
+   * The zone field has some extra mapping targets.
    */
   public function getMappingTargets() {
     $targets = parent::getMappingTargets();
@@ -197,14 +170,9 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Set a fields value based on the output format.
+   * Overrides UcAddressesFieldHandler::mapValue().
    *
-   * @param mixed $value
-   *  The formatted value.
-   * @param string $format
-   *  (optional) The format in which the value exists.
-   *
-   * @see outputValue()
+   * The zone field has some extra mapping targets.
    */
   public function mapValue($value, $format = '') {
     switch ($format) {
@@ -225,10 +193,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Returns an array of output formats for the zone field.
-   *
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getOutputFormats().
    */
   public function getOutputFormats() {
     return array(
@@ -238,28 +203,23 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Output zone name.
+   * Overrides UcAddressesFieldHandler::outputValue().
    *
-   * @param mixed $value
-   *   The value to output
-   * @param string $format
-   *   The format in which the value should be outputted.
-   *   Possible formats are declared by field handlers: getOutputFormats().
-   * @access public
-   * @return string
+   * The zone field can be outputted in different formats.
    */
   public function outputValue($value = '', $format = '') {
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }
 
-    // Get zone data
+    // Get zone data.
     $result = db_select('uc_zones')
       ->condition('zone_id', $value)
       ->fields('uc_zones')
       ->execute();
 
-    if ($row = $result->fetch()) {
+    $row = $result->fetch();
+    if ($row) {
       $zone_data = array(
         'zone_code' => $row->zone_code,
         'zone_name' => $row->zone_name,
@@ -276,7 +236,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
       return $zone_data[$format];
     }
 
-    // If no format is specified, return zone name
+    // If no format is specified, return zone name.
     return $zone_data['zone_name'];
   }
 }
@@ -286,21 +246,16 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
  */
 class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   /**
+   * An array of all loaded countries.
+   *
    * @var array $countries
-   *   An array of all loaded countries.
    * @access private
    * @static
    */
   private static $countries;
 
   /**
-   * Returns the editable field.
-   *
-   * @param array $form
-   * @param array $form_values
-   * @abstract
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();
@@ -358,22 +313,16 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Returns a default value for this field.
-   *
-   * Subclasses can override this method to provide a default
-   * value for their field.
-   *
-   * @access public
-   * @return int
+   * Overrides UcAddressesFieldHandler::getDefaultValue().
    */
   public function getDefaultValue() {
     return uc_store_default_country();
   }
 
   /**
-   * Returns supported mapping targets for Feeds.
+   * Overrides UcAddressesFieldHandler::getMappingTargets().
    *
-   * @return array
+   * The country field has some extra mapping targets.
    */
   public function getMappingTargets() {
     $targets = parent::getMappingTargets();
@@ -410,14 +359,9 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Sets a fields value based on the output format.
+   * Overrides UcAddressesFieldHandler::mapValue().
    *
-   * @param mixed $value
-   *   The formatted value.
-   * @param string $format
-   *   (optional) The format in which the value exists.
-   *
-   * @see outputValue()
+   * The country field has some extra mapping targets.
    */
   public function mapValue($value, $format = '') {
     if (strpos($format, 'country_name:') === 0) {
@@ -488,10 +432,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Returns an array of output formats country field.
-   *
-   * @access public
-   * @return array
+   * Implements UcAddressesFieldHandler::getOutputFormats().
    */
   public function getOutputFormats() {
     return array(
@@ -505,10 +446,16 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Used in getOutputFormats() to output a description for the country format
+   * Used in getOutputFormats() to output a description for the country format.
+   *
+   * @param string $country_description
+   *   First part of the country description.
    *
    * @access private
    * @return string
+   *   Description message for getOutputFormats().
+   *
+   * @see getOutputFormats()
    */
   private function getCountryDescriptionMessage($country_description) {
     return t('!country_description, display only for addresses whose country is different than the default store country.',
@@ -517,15 +464,9 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
   }
 
   /**
-   * Output country name
+   * Overrides UcAddressesFieldHandler::outputValue().
    *
-   * @param mixed $value
-   *   The value to output
-   * @param string $format
-   *   The format in which the value should be outputted.
-   *   Possible formats are declared by field handlers: getOutputFormats().
-   * @access public
-   * @return string
+   * The country field can be outputted in different formats.
    */
   public function outputValue($value = '', $format = '') {
     if ($value === '') {
@@ -537,7 +478,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       return t('Unknown');
     }
 
-    // Return country only if the country is not equal to the store's default country
+    // Return country only if the country is not equal to the store's default country.
     if (preg_match('/\_if$/', $format)) {
       if (uc_store_default_country() == $country->country_id) {
         return '';
@@ -556,7 +497,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         return $country->country_iso_code_3;
     }
 
-    // If no format is specified, return country name
+    // If no format is specified, return country name.
     return t($country->country_name);
   }
 
@@ -564,8 +505,11 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
    * Returns country data.
    *
    * @param int $country_id
+   *   The country to get.
+   *
    * @return object
-   *   Data of country.
+   *   Data of country if the country is found.
+   *   NULL otherwise.
    */
   private function getCountry($country_id) {
     if (isset(self::$countries[$country_id])) {
@@ -577,7 +521,8 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       ->condition('country_id', $country_id)
       ->execute();
 
-    if ($country = $result->fetch()) {
+    $country = $result->fetch();
+    if ($country) {
       self::$countries[$country->country_id] = $country;
       return $country;
     }

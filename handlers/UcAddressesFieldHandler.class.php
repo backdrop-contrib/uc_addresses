@@ -5,12 +5,12 @@
  */
 
 /**
- * Base class for fields used in Ubercart Addresses
+ * Base class for fields used in Ubercart Addresses.
  *
- * The field handler API is designed to add extra address fields, such as a gender
- * field. To add extra address fields, you'll need to declare a "field handler" in
- * your module and implement this handler. You will also need to declare one or
- * more "fields" that will be using that handler.
+ * The field handler API is designed to add extra address fields, such as a
+ * gender field. To add extra address fields, you'll need to declare a "field
+ * handler" in your module and implement this handler. You will also need to
+ * declare one ormore "fields" that will be using that handler.
  */
 abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
@@ -18,7 +18,7 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Name of this field
+   * Name of this field.
    *
    * @var string
    * @access private
@@ -26,7 +26,7 @@ abstract class UcAddressesFieldHandler {
   private $name;
 
   /**
-   * Address object
+   * Address object.
    *
    * @var UcAddressesAddress
    * @access private
@@ -54,14 +54,15 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * UcAddressesFormField object constructor
+   * UcAddressesFormField object constructor.
    *
    * @param string $name
-   *   The name of the address field
+   *   The name of the address field.
    * @param UcAddressesSchemaAddress $address
-   *   Instance of UcAddressesSchemaAddress
+   *   Instance of UcAddressesSchemaAddress.
    * @param string $context
-   *   The context in which this field is used
+   *   The context in which this field is used.
+   *
    * @final
    * @access public
    * @return void
@@ -76,7 +77,7 @@ abstract class UcAddressesFieldHandler {
       $this->context = 'default';
     }
 
-    // Load the definition for this field
+    // Load the definition for this field.
     $fields = uc_addresses_get_address_fields();
     if (isset($fields[$this->name])) {
       $this->definition = $fields[$this->name];
@@ -91,7 +92,7 @@ abstract class UcAddressesFieldHandler {
 
   /**
    * Can be used by subclasses to do some initialization upon
-   * construction of the object
+   * construction of the object.
    *
    * @access protected
    * @return void
@@ -103,11 +104,12 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns the field name
+   * Returns the field name.
    *
    * @access public
    * @final
-   * @return UcAddressesAddress
+   * @return string
+   *   The machine name of the field.
    */
   final public function getFieldName() {
     return $this->name;
@@ -115,11 +117,13 @@ abstract class UcAddressesFieldHandler {
 
   /**
    * Returns the address attached to this field.
-   * Generally used by subclasses to get the necessary address data
+   *
+   * Generally used by subclasses to get the necessary address data.
    *
    * @access public
    * @final
    * @return UcAddressesAddress
+   *   The address attached to this field.
    */
   final public function getAddress() {
     return $this->address;
@@ -131,6 +135,7 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @final
    * @return string
+   *   The context in which this field is used.
    */
   final public function getContext() {
     return $this->context;
@@ -143,7 +148,9 @@ abstract class UcAddressesFieldHandler {
    *
    * @access public
    * @return mixed
+   *   In the field definition, properties can be of any type.
    * @throws UcAddressesInvalidParameterException
+   *   When the property does not exists.
    */
   final public function getProperty($name) {
     if (!isset($this->definition[$name])) {
@@ -158,7 +165,7 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @abstract
    * @return string
-   *	 The field title.
+   *   The field title.
    */
   public function getFieldTitle() {
     return $this->getProperty('title');
@@ -172,6 +179,7 @@ abstract class UcAddressesFieldHandler {
    *
    * @access public
    * @return string
+   *   The field's default value.
    */
   public function getDefaultValue() {
     return '';
@@ -182,13 +190,17 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns the editable field
+   * Returns the editable field.
    *
    * @param array $form
+   *   The address form element.
    * @param array $form_values
+   *   An array of filled in values for one address.
+   *
    * @abstract
    * @access public
    * @return array
+   *   A Drupal Form API field.
    */
   abstract public function getFormField($form, $form_values);
 
@@ -198,7 +210,8 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @abstract
    * @return boolean
-   *	 TRUE if the field is enabled.
+   *   TRUE if the field is enabled.
+   *   FALSE otherwise.
    */
   abstract public function isFieldEnabled();
 
@@ -208,7 +221,8 @@ abstract class UcAddressesFieldHandler {
    * @access public
    * @abstract
    * @return boolean
-   *	 TRUE if the field is required.
+   *   TRUE if the field is required.
+   *   FALSE otherwise.
    */
   abstract public function isFieldRequired();
 
@@ -224,6 +238,8 @@ abstract class UcAddressesFieldHandler {
    * value differently.
    *
    * @param mixed $value
+   *   The value the field should get.
+   *
    * @access public
    * @return void
    */
@@ -236,21 +252,25 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Check a fields' value
+   * Check a fields' value.
    *
    * Can be used by subclasses to do some validation based on the value.
    *
    * @param mixed $value
+   *   The value to validate.
+   *
    * @access public
    * @return void
    */
   public function validateValue(&$value) { }
 
   /**
-   * Checks if field passes the context
+   * Checks if the field passes the context.
    *
    * @access public
    * @return boolean
+   *   TRUE if the field passes the context.
+   *   FALSE otherwise.
    */
   public function checkContext() {
     $fields = uc_addresses_get_address_fields();
@@ -275,6 +295,7 @@ abstract class UcAddressesFieldHandler {
    * Is usually equal to the token info, but may differ in some cases.
    *
    * @return array
+   *   Mapping targets for Feeds.
    */
   public function getMappingTargets() {
     return $this->getTokenInfo();
@@ -302,9 +323,10 @@ abstract class UcAddressesFieldHandler {
   // -----------------------------------------------------------------------------
 
   /**
-   * Returns supported tokens
+   * Returns supported tokens.
    *
    * @return array
+   *   An array of available tokens for this field.
    */
   public function getTokenInfo() {
     $fieldname = $this->getFieldName();
@@ -335,21 +357,24 @@ abstract class UcAddressesFieldHandler {
    *
    * @access public
    * @return array
+   *   An array of output formats that the handler supports.
    */
   public function getOutputFormats() {
     return array();
   }
 
   /**
-   * Output a fields value
+   * Output a field's value.
    *
    * @param mixed $value
-   *   The value to output
+   *   The value to output.
    * @param string $format
    *   The format in which the value should be outputted.
    *   Possible formats are declared by field handlers: getOutputFormats().
+   *
    * @access public
    * @return string
+   *   The field's value safe for output.
    * @see getOutputFormats()
    */
   public function outputValue($value = '', $format = '') {
