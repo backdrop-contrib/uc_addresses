@@ -40,6 +40,7 @@ function uc_addresses_test_schema_alter(&$schema) {
  * in tables defined by _uc_addresses_test_schema_tables().
  *
  * @return array
+ *   A list of changes in the database.
  */
 function uc_addresses_test_install() {
   $ret = array();
@@ -68,6 +69,7 @@ function uc_addresses_test_install() {
  * in tables defined by _uc_addresses_test_schema_tables().
  *
  * @return array
+ *   A list of changes in the database.
  */
 function uc_addresses_test_uninstall() {
   $ret = array();
@@ -118,10 +120,11 @@ function _uc_addresses_test_schema_tables() {
 }
 
 /**
- * Defines which schema fields need to be added
- * to the uc_addresses and uc_orders table.
+ * Defines which schema fields need to be added to the uc_addresses and
+ * uc_orders table.
  *
  * @return array
+ *   The schema fields to add.
  */
 function _uc_addresses_test_schema_fields() {
   return array(
@@ -146,6 +149,8 @@ function _uc_addresses_test_schema_fields() {
  * If the field should appear in the specified pane.
  *
  * @return boolean
+ *   TRUE if the field should appear in the specified pane.
+ *   FALSE otherwise.
  */
 function _uc_addresses_test_in_pane($pane, $field) {
   if ($pane && !empty($field['address_type']) && $pane != $field['address_type'] . '_') {

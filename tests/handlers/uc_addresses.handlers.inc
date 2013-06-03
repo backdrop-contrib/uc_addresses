@@ -1,12 +1,15 @@
 <?php
+
 /**
  * @file
  * Contains UcAddressesTextFieldHandler class.
  */
 
 /**
- * This handler extends the handler for a simple text field,
- * adding a check for the field's address type.
+ * Handler for a text field used by the uc_addresses_test module.
+ *
+ * This handler extends the handler for a simple text field and adds
+ * a check for the field's address type.
  */
 class UcAddressesTestTextFieldHandler extends UcAddressesTextFieldHandler {
   /**
@@ -14,6 +17,8 @@ class UcAddressesTestTextFieldHandler extends UcAddressesTextFieldHandler {
    *
    * @access public
    * @return boolean
+   *   TRUE if the field may be used in the given context.
+   *   FALSE otherwise.
    */
   public function checkContext() {
     if (parent::checkContext()) {

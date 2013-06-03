@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Installs database tables using the uc_addresses 6.x-1.x style.
+ */
+
 db_create_table('uc_addresses', array(
   'fields' => array(
     'aid' => array(
@@ -155,7 +160,7 @@ $record = array(
   'type' => 'module',
   'owner' => '',
   'status' => 0,
-  //'throttle' => '0',
+  'throttle' => '0',
   'bootstrap' => 0,
   'schema_version' => 6001,
   'weight' => 0,

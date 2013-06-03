@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Installs uc_store database tables.
+ */
+
 // Countries table.
 db_create_table('uc_countries', array(
   'description' => 'Stores country information.',
