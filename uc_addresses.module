@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Adds user profile address support to Ubercart.
@@ -25,7 +26,8 @@
  *
  * Authors of the current 7.x-1.x version:
  * @author MegaChriz (maintainer)
- * @author Tony Freixas (maintainer) from Tiger Heron LLC. (initially setup of the architecture)
+ * @author Tony Freixas (maintainer) from Tiger Heron LLC. (initially setup
+ * of the architecture)
  *
  * @ingroup uc_addresses
  */
@@ -37,10 +39,8 @@
 /**
  * Implements hook_help().
  *
- * @param string $path
- * @param array $arg
- *
  * @return string
+ *   HTML containing helpful information.
  */
 function uc_addresses_help($path, $arg = array()) {
   global $user;
@@ -124,11 +124,12 @@ function uc_addresses_help($path, $arg = array()) {
  * Implements hook_menu().
  *
  * @return array
+ *   A list of menu items.
  */
 function uc_addresses_menu() {
   $items = array();
 
-  // Address book
+  // Address book pages.
   $items['user/%user_uid_optional/addresses'] = array(
     'title' => 'Address book',
     'description' => 'Manage your addresses',
@@ -190,7 +191,7 @@ function uc_addresses_menu() {
     'file' => 'uc_addresses.pages.inc',
   );
 
-  // Admin
+  // Admin pages.
   $items['admin/store/settings/addresses'] = array(
     'title' => 'Address settings',
     'description' => 'Configure the address settings.',
@@ -224,7 +225,9 @@ function uc_addresses_menu_link_alter(&$item) {
 
 /**
  * Implements hook_permission().
+ *
  * @return array
+ *   A list of permissions.
  */
 function uc_addresses_permission() {
   return array(
@@ -269,6 +272,7 @@ function uc_addresses_permission() {
  * Declares available hooks invoked by this module.
  *
  * @return array
+ *   A list of hooks.
  */
 function uc_addresses_hook_info() {
   $hooks = array(
@@ -331,8 +335,10 @@ function uc_addresses_user_cancel($edit, $account, $method) {
 }
 
 /**
- * Given a wildcard of %uc_addresses_address in path, replace it with
- * the corresponding address object.
+ * Loads a single address by giving an user ID and an address ID.
+ *
+ * This is used by the menu system when %uc_addresses_address is used in
+ * the path.
  *
  * @param int $aid
  *   The value matched by %uc_addresses_address.
@@ -354,9 +360,10 @@ function uc_addresses_address_load($aid, $uid) {
 /**
  * Implements hook_element_info().
  *
- * Register address field type, just as in Ubercart 7.x-3.x
+ * Registers address field type, just as in Ubercart 7.x-3.x.
  *
  * @return array
+ *   A list of input elements that can be used in forms.
  * @see uc_addresses_process_address_field()
  * @see uc_addresses_validate_address_field()
  */
@@ -420,19 +427,20 @@ function uc_addresses_field_extra_fields() {
 }
 
 /**
- * Check address access.
+ * Checks address access.
  *
- * Wrapper function for permissions class
+ * Wrapper function for the permissions class.
  *
  * @param string $method
- *   The method to call in UcAddressesPermissions
+ *   The method to call in UcAddressesPermissions.
  * @param object $address_user
- *   (optional) User object
- *   For the common methods this paramater is required.
+ *   (optional) User object, the owner of the address(es).
  * @param UcAddressesAddress
- *   (optional) The address object
+ *   (optional) The address object.
  *
  * @return boolean
+ *   TRUE if access is granted.
+ *   FALSE otherwise.
  *
  * @see UcAddressesPermissions
  */
@@ -441,7 +449,7 @@ function uc_addresses_access($method, $address_user = NULL, UcAddressesAddress $
 }
 
 /**
- * Check address access by giving ID's.
+ * Checks address access by ID's.
  *
  * @param string $access_type
  *   The operation to check:
@@ -455,6 +463,10 @@ function uc_addresses_access($method, $address_user = NULL, UcAddressesAddress $
  * @param object $account
  *   (optional) The account to check access for.
  *   Defaults to current user.
+ *
+ * @return boolean
+ *   TRUE if access is granted.
+ *   FALSE otherwise.
  */
 function uc_addresses_check_access_by_ids($access_type, $uid, $aid = NULL, $account = NULL) {
   // Get objects.
@@ -482,7 +494,7 @@ function uc_addresses_check_access_by_ids($access_type, $uid, $aid = NULL, $acco
     case 'edit':
       return UcAddressesPermissions::canEditAddress($address_user, $address, $account);
     case 'delete':
-     return UcAddressesPermissions::canDeleteAddress($address_user, $address, $account);
+      return UcAddressesPermissions::canDeleteAddress($address_user, $address, $account);
   }
   return FALSE;
 }
@@ -518,7 +530,7 @@ function uc_addresses_entity_info() {
  * Implements hook_entity_property_info_alter().
  */
 function uc_addresses_entity_property_info_alter(&$info) {
-  // Explain address fields to entity API.
+  // Explain address fields to the entity API.
   $fields = uc_addresses_get_address_fields();
   $properties = &$info['uc_addresses']['properties'];
   foreach ($fields as $key => $field) {
@@ -575,6 +587,9 @@ function uc_addresses_entity_property_info_alter(&$info) {
  *   by Entiy API.
  * @param string $name
  *   The name of the field to get.
+ *
+ * @return mixed
+ *   The address field's raw value.
  */
 function uc_addresses_field_get(UcAddressesAddress $address, $options, $name) {
   return $address->getField($name);
@@ -589,6 +604,10 @@ function uc_addresses_field_get(UcAddressesAddress $address, $options, $name) {
  *   The name of the field to set.
  * @param mixed $value
  *   The value the field should be set to.
+ *
+ * @return mixed
+ *   The return value depends on the class that's being used.
+ *   UcAddressesAddress and UcAddressesSchemaAddress return void.
  */
 function uc_addresses_field_set(UcAddressesAddress $address, $name, $value) {
   return $address->setField($name, $value);
@@ -652,8 +671,25 @@ function uc_addresses_uc_order_address_property_get($order, $options, $name) {
 
 /**
  * Access callback for address entity.
+ *
+ * @param string $op
+ *   The operation to check for:
+ *   - create
+ *   - update
+ *   - view
+ *   - delete
+ * @param UcAddressesAddress $entity
+ *   (optional) The address entity to check access for.
+ * @param object $account
+ *   (optional) The account to check access for.
+ *   Defaults to the current logged in user.
+ *
+ * @return boolean
+ *   TRUE if access is granted.
+ *   FALSE if access is denied.
+ *   NULL in case an unknown operation is passed.
  */
-function uc_addresses_entity_access($op, $entity, $account = NULL, $entity_type = NULL) {
+function uc_addresses_entity_access($op, $entity = NULL, $account = NULL) {
   if ($entity instanceof UcAddressesAddress) {
     $address = $entity;
     $address_user = user_load($address->getUserId());
@@ -692,9 +728,12 @@ function uc_addresses_entity_access($op, $entity, $account = NULL, $entity_type 
  * Element process hook for address fields.
  *
  * @param array $element
+ *   The form element to process.
  * @param array $form_state
+ *   The complete form state.
  *
  * @return array
+ *   The processed form element.
  * @see uc_addresses_element_info()
  * @see uc_addresses_validate_address_field()
  */
@@ -740,7 +779,7 @@ function uc_addresses_process_address_field(&$element, &$form_state) {
     $values = array();
   }
 
-  // Delete prefixes from value array if available
+  // Delete prefixes from value array if available.
   if ($prefix) {
     foreach ($values as $fieldname => $fieldvalue) {
       if (strpos($fieldname, $prefix) === 0) {
@@ -769,7 +808,7 @@ function uc_addresses_process_address_field(&$element, &$form_state) {
   // Save address in form state.
   $form_state['uc_addresses'][$element['#uc_addresses_address']->getId()] = $element['#uc_addresses_address'];
 
-  // Allow other modules to alter the element
+  // Allow other modules to alter the element.
   drupal_alter('uc_addresses_address_field', $element);
 
   // Set common values for all address fields.
@@ -800,7 +839,7 @@ function uc_addresses_process_address_field(&$element, &$form_state) {
     }
   }
 
-  // Add prefixes if set
+  // Add prefixes if set.
   if ($prefix) {
     foreach (element_children($element) as $fieldname) {
       $element[$prefix . $fieldname] = $element[$fieldname];
@@ -812,12 +851,15 @@ function uc_addresses_process_address_field(&$element, &$form_state) {
 }
 
 /**
- * Validate the address fields form
+ * Validation handler for the uc_addresses_address form element.
  *
- * Sets form values to address object
+ * Validates the uc_addresses_address form element and fills
+ * address object with values from the form.
  *
  * @param array $element
+ *   The form element to validate.
  * @param array $form_state
+ *   The complete form state.
  *
  * @return void
  * @see uc_addresses_element_info()
@@ -852,7 +894,7 @@ function uc_addresses_validate_address_field(&$element, $form_state) {
  *   The context in which the fields will be displayed.
  *
  * @return array
- *   An array with fieldname => data
+ *   An array with fieldname => data.
  */
 function uc_addresses_preprocess_address(UcAddressesSchemaAddress $address, $context = 'default') {
   // Build field list.
@@ -863,7 +905,8 @@ function uc_addresses_preprocess_address(UcAddressesSchemaAddress $address, $con
   $handlers = uc_addresses_get_address_field_handler_instances($address, $context);
   foreach ($handlers as $fieldname => $handler) {
     if ($handler->isFieldEnabled() && $handler->checkContext()) {
-      if (($value = $handler->outputValue()) !== '') {
+      $value = $handler->outputValue();
+      if ($value !== '') {
         $weight = (isset($weights[$fieldname])) ? $weights[$fieldname] : $weight++;
         $fields[$fieldname] = array(
           'title' => $handler->getFieldTitle(),
@@ -890,10 +933,10 @@ function uc_addresses_preprocess_address(UcAddressesSchemaAddress $address, $con
     unset($fields['address']['title']);
   }
 
-  // Allow other modules to alter the preprocessed address fields
+  // Allow other modules to alter the preprocessed address fields.
   drupal_alter('uc_addresses_preprocess_address', $fields, $address, $context);
 
-  // Sort fields
+  // Sort fields.
   uasort($fields, 'element_sort');
 
   return $fields;
@@ -913,9 +956,12 @@ function uc_addresses_validate_address_field_country($element, &$form_state) {
  * Returns the weights of address fields.
  *
  * @return array
+ *   The address field's weights.
  */
 function uc_addresses_address_field_weights() {
-  return variable_get('uc_address_fields_weight', array('first_name' => 0, 'last_name' => 1, 'company' => 2, 'street1' => 3, 'street2' => 4, 'city' => 5, 'zone' => 6, 'country' => 7, 'postal_code' => 8, 'phone' => 9, 'address_name' => 10, 'default_shipping' => 11, 'default_billing' => 12));
+  $weights = variable_get('uc_address_fields_weight', array());
+  $weights += array('first_name' => 0, 'last_name' => 1, 'company' => 2, 'street1' => 3, 'street2' => 4, 'city' => 5, 'zone' => 6, 'country' => 7, 'postal_code' => 8, 'phone' => 9, 'address_name' => 10, 'default_shipping' => 11, 'default_billing' => 12);
+  return $weights;
 }
 
 /**
@@ -927,6 +973,8 @@ function uc_addresses_address_field_weights() {
  *   The complete form state.
  *
  * @return array
+ *   The processed form element.
+ * @see uc_addresses_element_info()
  */
 function uc_addresses_form_process_select_address(&$element, &$form_state) {
   if (count($element['#uc_addresses_select_addresses']) < 1) {
@@ -943,7 +991,8 @@ function uc_addresses_form_process_select_address(&$element, &$form_state) {
   );
   $addresses = array_values($element['#uc_addresses_select_addresses']);
   foreach ($addresses as $key => $address) {
-    if ($address_name = $address->getName()) {
+    $address_name = $address->getName();
+    if ($address_name) {
       $options[$key] = $address_name;
     }
     else {
@@ -1029,14 +1078,12 @@ function uc_addresses_address_render($form, &$form_state) {
 /**
  * Implements hook_uc_checkout_pane_alter().
  *
- * Alters delivery and billing pane
- *
- * @param array $panes
+ * Alters the callback functions of the delivery and billing panes.
  *
  * @return void
  */
 function uc_addresses_uc_checkout_pane_alter(&$panes) {
-  // Load file with the callback functions
+  // Load file with the callback functions.
   module_load_include('ubercart.inc', 'uc_addresses');
 
   foreach ($panes as $key => $pane) {
@@ -1054,9 +1101,7 @@ function uc_addresses_uc_checkout_pane_alter(&$panes) {
 /**
  * Implements hook_uc_order_pane_alter().
  *
- * Alters delivery and billing pane
- *
- * @param array $panes
+ * Alters the callback functions of the ship_to and bill_to panes.
  *
  * @return void
  */
@@ -1078,10 +1123,6 @@ function uc_addresses_uc_order_pane_alter(&$panes) {
 
 /**
  * Implements hook_uc_order().
- *
- * @param string $op
- * @param object $order
- * @param mixed $arg2
  *
  * @return void
  */
@@ -1242,7 +1283,7 @@ function uc_addresses_new_address_from_order($order, $order_address_type) {
 
 // ---------------------------------------------------------------------------
 // CTOOLS HOOKS
-// + function for finding the plugins
+// + function for finding the plugins.
 // ---------------------------------------------------------------------------
 
 /**
@@ -1281,6 +1322,7 @@ function uc_addresses_ctools_plugin_type() {
  * Returns all fields registered by hook_uc_addresses_fields().
  *
  * @return array
+ *   A list of all available address field definitions.
  */
 function uc_addresses_get_address_fields() {
   $fields = &drupal_static(__FUNCTION__, array());
@@ -1289,7 +1331,7 @@ function uc_addresses_get_address_fields() {
     ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
     $fields = module_invoke_all('uc_addresses_fields');
 
-    // Allow other modules to alter the field definitions
+    // Allow other modules to alter the field definitions.
     drupal_alter('uc_addresses_fields', $fields);
 
     foreach ($fields as $fieldname => $fielddata) {
@@ -1327,6 +1369,7 @@ function uc_addresses_get_address_fields() {
  *   The context where the fields are used for
  *
  * @return array
+ *   A list of handler instances for all available address fields.
  */
 function uc_addresses_get_address_field_handler_instances(UcAddressesSchemaAddress $address, $context = 'default') {
   $handlers = array();
@@ -1348,16 +1391,16 @@ function uc_addresses_get_address_field_handler_instances(UcAddressesSchemaAddre
  *   The context where the fields are used for.
  *
  * @return UcAddressesFieldHandler
- *   An instance of UcAddressesFieldHandler.
- *   An instance of UcAddressesMissingFieldHandler is returned
- *   if the handler for the field could not be found.
+ *   An instance of UcAddressesFieldHandler if the handler was found.
+ *   An instance of UcAddressesMissingFieldHandler otherwise.
  */
 function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $address, $fieldname, $context = 'default') {
   ctools_include('plugins');
   ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
   $fields_data = uc_addresses_get_address_fields();
   if (isset($fields_data[$fieldname])) {
-    if ($class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler')) {
+    $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler');
+    if ($class) {
       return new $class($fieldname, $address, $context);
     }
     // Handler not found.
@@ -1423,10 +1466,11 @@ function uc_addresses_feeds_plugins() {
 /**
  * Implements hook_form_FORM_ID_alter() for form user_register_form().
  *
- * @param array $form
- * @param array $form_state
+ * Adds an address form to the user register form if set.
  *
- * @return void
+ * @return void|array
+ *   Void if no address is required upon registering.
+ *   The complete form array otherwise.
  *
  * @see uc_addresses_form_user_register_form_alter()
  * @see uc_addresses_user_insert()
@@ -1434,7 +1478,7 @@ function uc_addresses_feeds_plugins() {
 function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
   // Check if we need to ask for an address upon registering.
   if (user_access('administer users')) {
-    // User is admin
+    // User is admin.
     $require_address = variable_get('uc_addresses_require_address_admin', TRUE);
   }
   else {
@@ -1469,7 +1513,8 @@ function uc_addresses_form_user_register_form_alter(&$form, &$form_state) {
 /**
  * Submit handler for user register form.
  *
- * Adds UcAddressesAddress object to user object, so it's available in $edit in uc_addresses_user_insert().
+ * Adds UcAddressesAddress object to the user object, so it's available in
+ * $edit in uc_addresses_user_insert().
  *
  * @see uc_addresses_form_user_register_form_alter()
  * @see uc_addresses_user_insert()
@@ -1505,11 +1550,8 @@ function uc_addresses_form_uc_cart_checkout_form_alter(&$form, &$form_state) {
 /**
  * Implements hook_form_FORM_ID_alter() for form uc_store_address_fields_form().
  *
- * Adds address fields from Ubercart Addresses to the address field settings form,
- * so the weight of these fields can also be adjusted.
- *
- * @param array $form
- * @param array $form_state
+ * Adds address fields from Ubercart Addresses to the address field settings
+ * form, so the weight of these fields can also be adjusted.
  *
  * @return void
  */
@@ -1561,9 +1603,6 @@ function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_sta
 /**
  * Implements hook_form_FORM_ID_alter() for form uc_order_address_book_form().
  *
- * @param array $form
- * @param array $form_state
- *
  * @return void
  */
 function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state) {
@@ -1596,13 +1635,13 @@ function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state
  * Returns an array of addresses to be used to for the selecting address widget.
  *
  * @param int $uid
- *   The user ID to select addresses for
+ *   The user ID to select addresses for.
  * @param string $context
  *   The context in which the addresses are used:
  *   - checkout_form
  *   - order_form
  * @param string $type
- *   The type of address to select addresses for (shipping or billing)
+ *   The type of address to select addresses for (shipping or billing).
  *
  * @return array
  *   An array of addresses.
@@ -1611,19 +1650,19 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
   ctools_include('plugins');
   ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
 
-  // Ask each module for addresses
+  // Ask each module for addresses.
   $addresses = array();
   foreach (module_implements('uc_addresses_select_addresses') as $module) {
     $new_addresses = module_invoke($module, 'uc_addresses_select_addresses', $uid, $context, $type);
     if (is_array($new_addresses) && count($new_addresses) > 0) {
-      // Save source of each address and convert addresses arrays to UcAddressesAddress
+      // Save source of each address and convert addresses arrays to UcAddressesAddress.
       foreach ($new_addresses as $index => $address) {
         $new_address = $address;
         if (is_object($address) && !($address instanceof UcAddressesAddress)) {
           $address = (array) $address;
         }
         if (is_array($address)) {
-          // Convert to UcAddressesAddress
+          // Convert to UcAddressesAddress.
           $new_address = UcAddressesAddressBook::newAddress();
           $new_address->setMultipleFields($address);
           $new_addresses[$index] = $new_address;
@@ -1650,7 +1689,7 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
   }
 
   if (count($addresses) < 1) {
-    // No addresses found
+    // No addresses found.
     return array();
   }
 
@@ -1664,23 +1703,23 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
  * Widget for selecting an address.
  *
  * @param int $uid
- *   The user ID to select addresses for
+ *   The user ID to select addresses for.
  * @param string $context
  *   The context in which the addresses are used:
  *   - checkout_form
  *   - order_form
  * @param string $type
- *   The type of address to select addresses for (shipping or billing)
+ *   The type of address to select addresses for (shipping or billing).
  *
  * @return array
- *   A select form element for selecting addresses
+ *   A select form element for selecting addresses.
  */
 function uc_addresses_select_addresses($uid, $context = 'default', $type = 'billing') {
   // Get addresses for select.
   $addresses = uc_addresses_get_select_addresses($uid, $context, $type);
 
   if (count($addresses) < 1) {
-    // No addresses found
+    // No addresses found.
     return NULL;
   }
 
@@ -1697,8 +1736,6 @@ function uc_addresses_select_addresses($uid, $context = 'default', $type = 'bill
 
 /**
  * Implements hook_theme().
- *
- * @return array
  */
 function uc_addresses_theme() {
   return array(
@@ -1763,16 +1800,23 @@ function uc_addresses_theme() {
  * Theme the default address checkbox in address forms.
  *
  * @param array $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
  *
  * @return string
+ *   A rendered checkbox form field.
+ * @see theme_checkbox()
+ * @ingroup themeable
  */
 function theme_uc_addresses_default_address_checkbox($variables) {
   return theme('checkbox', $variables) . ' ' . $variables['element']['#uc_addresses_default_address_suffix'];
 }
 
 /**
- * Overwrite address display values for invoices
- * (in case an Ubercart Addresses version exists).
+ * Preprocess variables for Ubercart Order invoices.
+ *
+ * The address labels are overwritten with addresses formatted using the
+ * Ubercart Addresses address formats (in case such format exists).
  *
  * @param array $variables
  *   Order variables for in the invoice template.
@@ -1829,8 +1873,7 @@ function uc_addresses_preprocess_uc_order(&$variables) {
 // -----------------------------------------------------------------------------
 
 /**
- * Returns address types used in addresses from
- * Ubercart Addresses.
+ * Returns address types used in addresses from Ubercart Addresses.
  *
  * @return array
  *   The address types used by Ubercart Addresses.
@@ -1840,8 +1883,7 @@ function uc_addresses_address_types() {
 }
 
 /**
- * Returns address types used in the Ubercart order
- * object.
+ * Returns address types used in the Ubercart order object.
  *
  * @return array
  *   The address types used in the Ubercart order.
@@ -1867,10 +1909,10 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
 
   drupal_alter('uc_addresses_format_address', $format, $address, $context);
 
-  // Replace tokens
+  // Replace tokens.
   $address_string = token_replace($format, array('uc_addresses' => $address));
 
-  // Clean-up address string
+  // Clean-up address string.
   $address_string = strtr($address_string, array("\n" => '<br />'));
   $address_string = strtr($address_string, array("\r" => ''));
   $match = array('`^<br( /)?>`', '`<br( /)?>$`', '`<br( /)?>(\s*|[\s*<br( /)?>\s*]+)<br( /)?>`', '`<br( /)?><br( /)?>`', '`<br( /)?>, N/A`');
@@ -1881,7 +1923,7 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
     case 'token':
     case 'checkout_review':
     case 'order_view':
-      // Respect Ubercart capitalize address setting
+      // Respect Ubercart capitalize address setting.
       if (variable_get('uc_order_capitalize_addresses', TRUE)) {
         $address_string = drupal_strtoupper($address_string);
       }
@@ -1895,7 +1937,7 @@ function uc_addresses_format_address(UcAddressesAddress $address, $context = '')
  * Returns address format for specific country.
  *
  * First is checked if there is an Ubercart Addresses specific
- * address format. This country format can be set at
+ * address format. This country format can be set at:
  * admin/store/settings/countries/uc_addresses_formats
  *
  * When there is no Ubercart Addresses address format found, the
@@ -1919,12 +1961,14 @@ function uc_addresses_get_address_format($country_id) {
     return $formats[$country_id];
   }
 
-  if ($format = variable_get('uc_addresses_address_format_' . $country_id, NULL)) {
+  $format = variable_get('uc_addresses_address_format_' . $country_id, NULL);
+  if ($format) {
     $formats[$country_id] = $format;
     return $format;
   }
-  if ($format = variable_get('uc_address_format_' . $country_id, NULL)) {
-    // Convert format to tokens
+  $format = variable_get('uc_address_format_' . $country_id, NULL);
+  if ($format) {
+    // Convert format to tokens.
     $match = array('/\!([a-z\_0-9]+)/', '/country\_/', '/zone\_/');
     $replace = array('[uc_addresses:${1}]', 'country:country_', 'zone:zone_');
     $format = preg_replace($match, $replace, $format);
