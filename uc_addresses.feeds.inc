@@ -8,7 +8,8 @@
 /**
  * Implements hook_feeds_after_import().
  *
- * Makes sure all users for which addresses were imported have default addresses.
+ * Makes sure all users for which addresses were imported have default
+ * addresses.
  */
 function uc_addresses_feeds_after_import(FeedsSource $source) {
   // Check if default addresses are used at all.

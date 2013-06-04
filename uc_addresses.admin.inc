@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Admin settings for Ubercart Addresses
+ * Admin settings for Ubercart Addresses.
  */
 
 // -----------------------------------------------------------------------------
@@ -9,8 +10,7 @@
 // -----------------------------------------------------------------------------
 
 /**
- * Module settings form
- * @return array
+ * Module settings form.
  */
 function uc_addresses_settings_form($form, &$form_state) {
   $form['uc_addresses'] = array(

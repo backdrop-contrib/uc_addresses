@@ -1,22 +1,27 @@
 <?php
+
 /**
  * @file
  * Displays a single address.
  *
  * Available variables:
  * - $label: A string that can indicate if the address is a default address.
- * - $fields: An array of field values to display. Each $field in $fields can contain:
+ * - $fields: An array of field values to display. Each $field in $fields can
+ *   contain:
  *   - $title: The field's label.
  *   - $data: The field's value.
- *   - #weight: This value has been used by uc_addresses_preprocess_address() to order
- *     the fields.
+ *   - #weight: This value has been used by uc_addresses_preprocess_address() to
+ *     order the fields.
  * - $aid: The ID of the address.
  * - $uid: User ID of the owner of the address.
- * - $classes: CSS classes to theme the address, one or more of the following classes:
- *   - addresses-default-address: if the address is a default address (default shipping
- *     or default billing.
- *   - addresses-default-shipping-address: if the address is a default shipping address.
- *   - addresses-default-billing-address: if the address is a default billing address.
+ * - $classes: CSS classes to theme the address, one or more of the following
+ *   classes:
+ *   - addresses-default-address: if the address is a default address (default
+ *     shipping or default billing.
+ *   - addresses-default-shipping-address: if the address is a default shipping
+ *     address.
+ *   - addresses-default-billing-address: if the address is a default billing
+ *     address.
  * - $admin_links: Links for editing and deleting the address.
  * - $edit_address_link: Link for editing the address, only exists if
  *   $options['edit_link'] is TRUE.
@@ -33,7 +38,8 @@
  *     ?destination=...
  *   - $default_flags: if the "default address" label may be displayed.
  *   - $context: the context in which the address is displayed.
- * - $classes_array: Same as $classes, but then listed in an array instead of a string.
+ * - $classes_array: Same as $classes, but then listed in an array instead of a
+ *   string.
  *
  * @see template_preprocess_uc_addresses_list_address()
  * @see uc_addresses_preprocess_address()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Ubercart callbacks for the checkout- and order panes
@@ -39,21 +40,22 @@ function uc_addresses_checkout_pane_billing($op, $order, $form = NULL, &$form_st
  * Generic address pane handler.
  *
  * @param string $type
- *   The address type: billing or shipping
+ *   The address type: billing or shipping.
  * @param string $op
- *   The operation that is being performed
+ *   The operation that is being performed.
  * @param object $order
- *   The Ubercart order
+ *   The Ubercart order.
  * @param array $form
- *   The checkout form
+ *   The checkout form.
  * @param array $form_state
- *   The form state of the checkout form
+ *   The form state of the checkout form.
  * @param string $description
- *   The help text shown above the form
+ *   The help text shown above the form.
  * @param string $copy
- *   The text shown for the "copy address" checkbox
+ *   The text shown for the "copy address" checkbox.
  *
  * @return mixed
+ *   Depending on the operation, different results may be returned.
  */
 function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_state, $description, $copy) {
   global $user;
@@ -132,25 +134,28 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         );
       }
 
-      if ($user->uid && $select = uc_addresses_select_addresses($user->uid, 'checkout_form', $pane)) {
-        $contents['select_address'] = $select + array(
-          '#ajax' => array(
-            'callback' => 'uc_checkout_pane_address_render',
-            'wrapper' => $pane . '-address-pane',
-            'progress' => array(
-              'type' => 'throbber',
+      if ($user->uid) {
+        $select = uc_addresses_select_addresses($user->uid, 'checkout_form', $pane);
+        if ($select) {
+          $contents['select_address'] = $select + array(
+            '#ajax' => array(
+              'callback' => 'uc_checkout_pane_address_render',
+              'wrapper' => $pane . '-address-pane',
+              'progress' => array(
+                'type' => 'throbber',
+              ),
+              'event' => 'change',
             ),
-            'event' => 'change',
-          ),
-          '#states' => array(
-            'invisible' => array(
-              'input[name="panes[' . $pane . '][copy_address]"]' => array('checked' => TRUE),
+            '#states' => array(
+              'invisible' => array(
+                'input[name="panes[' . $pane . '][copy_address]"]' => array('checked' => TRUE),
+              ),
             ),
-          ),
-          '#uc_addresses_address_element' => array('panes', $pane, 'address'),
-          '#uc_addresses_address_input' => array('panes', $pane, 'address'),
-          '#default_value' => $address,
-        );
+            '#uc_addresses_address_element' => array('panes', $pane, 'address'),
+            '#uc_addresses_address_input' => array('panes', $pane, 'address'),
+            '#default_value' => $address,
+          );
+        }
       }
 
       if (isset($form_state['triggering_element'])) {
@@ -202,7 +207,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       $panes = &$form_state['values']['panes'];
 
       if ($address->isNew() && !(isset($panes[$pane]['copy_address']) && $panes[$pane]['copy_address'])) {
-        // Set flag that this address may be saved to the addressbook
+        // Set flag that this address may be saved to the addressbook.
         $address->save_address = TRUE;
       }
       // Set flag for if this address is "copied" or not.
@@ -274,17 +279,18 @@ function uc_addresses_order_pane_ship_to($op, $order, &$form = NULL, &$form_stat
  * Callback for an address order pane.
  *
  * @param string $type
- *   The address type: billing or shipping
+ *   The address type: billing or shipping.
  * @param string $op
- *   The operation that is being performed
+ *   The operation that is being performed.
  * @param object $order
- *   The Ubercart order
+ *   The Ubercart order.
  * @param array $form
- *   The order edit form
+ *   The order edit form.
  * @param array $form_state
- *   The form state of the order edit form
+ *   The form state of the order edit form.
  *
  * @return mixed
+ *   Depending on the operation, different results may be returned.
  */
 function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$form_state = NULL) {
   if ($type == 'shipping') {
@@ -335,7 +341,8 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         $address = UcAddressesAddress::newAddress();
       }
 
-      if ($select = uc_addresses_select_addresses($order->uid, 'order_form', $order_fieldname_prefix)) {
+      $select = uc_addresses_select_addresses($order->uid, 'order_form', $order_fieldname_prefix);
+      if ($select) {
         $form[$pane]['select_address'] = $select + array(
           '#ajax' => array(
             'callback' => 'uc_addresses_address_render',
@@ -418,7 +425,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         unset($form_state['uc_addresses_address']);
       }
 
-      // View the address form
+      // View the address form.
       $form[$pane]['address'] = array(
         '#type' => 'uc_addresses_address',
         '#uc_addresses_address' => $address,
@@ -446,12 +453,12 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
       $address = $order->uc_addresses[$type];
       $changes = array();
       foreach ($order_values[$pane]['address'] as $key => $value) {
-        // Check if this is an address field
+        // Check if this is an address field.
         if (strpos($key, $order_fieldname_prefix . '_') !== 0) {
           continue;
         }
 
-        // Check if the value was changed
+        // Check if the value was changed.
         $fieldname = substr($key, strlen($order_fieldname_prefix) + 1);
         try {
           if ($address->getField($fieldname) != $value && isset($order->$key)) {

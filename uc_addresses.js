@@ -1,15 +1,15 @@
 /**
  * @file
- * Javascript functions for Ubercart Addresses
+ * Javascript functions for Ubercart Addresses.
  */
 
 /**
  * Copy address values from one pane to another for order form.
  *
  * @param string source
- *   The pane to get the address data from
+ *   The pane to get the address data from.
  * @param string target
- *   The pane to copy address data to
+ *   The pane to copy address data to.
  *
  * @return void
  */
@@ -29,10 +29,10 @@ function uc_addresses_copy_address_order(source, target) {
     jQuery(zone_field_target).attr('disabled', jQuery(zone_field_source).attr('disabled'));
   }
 
-  // For each input field
+  // For each input field.
   jQuery(address_pane_target + ' input, select, textarea', ':visible', document.body).each(
     function(i) {
-      // Copy the values from the source pane to the target pane
+      // Copy the values from the source pane to the target pane.
       var source_field = this.id;
       source_field = source_field.replace(target_target, source_source);
       var target_field = this.id;
@@ -73,8 +73,8 @@ function uc_addresses_apply_address(type, address_str) {
     }
   );
 
-  // Special treatment for country and zone fields
-  // Order
+  // Special treatment for country and zone fields.
+  // Order.
   if (jQuery('#' + order_field_id_prefix + 'country').val() != address['country']) {
     try {
       jQuery('#' + order_field_id_prefix + 'country').val(address['country']).trigger('change');

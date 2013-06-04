@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the FeedsUcAddressesProcessor class.
@@ -113,12 +114,14 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
         // Don't set.
         return;
       case 'user_name':
-        if ($user = user_load_by_name($value)) {
+        $user = user_load_by_name($value);
+        if ($user) {
           $target_address->setOwner($user->uid);
         }
         return;
       case 'user_mail':
-        if ($user = user_load_by_mail($value)) {
+        $user = user_load_by_mail($value);
+        if ($user) {
           $target_address->setOwner($user->uid);
         }
         return;
@@ -188,7 +191,8 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
    * Get address ID of an existing feed item address if available.
    */
   protected function existingEntityId(FeedsSource $source, FeedsParserResult $result) {
-    if ($aid = parent::existingEntityId($source, $result)) {
+    $aid = parent::existingEntityId($source, $result);
+    if ($aid) {
       return $aid;
     }
 

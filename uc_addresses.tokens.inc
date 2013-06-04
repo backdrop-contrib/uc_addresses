@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Hook implementations for token module.
@@ -6,8 +7,6 @@
 
 /**
  * Implements hook_token_info().
- *
- * @return array
  */
 function uc_addresses_token_info() {
   $types['uc_addresses'] = array(
@@ -17,7 +16,7 @@ function uc_addresses_token_info() {
   );
 
   $tokens = array();
-  // Ubercart Addresses tokens
+  // Ubercart Addresses tokens.
   $tokens['uc_addresses'] = array();
   $address = UcAddressesAddress::newAddress();
   $fields = uc_addresses_get_address_field_handler_instances($address, 'token');
@@ -25,7 +24,7 @@ function uc_addresses_token_info() {
     $tokens['uc_addresses'] = array_merge($tokens['uc_addresses'], $handler->getTokenInfo());
   }
 
-  // Ubercart order tokens
+  // Ubercart order tokens.
   $tokens['uc_order']['uc-addresses-shipping-address'] = array(
     'name' => t('Shipping address'),
     'description' => t('The order shipping address, formatted with the Ubercart Addresses module.'),
@@ -37,7 +36,7 @@ function uc_addresses_token_info() {
     'type' => 'uc_addresses',
   );
 
-  // User tokens
+  // User tokens.
   $tokens['user']['default-shipping-address'] = array(
     'name' => t('Default shipping address'),
     'description' => t('The default shipping address, formatted with the Ubercart Addresses module.'),
@@ -72,13 +71,6 @@ function uc_addresses_token_info_alter(&$info) {
 
 /**
  * Implements hook_tokens().
- *
- * @param string $type
- * @param array $tokens
- * @param array $data
- * @param array $options
- *
- * @return array
  */
 function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()) {
   $replacements = array();
@@ -90,12 +82,12 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
           $handler = NULL;
           $fieldname = $name;
           $output_format = NULL;
-          // Check if this token represents a existing address field
+          // Check if this token represents a existing address field.
           if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
             $handler = uc_addresses_get_address_field_handler($address, $fieldname, 'token');
           }
           else {
-            // Check if this token represents a particular output format of an existing address field
+            // Check if this token represents a particular output format of an existing address field.
             $token_pieces = explode(':', $name);
             if (count($token_pieces) >= 2) {
               $fieldname = $token_pieces[0];

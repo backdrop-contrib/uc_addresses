@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * In this file fields and field handlers for Ubercart Addresses are registered.
@@ -14,13 +15,14 @@
  * Register form fields and their definitions.
  *
  * @return array
+ *   A list of field handler definitions.
  */
 function uc_addresses_uc_addresses_field_handlers() {
   $path = drupal_get_path('module', 'uc_addresses') . '/handlers';
 
   $info = array();
 
-  // Base class
+  // Base class.
   $info['UcAddressesFieldHandler'] = array(
     'hidden' => TRUE,
     'handler' => array(
@@ -30,7 +32,7 @@ function uc_addresses_uc_addresses_field_handlers() {
     ),
   );
 
-  // Ubercart
+  // Handlers for Ubercart core address fields.
   $file = 'ubercart.handlers.inc';
   $info['UcAddressesUcFieldHandler'] = array(
     'hidden' => TRUE,
@@ -66,7 +68,7 @@ function uc_addresses_uc_addresses_field_handlers() {
     ),
   );
 
-  // Ubercart Addresses
+  // Handlers for specific Ubercart Addresses address fields.
   $file = 'uc_addresses.handlers.inc';
   $info['UcAddressesAddressNameFieldHandler'] = array(
     'handler' => array(
@@ -101,7 +103,7 @@ function uc_addresses_uc_addresses_field_handlers() {
     ),
   );
 
-  // Extra handlers.
+  // Extra handlers that can be used by other modules.
   $info['UcAddressesTextFieldHandler'] = array(
     'handler' => array(
       'parent' => 'UcAddressesFieldHandler',
@@ -128,11 +130,12 @@ function uc_addresses_uc_addresses_field_handlers() {
  * Register all address fields used by Ubercart Addresses.
  *
  * @return array
+ *   A list of field definitions.
  */
 function uc_addresses_uc_addresses_fields() {
   $data = array();
 
-  // Display settings for Ubercart Core Fields (except phone)
+  // Display settings for Ubercart Core Fields (except phone).
   $ubercart_display_settings = array(
     'default' => TRUE,
     'address_view' => FALSE,
@@ -140,7 +143,7 @@ function uc_addresses_uc_addresses_fields() {
     'order_view' => FALSE,
   );
 
-  // Ubercart Core Fields
+  // Ubercart Core Fields.
   $data['first_name'] = array(
     'type' => 'text',
     'label' => t('First name'),
@@ -213,7 +216,7 @@ function uc_addresses_uc_addresses_fields() {
     'display_settings' => $ubercart_display_settings,
   );
 
-  // Ubercart Addresses fields
+  // Ubercart Addresses fields.
   $data['address_name'] = array(
     'title' => t('Address name'),
     'type' => 'text',
@@ -262,7 +265,7 @@ function uc_addresses_uc_addresses_fields() {
     'suffix' => t('Use as my default billing address'),
     'default_type' => 'billing',
   );
-  // Non editable fields
+  // Non editable fields.
   $data['aid'] = array(
     'title' => t('Address ID'),
     'type' => 'integer',

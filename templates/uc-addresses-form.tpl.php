@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Displays the address edit form
+ * Displays the address edit form.
  *
  * Available variables:
  * - $form: The complete address edit form array, not yet rendered.

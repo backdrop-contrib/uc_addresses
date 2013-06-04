@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Page callbacks for viewing, adding, editing, and deleting addresses.
@@ -9,11 +10,12 @@
 // -----------------------------------------------------------------------------
 
 /**
- * Generate a list of one or all addresses defined by one user and
- * then theme the list for display.
+ * Generates a list of all addresses owned by a single user.
  *
- * If the current user can edit the addresses, then provide an edit
- * link for each address.
+ * This address list is themed for display.
+ *
+ * If the current user is allowed to edit the addresses, then an edit link for
+ * each address will be provided.
  *
  * @param object $address_user
  *   The user whose address book we want to display.
@@ -27,14 +29,15 @@ function uc_addresses_address_book($address_user) {
   // Initialize addresses array used for in the template.
   $addresses = array();
   try {
-    // Get all addresses for address user
+    // Get all addresses for address user.
     $address_book = UcAddressesAddressBook::get($address_user);
     $all_addresses = $address_book->getAddresses();
 
     if (count($all_addresses) > 0) {
       // Check for each address if the user may view it.
       foreach ($all_addresses as $address) {
-        if ($address_output = uc_addresses_list_one_address($address_user, $address)) {
+        $address_output = uc_addresses_list_one_address($address_user, $address);
+        if ($address_output) {
           $addresses[$address->getId()] = $address_output;
         }
       }
@@ -45,9 +48,9 @@ function uc_addresses_address_book($address_user) {
   }
 
   $options = array();
-  // Check if user may add addresses
+  // Check if user may add addresses.
   if (UcAddressesPermissions::canEditAddress($address_user)) {
-    // Show add link
+    // Show add link.
     $options['add_link'] = TRUE;
   }
 
@@ -55,7 +58,7 @@ function uc_addresses_address_book($address_user) {
 }
 
 /**
- * Prepare variables for address book
+ * Prepare variables for address book.
  *
  * @param array $vars
  *   An array with the following:
@@ -67,7 +70,7 @@ function uc_addresses_address_book($address_user) {
  * @return void
  */
 function template_preprocess_uc_addresses_address_book(&$vars) {
-  // Initialize variables
+  // Initialize variables.
   $vars['options'] += array(
     'add_link' => FALSE,
   );
@@ -79,7 +82,8 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
   // Find out which addresses are default addresses and which are not.
   $address_book = $vars['address_book'];
   foreach ($vars['addresses'] as $aid => $themed_address) {
-    if ($address_object = $address_book->getAddressById($aid)) {
+    $address_object = $address_book->getAddressById($aid);
+    if ($address_object) {
       $vars['other_addresses'][$aid] = $themed_address;
       if ($address_object->isDefault('billing') && variable_get('uc_addresses_use_default_billing', TRUE)) {
         $vars['default_billing_address'] = $themed_address;
@@ -92,13 +96,13 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
     }
   }
 
-  // Setup odd/even for the other addresses
+  // Setup odd/even for the other addresses.
   $count = 0;
   foreach ($vars['other_addresses'] as $num => $row) {
     $vars['row_classes'][$num][] = ($count++ % 2 == 0) ? 'odd' : 'even';
   }
 
-  // Setup admin links
+  // Setup admin links.
   if ($vars['options']['add_link']) {
     $vars['add_address_link'] = l(t('Add a new address'), 'user/' . $address_book->getUserId() . '/addresses/add', array('attributes' => array('class' => 'address-link add-address-link')));
   }
@@ -107,8 +111,7 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
 /**
  * Display a single address.
  *
- * If the current user can edit the address, then provide an edit
- * link.
+ * If the current user can edit the address, then provide an edit link.
  *
  * @param object $address_user
  *   The user who "owns" the address.
@@ -137,11 +140,13 @@ function uc_addresses_list_one_address($address_user, UcAddressesAddress $addres
  *   - options (array):
  *     - view_link (boolean): whether or not display a link to the address.
  *     - edit_link (boolean): whether or not display a link to edit the address.
- *     - delete_link (boolean): whether or not display a link to delete the address.
+ *     - delete_link (boolean): whether or not display a link to delete the
+ *       address.
  *     - destination (string): path to return to after editing the address.
- *     - default_flags (boolean): whether or not display "default address" labels.
- *     - context (string): the context to use for display the addresses. This has
- *       effect on which fields are displayed. Defaults to "address_view".
+ *     - default_flags (boolean): whether or not display "default address"
+ *       labels.
+ *     - context (string): the context to use for display the addresses. This
+ *       has effect on which fields are displayed. Defaults to "address_view".
  *
  * @return void
  *
@@ -231,8 +236,8 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
 }
 
 /**
- * Renders a link to an address if the user has access to
- * the given operation of the address.
+ * Renders a link to an address if the user has access to the given operation of
+ * the address.
  *
  * @param UcAddressesAddress $address
  *   An instance of UcAddressesAddress.
@@ -294,15 +299,17 @@ function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = a
 /**
  * Create a form used to add a new address or edit an existing address.
  *
+ * @param array $form
+ *   The definition of the form.
  * @param array $form_state
  *   The form state.
  * @param object $address_user
  *   The user who "owns" this address.
  * @param UcAddressesAddress $address
- *   The address to edit (NULL for new addresses)
+ *   The address to edit (NULL for new addresses).
  *
  * @return array
- *   An address form
+ *   An address form.
  *
  * @ingroup forms
  */
@@ -331,16 +338,16 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
     '#uc_addresses_context' => 'address_form',
   );
 
-  // Add submit button
+  // Add submit button.
   if ($address->isNew()) {
-    // New address
+    // New address.
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => variable_get('uc_addresses_add_button', t('Save address')),
     );
   }
   else {
-    // Existing address
+    // Existing address.
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => variable_get('uc_addresses_update_button', t('Save address')),
@@ -352,14 +359,14 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
       '#submit' => array('uc_addresses_get_address_form_submit'),
     );
 
-    // Check if address may be deleted
-    // (It's not allowed to delete default addresses)
+    // Check if address may be deleted.
+    // (It's not allowed to delete default addresses).
     if (!UcAddressesPermissions::canDeleteAddress($address_user, $address)) {
       $form['delete']['#access'] = FALSE;
     }
   }
 
-  // Add cancel link
+  // Add cancel link.
   $form['cancel'] = array(
     '#markup' => l(t('Cancel'), 'user/' . $address_user->uid . '/addresses/', array('attributes' => array('class' => 'address-link cancel-address-link'))),
   );
@@ -396,11 +403,7 @@ function uc_addresses_get_address_form_validate($form, $form_state) {
 /**
  * Submit handler for the address form.
  *
- * @param array $form
- * @param array $form_state
- *
  * @return void
- *
  * @see uc_addresses_get_address_form()
  */
 function uc_addresses_get_address_form_submit(&$form, &$form_state) {
@@ -425,7 +428,7 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
  * Theme the add or edit address form.
  *
  * @param array $variables
- *   An array containing:]
+ *   An array containing:
  *   - form (array): The form array to theme.
  *
  * @return string
@@ -440,9 +443,11 @@ function theme_uc_addresses_get_address_form($variables) {
 }
 
 /**
- * Prepare variables for address form
+ * Prepare variables for an address form.
  *
  * @param array $vars
+ *   An associative array containing:
+ *   - form: A renderable address form.
  *
  * @return void
  *
@@ -466,6 +471,7 @@ function template_preprocess_uc_addresses_form(&$vars) {
  *   The address to delete.
  *
  * @return string
+ *   A themed HTML page.
  */
 function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $address) {
   $uid = $address_user->uid;

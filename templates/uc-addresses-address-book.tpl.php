@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Displays all addresses from a single address book.

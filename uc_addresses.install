@@ -1,12 +1,12 @@
 <?php
+
 /**
  * @file
- * Install file for Ubercart Addresses
+ * Install file for Ubercart Addresses.
  */
 
 /**
  * Implements hook_schema().
- * @return array
  */
 function uc_addresses_schema() {
   $schema['uc_addresses'] = array(
@@ -172,7 +172,7 @@ function uc_addresses_install() {
 /**
  * Implements hook_uninstall().
  *
- * @todo delete variables explecit
+ * Deletes variables used by uc_addresses.
  */
 function uc_addresses_uninstall() {
   db_delete('variable')
@@ -192,14 +192,14 @@ function uc_addresses_uninstall() {
  *   or new token names should include the surrounding bracket ([ and ])
  *   characters.
  * @return
- *   A string with the tokens upgraded
+ *   A string with the tokens upgraded.
  *
  * @see _token_upgrade_token_list()
  * @see _token_upgrade_token_date_list()
  * @see token_update_token_text()
  */
 function uc_addresses_update_token_text($text, $updates = array(), $leading = '[', $trailing = ']') {
-  // Get a list of old tokens
+  // Get a list of old tokens.
   module_load_include('install', 'token');
   $updates += _token_upgrade_token_date_list('uc_addresses_created-', 'uc_addresses:created');
   $updates += _token_upgrade_token_date_list('uc_addresses_modified-', 'uc_addresses:modified');
@@ -259,7 +259,7 @@ function uc_addresses_update_6200() {
     )
   );
 
-  // Get address defaults
+  // Get address defaults.
   $default_aids = array();
   $result = db_select('uc_addresses_defaults')
     ->fields('uc_addresses_defaults', array('aid'))
@@ -268,7 +268,7 @@ function uc_addresses_update_6200() {
     $default_aids[] = $default->aid;
   }
 
-  // Update defaults
+  // Update defaults.
   if (count($default_aids) > 0) {
     $query = db_update('uc_addresses')
       ->fields(
@@ -281,7 +281,7 @@ function uc_addresses_update_6200() {
       ->execute();
   }
 
-  // Drop table uc_addresses_defaults
+  // Drop table uc_addresses_defaults.
   db_drop_table('uc_addresses_defaults');
 
   // Setup default permissions. Authenticated users will automatically
@@ -329,7 +329,8 @@ function uc_addresses_update_7100() {
     ->fields('uc_countries', array('country_id'))
     ->execute();
   foreach ($result as $country) {
-    if ($format = variable_get('uc_addresses_address_format_' . $country->country_id, NULL)) {
+    $format = variable_get('uc_addresses_address_format_' . $country->country_id, NULL);
+    if ($format) {
       // Update this format.
       $format = uc_addresses_update_token_text($format);
       variable_set('uc_addresses_address_format_' . $country->country_id, $format);

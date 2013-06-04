@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * These hooks are invoked by the Ubercart Addresses module.
@@ -22,6 +23,7 @@
  * in the file uc_addresses.uc_addresses_fields.inc.
  *
  * @return array
+ *   A list of field handler definitions.
  */
 function hook_uc_addresses_field_handlers() {
   $path = drupal_get_path('module', 'mymodule') . '/handlers';
@@ -50,7 +52,8 @@ function hook_uc_addresses_field_handlers() {
  *   An associative array containing:
  *   - title: the title of the field, safe for output.
  *   - type: (optional) The data type of the property.
- *   - handler: handler class, registered through hook_uc_addresses_field_handlers().
+ *   - handler: handler class, registered through
+ *     hook_uc_addresses_field_handlers().
  *   - display_settings: (optional) An array of contexts to show or hide the
  *     field on:
  *     - default: boolean, if it may be displayed by default.
@@ -70,40 +73,41 @@ function hook_uc_addresses_field_handlers() {
  *     address book.
  *   - (additional data used by Entity API, see hook_entity_property_info().)
  *
- * Optionally you can define extra properties in the definition. Properties can be
- * reached from within the handler by calling getProperty(). When a handler uses extra
- * properties, these properties will be required. Check the documentation of the handler
- * to see which extra properties it requires.
+ * Optionally you can define extra properties in the definition. Properties can
+ * be reached from within the handler by calling getProperty(). When a handler
+ * uses extra properties, these properties will be required. Check the
+ * documentation of the handler to see which extra properties it requires.
  *
- * Since each field is also a property of the uc_addresses entity, the definition
- * for each field will also be passed to Entity API as metadata. This means that
- * implementing hook_entity_property_info() separately to define additional (or
- * similar) information about your field is not needed. Your field will automatically
- * become available in Rules, for example.
- * However, you may need to define extra properties for your field in order to let
- * it operate properly in entity related functionalities. Check the documentation of
- * hook_entity_property_info() to see which extra properties you can define.
+ * Since each field is also a property of the uc_addresses entity, the
+ * definition for each field will also be passed to Entity API as metadata. This
+ * means that implementing hook_entity_property_info() separately to define
+ * additional (or similar) information about your field is not needed. Your
+ * field will automatically become available in Rules, for example.
+ * However, you may need to define extra properties for your field in order to
+ * let it operate properly in entity related functionalities. Check the
+ * documentation of hook_entity_property_info() to see which extra properties
+ * you can define.
  *
  * @see hook_uc_addresses_field_handlers()
  * @see hook_entity_property_info()
  */
 function hook_uc_addresses_fields() {
-  // Example: register my own field
+  // Example: register my own field.
   return array(
     'myfield' => array(
       'title' => t('My field'),
       'type' => 'text',
       'handler' => 'MyCustomFieldHandler',
       'display_settings' => array(
-        'default' => TRUE, // Display it by default
-        'address_form' => TRUE, // Display it on the address edit form
-        'address_view' => TRUE, // Display it in the address book
-        'checkout_form' => FALSE, // Don't display during checkout
-        'checkout_review' => FALSE, // Don't display at checkout review
-        'order_form' => TRUE, // Display on order edit forms
-        'order_view' => TRUE, // Display on order view pages
+        'default' => TRUE, // Display it by default.
+        'address_form' => TRUE, // Display it on the address edit form.
+        'address_view' => TRUE, // Display it in the address book.
+        'checkout_form' => FALSE, // Don't display during checkout.
+        'checkout_review' => FALSE, // Don't display at checkout review.
+        'order_form' => TRUE, // Display on order edit forms.
+        'order_view' => TRUE, // Display on order view pages.
       ),
-      'compare' => TRUE, // Field is used in address comparisons
+      'compare' => TRUE, // Field is used in address comparisons.
     ),
   );
 }
@@ -113,11 +117,12 @@ function hook_uc_addresses_fields() {
  * a chance to alter the definitions with this hook.
  *
  * @param array $fields
+ *   A list of field definitions registered through hook_uc_addresses_fields().
  *
  * @return void
  */
 function hook_uc_addresses_fields_alter(&$fields) {
-  // Change the handler of my custom field
+  // Change the handler of my custom field.
   $fields['myfield']['handler'] = 'MyOtherCustomFieldHandler';
 }
 
@@ -127,7 +132,7 @@ function hook_uc_addresses_fields_alter(&$fields) {
  * This is useful if you want to make a change to address edit forms
  * that's applyable for all places it appears.
  *
- * The address object the field element is for can be find in
+ * The address object the field element is for can be find in:
  * $element['#uc_addresses_address']
  *
  * @param array $element
@@ -169,7 +174,7 @@ function hook_uc_addresses_address_field_alter(&$element) {
  * @return void
  */
 function hook_uc_addresses_preprocess_address_alter(&$fields, $address, $context) {
-  // Example 1: add extra data in case this is the default shipping address
+  // Example 1: add extra data in case this is the default shipping address.
   if ($address->isDefault('shipping')) {
     $fields['mydata'] = array(
       'title' => t('Title'),
@@ -188,14 +193,14 @@ function hook_uc_addresses_preprocess_address_alter(&$fields, $address, $context
  * This hook allows you to act on addresses being loaded from the database.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  * @param object $obj
- *   The fetched database record
+ *   The fetched database record.
  *
  * @return void
  */
 function hook_uc_addresses_address_load($address, $obj) {
-  // Example: set a value for my custom added field (through hook_uc_addresses_fields())
+  // Example: set a value for my custom added field (through hook_uc_addresses_fields()).
   $address->setField('myfield', 'myvalue');
 }
 
@@ -203,7 +208,7 @@ function hook_uc_addresses_address_load($address, $obj) {
  * This hook allows you alter the address just before it's saved.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  *
  * @return void
  */
@@ -226,12 +231,12 @@ function hook_uc_addresses_address_presave($address) {
  * This hook allows you to respond to creation of a new address.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  *
  * @return void
  */
 function hook_uc_addresses_address_insert($address) {
-  // Example: get the value of my custom field and insert it in my own table
+  // Example: get the value of my custom field and insert it in my own table.
   $record = array(
     'aid' => $address->getId(),
     'myfield' => $address->getField('myfield'),
@@ -243,12 +248,12 @@ function hook_uc_addresses_address_insert($address) {
  * This hook allows you to respond to updates to an address.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  *
  * @return void
  */
 function hook_uc_addresses_address_update($address) {
-  // Example: get the value of my custom field and update it in my own table
+  // Example: get the value of my custom field and update it in my own table.
   $record = array(
     'aid' => $address->getId(),
     'myfield' => $address->getField('myfield'),
@@ -260,12 +265,12 @@ function hook_uc_addresses_address_update($address) {
  * This hook allows you to respond to address deletion.
  *
  * @param UcAddressesAddress $address
- *   The address object
+ *   The address object.
  *
  * @return void
  */
 function hook_uc_addresses_address_delete($address) {
-  // Example: delete the value from my table
+  // Example: delete the value from my table.
   db_delete('mydbtable')
     ->condition('aid', $address->getId())
     ->execute();
@@ -282,7 +287,8 @@ function hook_uc_addresses_address_delete($address) {
  * WARNING: If you don't return TRUE, then no address may be viewed.
  *
  * Note that this hook is only invoked when permissions are checked and not
- * when the address itself is displayed (e.g. through theme('uc_addresses_list_address')).
+ * when the address itself is displayed (e.g., through theme
+ * ('uc_addresses_list_address')).
  *
  * @param object $address_user
  *   The owner of the address.
@@ -292,6 +298,9 @@ function hook_uc_addresses_address_delete($address) {
  *   The account to check access for.
  *
  * @return boolean
+ *   FALSE if the account may not view the address or any address from
+ *   the address user if no address is passed.
+ *   TRUE otherwise.
  */
 function hook_uc_addresses_may_view($address_user, $address, $account) {
   // No specific restrictions for viewing addresses.
@@ -319,6 +328,9 @@ function hook_uc_addresses_may_view($address_user, $address, $account) {
  *   The account to check access for.
  *
  * @return boolean
+ *   FALSE if the account may not edit the address or any address from
+ *   the address user if no address is passed.
+ *   TRUE otherwise.
  */
 function hook_uc_addresses_may_edit($address_user, $address, $account) {
   // Example: don't allow editing of default addresses.
@@ -353,6 +365,9 @@ function hook_uc_addresses_may_edit($address_user, $address, $account) {
  *   The account to check access for.
  *
  * @return boolean
+ *   FALSE if the account may not delete the address or any address from
+ *   the address user if no address is passed.
+ *   TRUE otherwise.
  */
 function hook_uc_addresses_may_delete($address_user, $address, $account) {
   // No specific restrictions for deleting addresses.
@@ -368,13 +383,13 @@ function hook_uc_addresses_may_delete($address_user, $address, $account) {
  * instances.
  *
  * @param int $uid
- *   The user ID to select addresses for
+ *   The user ID to select addresses for.
  * @param string $context
  *   The context in which the addresses are used:
  *   - checkout_form
  *   - order_form
  * @param string $type
- *   The type of address to select addresses for (shipping or billing)
+ *   The type of address to select addresses for (shipping or billing).
  *
  * @return array
  *   An array of address arrays or an array of UcAddressesAddress instances.
@@ -399,9 +414,9 @@ function hook_uc_addresses_select_addresses($uid, $context, $type) {
 
   // Return an array of address arrays or an array of UcAddressesAddress instances.
   return array(
-    // Example: an UcAddressesAddress instance (created earlier)
+    // Example: an UcAddressesAddress instance (created earlier).
     $address,
-    // Example: an address array
+    // Example: an address array.
     array(
       'first_name' => '',
       'last_name' => '',
@@ -427,24 +442,24 @@ function hook_uc_addresses_select_addresses($uid, $context, $type) {
  * are delivered by modules that implement hook_uc_addresses_select_addresses()
  * and if the user has any saved addresses in his/her address book.
  *
- * You can find out from which module the address came by checking $address->module.
- * That property is only available in this context, normally UcAddressesAddress
- * instances don't have that property set.
+ * You can find out from which module the address came by checking
+ * $address->module. That property is only available in this context, normally
+ * UcAddressesAddress instances don't have that property set.
  *
- * This hook will only be invoked if the hook hook_uc_addresses_select_addresses()
- * resulted in any addresses, so you have always at least one address in the addresses
- * array.
+ * This hook will only be invoked if the hook
+ * hook_uc_addresses_select_addresses() resulted in any addresses, so you have
+ * always at least one address in the addresses array.
  *
  * @param array $addresses
  *   An array of UcAddressesAddress instances.
  * @param int $uid
- *   The user ID to select addresses for
+ *   The user ID to select addresses for.
  * @param string $context
  *   The context in which the addresses are used:
  *   - checkout_form
  *   - order_form
  * @param string $type
- *   The type of address to select addresses for (shipping or billing)
+ *   The type of address to select addresses for (shipping or billing).
  *
  * @return void
  */
@@ -452,8 +467,7 @@ function hook_uc_addresses_select_addresses_alter(&$addresses, $uid, $context, $
   // Example 1: Don't let the user choose from addresses in Canada.
   foreach ($addresses as $index => $address) {
     if ($address->getField('country') == 124) {
-      // The addresses' country is Canada (124). Remove from the addresses
-      // array.
+      // The addresses' country is Canada (124). Remove from the addresses array.
       unset($addresses[$index]);
     }
   }
