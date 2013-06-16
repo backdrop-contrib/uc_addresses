@@ -1,3 +1,8 @@
+Ubercart Addresses 7.x-1.x, xxxx-xx-xx
+------------------------------
+- Issue #2018225 by MegaChriz: preprocess variables for packing slip
+  template.
+
 Ubercart Addresses 7.x-1.0-beta1, 2013-06-07
 ------------------------------
 - Issue #1974976 by MegaChriz: fixed failing upgrade path from uc_addresses

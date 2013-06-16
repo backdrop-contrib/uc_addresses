@@ -1826,13 +1826,6 @@ function theme_uc_addresses_default_address_checkbox($variables) {
 function uc_addresses_preprocess_uc_order(&$variables) {
   $order = &$variables['order'];
 
-  if (isset($variables['order_addresses_shipping_address'])) {
-    $variables['order_shipping_address'] = $variables['order_addresses_shipping_address'];
-  }
-  if (isset($variables['order_addresses_billing_address'])) {
-    $variables['order_billing_address'] = $variables['order_addresses_billing_address'];
-  }
-
   // Generate tokens to use as template variables.
   $token_info = token_info();
 
@@ -1853,7 +1846,12 @@ function uc_addresses_preprocess_uc_order(&$variables) {
         $types = array(
           'uc_addresses' => $address,
         );
+        // Generate tokens.
         $replacements[$address_type] = token_generate('uc_addresses', drupal_map_assoc(array_keys($token_info['tokens']['uc_addresses'])), $types);
+        // Overwrite address labels.
+        $address_label = uc_addresses_format_address($address, 'order_view');
+        $variables['order_' . $address_type . '_address'] = $address_label;
+        $variables[$address_type . '_address'] = $address_label;
       }
     }
   }
@@ -1865,6 +1863,23 @@ function uc_addresses_preprocess_uc_order(&$variables) {
       $key = str_replace(':', '_', $key);
       $variables[$key] = $value;
     }
+  }
+}
+
+/**
+ * Preprocess variables for Ubercart Packing slips.
+ *
+ * Order variables are preprocessed in the same way as for Ubercart invoices.
+ *
+ * @param array $variables
+ *   Variables for in the uc_packing_slip template.
+ *
+ * @return void
+ * @see uc_addresses_preprocess_uc_order()
+ */
+function uc_addresses_preprocess_uc_packing_slip(&$variables) {
+  if ($variables['order']) {
+    uc_addresses_preprocess_uc_order($variables);
   }
 }
 
