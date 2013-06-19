@@ -1106,7 +1106,7 @@ function uc_addresses_uc_checkout_pane_alter(&$panes) {
  * @return void
  */
 function uc_addresses_uc_order_pane_alter(&$panes) {
-  // Load file with the callback functions
+  // Load file with the callback functions.
   module_load_include('ubercart.inc', 'uc_addresses');
 
   foreach ($panes as $key => $pane) {
@@ -1364,9 +1364,9 @@ function uc_addresses_get_address_fields() {
  * Returns all handler instances of fields registered by hook_uc_addresses_fields().
  *
  * @param UcAddressesSchemaAddress $address
- *   An address object
+ *   An address object.
  * @param string $context
- *   The context where the fields are used for
+ *   The context where the fields are used for.
  *
  * @return array
  *   A list of handler instances for all available address fields.
@@ -1603,6 +1603,9 @@ function uc_addresses_form_uc_store_address_fields_form_alter(&$form, &$form_sta
 /**
  * Implements hook_form_FORM_ID_alter() for form uc_order_address_book_form().
  *
+ * Makes sure selectable addresses at the order administration can come from the
+ * address book.
+ *
  * @return void
  */
 function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state) {
@@ -1632,7 +1635,7 @@ function uc_addresses_form_uc_order_address_book_form_alter(&$form, &$form_state
 }
 
 /**
- * Returns an array of addresses to be used to for the selecting address widget.
+ * Returns an array of addresses to be used for the selecting address widget.
  *
  * @param int $uid
  *   The user ID to select addresses for.
@@ -1683,7 +1686,7 @@ function uc_addresses_get_select_addresses($uid, $context = 'default', $type = '
           unset($new_addresses[$index]);
         }
       }
-      // Add to addresses array
+      // Add to addresses array.
       $addresses = array_merge($addresses, $new_addresses);
     }
   }

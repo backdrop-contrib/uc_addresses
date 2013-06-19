@@ -43,7 +43,7 @@ class UcAddressesExampleTextFieldHandler extends UcAddressesFieldHandler {
    *
    * @access public
    * @return boolean
-   *	 TRUE if the field is enabled.
+   *   TRUE if the field is enabled.
    *   FALSE otherwise.
    */
   public function isFieldEnabled() {
@@ -55,7 +55,7 @@ class UcAddressesExampleTextFieldHandler extends UcAddressesFieldHandler {
    *
    * @access public
    * @return boolean
-   *	 TRUE if the field is required.
+   *   TRUE if the field is required.
    *   FALSE otherwise.
    */
   public function isFieldRequired() {

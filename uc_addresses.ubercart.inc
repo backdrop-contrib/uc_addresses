@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Ubercart callbacks for the checkout- and order panes
+ * Ubercart callbacks for the checkout- and order panes.
  */
 
 // ---------------------------------------------------------------------------

@@ -58,7 +58,7 @@ function uc_addresses_address_book($address_user) {
 }
 
 /**
- * Prepare variables for address book.
+ * Prepares variables for address book.
  *
  * @param array $vars
  *   An array with the following:
@@ -109,7 +109,7 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
 }
 
 /**
- * Display a single address.
+ * Displays a single address.
  *
  * If the current user can edit the address, then provide an edit link.
  *
@@ -132,7 +132,7 @@ function uc_addresses_list_one_address($address_user, UcAddressesAddress $addres
 }
 
 /**
- * Prepare variables for one address.
+ * Prepares variables for one address.
  *
  * @param array $vars
  *   An array with the following:
@@ -297,7 +297,7 @@ function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = a
 // -----------------------------------------------------------------------------
 
 /**
- * Create a form used to add a new address or edit an existing address.
+ * Creates a form used to add a new address or edit an existing address.
  *
  * @param array $form
  *   The definition of the form.
@@ -377,15 +377,17 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
 /**
  * Validate handler for the address form.
  *
- * Checks if address is similar to other addresses.
+ * Checks if the address is similar to other addresses.
  *
  * @return void
  * @see uc_addresses_get_address_form()
+ * @see uc_addresses_get_address_form_submit()
  */
 function uc_addresses_get_address_form_validate($form, $form_state) {
   try {
     $address = $form['uc_addresses']['address']['#uc_addresses_address'];
     $address_book = UcAddressesAddressBook::get($address->getUserId());
+    // Check if the address looks like other addresses.
     if ($address_book->compareAddress($address)) {
       if ($address->isNew()) {
         form_set_error('uc_addresses][address', t('This address already appears in your address book. A new address was not added.'));
@@ -405,6 +407,7 @@ function uc_addresses_get_address_form_validate($form, $form_state) {
  *
  * @return void
  * @see uc_addresses_get_address_form()
+ * @see uc_addresses_get_address_form_validate()
  */
 function uc_addresses_get_address_form_submit(&$form, &$form_state) {
   try {
@@ -425,7 +428,7 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
 }
 
 /**
- * Theme the add or edit address form.
+ * Themes the add or edit address form.
  *
  * @param array $variables
  *   An array containing:
@@ -443,7 +446,7 @@ function theme_uc_addresses_get_address_form($variables) {
 }
 
 /**
- * Prepare variables for an address form.
+ * Prepares variables for an address form.
  *
  * @param array $vars
  *   An associative array containing:
@@ -463,7 +466,7 @@ function template_preprocess_uc_addresses_form(&$vars) {
 // -----------------------------------------------------------------------------
 
 /**
- * Display a confirmation page before deleting an address.
+ * Displays a confirmation page before deleting an address.
  *
  * @param object $address_user
  *   The user who "owns" the address.
@@ -494,7 +497,7 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
 }
 
 /**
- * Theme the address deletion confirmation form.
+ * Themes the address deletion confirmation form.
  *
  * @param string $help
  *   The help message to display.
@@ -520,8 +523,10 @@ function theme_uc_addresses_address_delete_confirm($variables) {
 }
 
 /**
- * Get the submit buttons to confirm deletion of a user's address.
+ * Gets the submit buttons to confirm deletion of a user's address.
  *
+ * @param array $form
+ *   The definition of the form.
  * @param array $form_state
  *   The state of the form.
  * @param object $user
@@ -554,7 +559,7 @@ function uc_addresses_delete_address_confirm_form($form, &$form_state, $address_
 }
 
 /**
- * Delete a user-confirmed address.
+ * Deletes a user-confirmed address.
  *
  * @param array $form
  *   The form.
