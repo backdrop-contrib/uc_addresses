@@ -341,7 +341,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     // And checkout.
     $this->drupalPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
-    $this->assertText($messages['review_instructions']);
+    $this->assertRaw($messages['review_instructions']);
     $this->drupalPost(NULL, array(), t('Submit order'));
 
     // Check if any new addresses got saved.
@@ -427,7 +427,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $this->drupalPost('cart', array(), 'Checkout');
     $this->drupalPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
-    $this->assertText($messages['review_instructions']);
+    $this->assertRaw($messages['review_instructions']);
     $this->drupalPost(NULL, array(), t('Submit order'));
     $query = db_select('uc_addresses');
     $query->addExpression('COUNT(aid)');
@@ -538,7 +538,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $edit['panes[billing][address][billing_last_name]'] = 'custom last name';
     $this->drupalPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
-    $this->assertText($messages['review_instructions']);
+    $this->assertRaw($messages['review_instructions']);
     $this->drupalPost(NULL, array(), t('Submit order'));
 
     // Check if any new addresses got saved.
