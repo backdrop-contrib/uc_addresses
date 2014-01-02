@@ -2,6 +2,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 ------------------------------
 - Issue #2018225 by MegaChriz: preprocess variables for packing slip
   template.
+- Issue #2130011 by MegaChriz: fixed removing addresses of account when
+  deleting the account.
 
 Ubercart Addresses 7.x-1.0-beta1, 2013-06-07
 ------------------------------
