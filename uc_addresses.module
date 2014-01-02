@@ -324,14 +324,13 @@ function uc_addresses_user_insert(&$edit, $account, $category = NULL) {
 }
 
 /**
- * Implements hook_user_cancel().
+ * Implements hook_user_delete().
  */
-function uc_addresses_user_cancel($edit, $account, $method) {
+function uc_addresses_user_delete($account) {
   // We're deleting the user, so delete all his/her addresses as well.
   db_delete('uc_addresses')
     ->condition('uid', $account->uid)
     ->execute();
-  return;
 }
 
 /**
