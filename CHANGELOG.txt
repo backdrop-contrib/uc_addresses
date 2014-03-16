@@ -4,6 +4,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   template.
 - Issue #2130011 by MegaChriz: fixed removing addresses of account when
   deleting the account.
+- Issue #2168877 by MegaChriz: fixed country/zone fields not set to id
+  when creating a new order.
 
 Ubercart Addresses 7.x-1.0-beta1, 2013-06-07
 ------------------------------

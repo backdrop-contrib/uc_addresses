@@ -1143,7 +1143,7 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
             if ($order_address_type == 'shipping') {
               $order_address_type = 'delivery';
             }
-            $address_values = $address->getFieldData();
+            $address_values = $address->getRawFieldData();
             foreach ($address_values as $fieldname => $value) {
               $order_fieldname = $order_address_type . '_' . $fieldname;
               $order->$order_fieldname = $value;
