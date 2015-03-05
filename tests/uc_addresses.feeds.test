@@ -120,8 +120,8 @@ class UcAddressesFeedsTest extends UcAddressesTestCase {
     $this->assertText('Abbey');
     $this->assertText('9 Sideway');
     $this->assertText('Room 45');
-    $this->assertText('Othercity, G3S 1Q2');
-    $this->assertText('Quebec, Canada');
+    $this->assertText('Othercity QC  G3S 1Q2');
+    $this->assertText('Canada');
     $this->assertText('514 514 5414');
 
     // Test if the fourth imported address is displayed.
