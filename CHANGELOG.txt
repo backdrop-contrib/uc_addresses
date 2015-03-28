@@ -1,11 +1,17 @@
 Ubercart Addresses 7.x-1.x, xxxx-xx-xx
 ------------------------------
-- Issue #2018225 by MegaChriz: preprocess variables for packing slip
-  template.
-- Issue #2130011 by MegaChriz: fixed removing addresses of account when
-  deleting the account.
-- Issue #2168877 by MegaChriz: fixed country/zone fields not set to id
-  when creating a new order.
+- Issue #2018225 by MegaChriz: preprocess variables for packing slip template.
+- Issue #2130011 by MegaChriz: fixed removing addresses of account when deleting
+  the account.
+- Issue #2168877 by MegaChriz: fixed country/zone fields not set to id when
+  creating a new order.
+- Issue #2068927 by MegaChriz: fixed UcAddressesUnownedException upon completing
+  checkout.
+- Issue #2323179 by MegaChriz: fixed Undefined property: UcOrder:: in
+  uc_addresses_uc_order_address_property_get(), added hook
+  hook_uc_addresses_order_load().
+- Issue #2450931 by MegaChriz: added tests for getting and setting entity
+  properties via the Entity property API.
 
 Ubercart Addresses 7.x-1.0-beta1, 2013-06-07
 ------------------------------
