@@ -281,6 +281,7 @@ function uc_addresses_hook_info() {
     'uc_addresses_fields_alter',
     'uc_addresses_preprocess_address_alter',
     'uc_addresses_address_load',
+    'uc_addresses_order_load',
     'uc_addresses_address_presave',
     'uc_addresses_address_insert',
     'uc_addresses_address_update',
@@ -654,6 +655,11 @@ function uc_addresses_user_address_property_get($account, $options, $name) {
  *   NULL otherwise.
  */
 function uc_addresses_uc_order_address_property_get($order, $options, $name) {
+  if (!isset($order->uc_addresses)) {
+    // Addresses aren't yet attached to the order. Do it now.
+    uc_addresses_order_attach_addresses($order);
+  }
+
   switch ($name) {
     case 'uc_addresses_delivery_address':
       return $order->uc_addresses['shipping'];
@@ -662,9 +668,6 @@ function uc_addresses_uc_order_address_property_get($order, $options, $name) {
     case 'uc_addresses_billing_address':
       return $order->uc_addresses['billing'];
       break;
-
-    default:
-      return NULL;
   }
 }
 
@@ -1125,7 +1128,7 @@ function uc_addresses_uc_order_pane_alter(&$panes) {
  *
  * @return void
  */
-function uc_addresses_uc_order($op, &$order, $arg2) {
+function uc_addresses_uc_order($op, &$order) {
   global $user;
   switch ($op) {
     case 'new':
@@ -1162,32 +1165,16 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
         $order->uc_addresses[$address_type] = $address;
       }
       break;
-    case 'load':
-      $order->uc_addresses = array();
-      foreach (uc_addresses_order_address_types() as $order_address_type) {
-        $address_type = $order_address_type;
-        if ($order_address_type == 'delivery') {
-          $address_type = 'shipping';
-        }
 
-        // Check session first for temporary saved addresses.
-        if (isset($_SESSION['uc_addresses_order'][$order->order_id][$address_type])) {
-          $address = unserialize($_SESSION['uc_addresses_order'][$order->order_id][$address_type]);
-        }
-        else {
-          // Construct new address.
-          $address = uc_addresses_new_address_from_order($order, $order_address_type);
-        }
-        $address->address_type = $address_type;
-        $order->uc_addresses[$address_type] = $address;
-      }
+    case 'load':
+      uc_addresses_order_attach_addresses($order);
       break;
 
     case 'save':
       if (!isset($order->uc_addresses)) {
         // Attach address objects immediately after saving, so the order
         // doesn't require a reload to gain the address objects.
-        uc_addresses_uc_order('load', $order, $arg2);
+        uc_addresses_order_attach_addresses($order);
       }
       break;
   }
@@ -1259,6 +1246,33 @@ function uc_addresses_uc_checkout_complete($order, $account) {
 
   // Remove any temporary addresses from session.
   unset($_SESSION['uc_addresses_order']);
+}
+
+/**
+ * Attaches UcAddressesAddress instances to the order.
+ */
+function uc_addresses_order_attach_addresses($order) {
+  $order->uc_addresses = array();
+  foreach (uc_addresses_order_address_types() as $order_address_type) {
+    $address_type = $order_address_type;
+    if ($order_address_type == 'delivery') {
+      $address_type = 'shipping';
+    }
+
+    // Check session first for temporary saved addresses.
+    if (isset($_SESSION['uc_addresses_order'][$order->order_id][$address_type])) {
+      $address = unserialize($_SESSION['uc_addresses_order'][$order->order_id][$address_type]);
+    }
+    else {
+      // Construct new address.
+      $address = uc_addresses_new_address_from_order($order, $order_address_type);
+    }
+    $address->address_type = $address_type;
+    $order->uc_addresses[$address_type] = $address;
+  }
+
+  // Allow other modules to react on this.
+  module_invoke_all('uc_addresses_order_load', $order);
 }
 
 /**

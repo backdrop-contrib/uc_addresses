@@ -205,6 +205,24 @@ function hook_uc_addresses_address_load($address, $obj) {
 }
 
 /**
+ * This hook allows you to act on addresses being attached on an order.
+ *
+ * @param object $order
+ *   The order to which addresses are attached.
+ *
+ * @return void
+ */
+function hook_uc_addresses_order_load($order) {
+  // Example: set a value for my custom added field (through hook_uc_addresses_fields()).
+  if (isset($order->uc_addresses['shipping'])) {
+    $order->uc_addresses['shipping']->setField('myfield', 'myvalue');
+  }
+  if (isset($order->uc_addresses['billing'])) {
+    $order->uc_addresses['billing']->setField('myfield', 'myvalue');
+  }
+}
+
+/**
  * This hook allows you alter the address just before it's saved.
  *
  * @param UcAddressesAddress $address
