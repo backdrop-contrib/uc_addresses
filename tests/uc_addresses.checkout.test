@@ -608,4 +608,31 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     );
     $order = $this->checkExistingOrder($conditions);
   }
+
+  /**
+   * Tests if a customer can checkout when not providing a mail address.
+   */
+  function testAnonymousCheckoutWithoutMailAddress() {
+    // Disable the Customer information pane.
+    variable_set('uc_pane_customer_enabled', FALSE);
+
+    // Place item in cart.
+    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    // Continue to checkout.
+    $this->drupalPost('cart', array(), 'Checkout');
+
+    // Populate checkout form, but omit filling mail address.
+    $edit = $this->populateCheckoutForm();
+    unset($edit['panes[customer][primary_email]']);
+    // And checkout.
+    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->assertRaw(t('Your order is almost complete.'));
+    $this->drupalPost(NULL, array(), t('Submit order'));
+
+    // Check if an order has been created.
+    $conditions = array(
+      'delivery_first_name' => $edit['panes[delivery][address][delivery_first_name]'],
+    );
+    return $this->checkExistingOrder($conditions);
+  }
 }

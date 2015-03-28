@@ -1200,23 +1200,28 @@ function uc_addresses_uc_order($op, &$order, $arg2) {
  *
  * @param object $order
  *   The Ubercart order.
- * @param object $user
+ * @param object $account
  *   The user who ordered.
  *
  * @return void
  */
-function uc_addresses_uc_checkout_complete($order, $user) {
+function uc_addresses_uc_checkout_complete($order, $account) {
+  if (empty($account->uid)) {
+    // No account has been created. This can happen when anonymous checkout is
+    // enabled and the "Customer information" pane is disabled.
+    return;
+  }
   if (isset($order->uc_addresses)) {
     $saved_addresses = array();
     foreach ($order->uc_addresses as $address_type => $address) {
       if (!empty($address->save_address)) {
         // Check if the user already has similar looking addresses.
-        if (UcAddressesAddressBook::get($user->uid)->compareAddress($address)) {
+        if (UcAddressesAddressBook::get($account->uid)->compareAddress($address)) {
           // Don't save the address.
         }
         else {
           if (!$address->isOwned()) {
-            $address->setOwner($user->uid);
+            $address->setOwner($account->uid);
           }
 
           // Save address.
