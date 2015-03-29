@@ -43,6 +43,14 @@ class UcAddressesUndefinedFunctionException extends UcAddressesException { }
 class UcAddressesInvalidParameterException extends UcAddressesException { }
 
 /**
+ * UcAddressesIncompatibleHandlerException.
+ *
+ * Thrown when requesting a handler with an UcAddressesSchemaAddress that only
+ * supports an UcAddressesAddress.
+ */
+class UcAddressesIncompatibleHandlerException extends UcAddressesException { }
+
+/**
  * UcAddressesNameCollisionException.
  *
  * Used when an address attempts to use the same name as another

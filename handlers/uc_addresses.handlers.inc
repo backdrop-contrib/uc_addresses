@@ -56,6 +56,20 @@ class UcAddressesTextFieldHandler extends UcAddressesFieldHandler {
  */
 class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
   /**
+   * Implements UcAddressesFieldHandler::init().
+   *
+   * @throws UcAddressesIncompatibleHandlerException
+   *   In case the given address instance is not an instance of
+   *   UcAddressesAddress.
+   */
+  protected function init() {
+    $address = $this->getAddress();
+    if (!($address instanceof UcAddressesAddress)) {
+      throw new UcAddressesIncompatibleHandlerException(t('The handler %handler needs an UcAddressesAddress instance to function.', array('%handler' => get_class($this))));
+    }
+  }
+
+  /**
    * Implements UcAddressesFieldHandler::getFormField().
    */
   public function getFormField($form, $form_values) {
@@ -114,6 +128,20 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
  * - suffix: used as a suffix to the form field in address edit forms.
  */
 class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
+  /**
+   * Implements UcAddressesFieldHandler::init().
+   *
+   * @throws UcAddressesIncompatibleHandlerException
+   *   In case the given address instance is not an instance of
+   *   UcAddressesAddress.
+   */
+  protected function init() {
+    $address = $this->getAddress();
+    if (!($address instanceof UcAddressesAddress)) {
+      throw new UcAddressesIncompatibleHandlerException(t('The handler %handler needs an UcAddressesAddress instance to function.', array('%handler' => get_class($this))));
+    }
+  }
+
   /**
    * Implements UcAddressesFieldHandler::getFormField().
    */

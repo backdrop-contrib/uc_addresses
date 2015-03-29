@@ -1416,19 +1416,24 @@ function uc_addresses_get_address_field_handler(UcAddressesSchemaAddress $addres
   ctools_include('plugins');
   ctools_plugin_api_include('uc_addresses', 'uc_addresses_fields', 2, 2);
   $fields_data = uc_addresses_get_address_fields();
-  if (isset($fields_data[$fieldname])) {
-    $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler');
-    if ($class) {
-      return new $class($fieldname, $address, $context);
+  try {
+    if (isset($fields_data[$fieldname])) {
+      $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', $fields_data[$fieldname]['handler'], 'handler');
+      if ($class) {
+        return new $class($fieldname, $address, $context);
+      }
+      // Handler not found.
+      $args = array('%handler' => $fields_data[$fieldname]['handler'], '%field' => $fieldname);
+      if (user_access('administer store')) {
+        drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Check whether all required libraries and modules are installed properly.', $args), 'error', FALSE);
+      }
+      else {
+        drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Please contact your site administrator.', $args), 'error', FALSE);
+      }
     }
-    // Handler not found.
-    $args = array('%handler' => $fields_data[$fieldname]['handler'], '%field' => $fieldname);
-    if (user_access('administer store')) {
-      drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Check whether all required libraries and modules are installed properly.', $args), 'error', FALSE);
-    }
-    else {
-      drupal_set_message(t('Missing Ubercart Addresses field handler %handler for field %field. Please contact your site administrator.', $args), 'error', FALSE);
-    }
+  }
+  catch (UcAddressesIncompatibleHandlerException $e) {
+    // Ignore incompatible handlers.
   }
   // Return an instance of UcAddressesMissingFieldHandler instead.
   $class = ctools_plugin_load_class('uc_addresses', 'field_handlers', 'UcAddressesMissingFieldHandler', 'handler');
