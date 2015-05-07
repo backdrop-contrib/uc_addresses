@@ -484,7 +484,7 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
 
   $help =
     variable_get('uc_addresses_delete_instructions',
-      t('Are you are sure you want to delete this address? Once deleted, the address cannot be recovered.',
+      t('Are you sure you want to delete this address? Once deleted, the address cannot be recovered.',
         array(
           '!delete' => variable_get('uc_addresses_delete_button', t('Delete address')),
         )
