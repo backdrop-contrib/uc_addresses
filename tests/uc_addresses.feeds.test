@@ -52,6 +52,12 @@ class UcAddressesFeedsTest extends UcAddressesTestCase {
     // Ensure the importer is available.
     $this->assertText(t('Ubercart Addresses address import'));
 
+    // Ensure that we can access the processor setting pages without errors.
+    $this->drupalGet('admin/structure/feeds/uc_addresses/settings/FeedsUcAddressesProcessor');
+    $this->assertText('Settings for Ubercart Addresses processor');
+    $this->drupalGet('admin/structure/feeds/uc_addresses/mapping');
+    $this->assertText('Mapping for Ubercart Addresses processor');
+
     // Create the users we are referring to in the csv file except 1
     // (so we can test failing imports as well).
     $account1 = $this->UcAddressesCreateUser('john.lefagity');

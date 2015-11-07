@@ -184,6 +184,11 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
     // Set unique targets.
     $targets['aid']['optional_unique'] = TRUE;
 
+    // Allow other modules to modify targets.
+    if (method_exists($this, 'getHookTargets')) {
+      $this->getHookTargets($targets);
+    }
+
     return $targets;
   }
 

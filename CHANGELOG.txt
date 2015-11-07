@@ -14,6 +14,8 @@ Ubercart Addresses 7.x-1.x, xxxx-xx-xx
   properties via the Entity property API.
 - Issue #2461299 by MegaChriz: fixed field handler API does not always work
   with an UcAddressesSchemaAddress.
+- Issue #2602514: by MegaChriz: fixed FeedsUcAddressesProcessor doesn't invoke
+  hooks to add or alter tags.
 
 Ubercart Addresses 7.x-1.0-beta1, 2013-06-07
 ------------------------------
