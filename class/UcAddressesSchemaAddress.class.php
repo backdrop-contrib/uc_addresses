@@ -231,7 +231,7 @@ class UcAddressesSchemaAddress {
    *
    * @access public
    * @return mixed
-   *	 The field value.
+   *   The field value.
    * @throws UcAddressInvalidFieldException
    */
   public function getField($fieldName) {
@@ -261,20 +261,24 @@ class UcAddressesSchemaAddress {
       case 'string':
         $value = (string) $value;
         break;
+
       case 'int':
       case 'integer':
       case 'date':
         $value = (int) $value;
         break;
+
       case 'decimal':
       case 'duration':
       case 'float':
       case 'numeric':
         $value = (float) $value;
         break;
+
       case 'boolean':
         $value = (bool) $value;
         break;
+
       default:
         // In all other cases the setted value is left untouched.
         break;
@@ -377,7 +381,7 @@ class UcAddressesSchemaAddress {
    * Get a "safe" field value from a single field.
    *
    * @param string $fieldName
-   *	 The name of the field whose value we want.
+   *   The name of the field whose value we want.
    * @param string $format
    *   (optional) The format in which the value should be outputted.
    *   See outputValue() in UcAddressesFieldHandler.class.php for

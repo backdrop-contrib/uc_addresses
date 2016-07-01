@@ -523,6 +523,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
           // The entity property for the 'uid' field is called 'user'.
           $property = 'user';
           break;
+
         default:
           // All other entity property names are equal to the field name.
           $property = $field;

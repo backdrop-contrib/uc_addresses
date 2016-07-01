@@ -289,17 +289,18 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
    * Getting some of the schema fields differently.
    *
    * @param string $fieldName
-   *	 The name of the field whose value we want.
+   *   The name of the field whose value we want.
    *
    * @access public
    * @return mixed
-   *	 The field value.
+   *   The field value.
    * @throws UcAddressInvalidFieldException
    */
   public function getField($fieldName) {
     switch ($fieldName) {
       case 'aid':
         return $this->getId();
+
       case 'uid':
         return $this->getUserId();
     }
@@ -326,6 +327,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
         // Don't set.
         // @todo Throw an Exception here?
         break;
+
       case 'uid':
         // Only set if the address is unowned. Else, ignore it.
         // @todo Throw an Exception here?
@@ -333,14 +335,17 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
           $this->setOwner($value);
         }
         break;
+
       case 'address_name':
         $this->setName($value);
         break;
+
       case 'default_shipping':
         if ($value) {
           $this->setAsDefault('shipping');
         }
         break;
+
       case 'default_billing':
         if ($value) {
           $this->setAsDefault('billing');
@@ -589,10 +594,12 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       case 'address_name':
         $this->getSchemaAddress()->address_name = $value;
         break;
+
       case 'shipping':
       case 'default_shipping':
         $this->getSchemaAddress()->default_shipping = ($value) ? TRUE : FALSE;
         break;
+
       case 'billing':
       case 'default_billing':
         $this->getSchemaAddress()->default_billing = ($value) ? TRUE : FALSE;

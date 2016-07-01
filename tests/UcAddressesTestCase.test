@@ -418,13 +418,16 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
         // By default an empty address name is returned to avoid name collisions
         // when that aspect is not tested.
         return '';
+
       case 'default_shipping':
       case 'default_billing':
         // Don't make addresses the default if this aspect is not tested.
         return 0;
+
       case 'postal_code':
         // A numeric code for postal codes.
         return mt_rand(10000, 99999);
+
       case 'country':
         // The default country in Ubercart.
         $country_id = uc_store_default_country();
@@ -434,6 +437,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
           $country_id = db_query_range("SELECT country_id FROM {uc_countries} WHERE version > :version", 0, 1, array(':version' => 0))->fetchField();
         }
         return $country_id;
+
       case 'zone':
         // Random zone based on the defined country.
         if (isset($values['country'])) {
@@ -443,6 +447,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
           $country_id = self::generateAddressFieldValue('country', $values);
         }
         return db_query("SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :zone_country_id ORDER BY rand()", array(':zone_country_id' => $country_id))->fetchField();
+
       default:
         // In all other cases it is assummed that it's a textfield that needs to be filled in.
         return self::randomString(12);

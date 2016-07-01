@@ -87,7 +87,7 @@ function uc_addresses_settings_form($form, &$form_state) {
  *
  * @param int $country_id
  *   (optional) The country to set the address format for.
- *	 If specified, a different form will be loaded.
+ *   If specified, a different form will be loaded.
  *
  * @return string | array
  *   A list of countries, themed in a table.

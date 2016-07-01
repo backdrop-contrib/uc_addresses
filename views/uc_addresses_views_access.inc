@@ -21,9 +21,11 @@ class uc_addresses_views_access extends views_plugin_access {
       case 'view':
         $title[] = t('View access');
         break;
+
       case 'edit':
         $title[] = t('Edit access');
         break;
+
       case 'delete':
         $title[] = t('Delete access');
         break;

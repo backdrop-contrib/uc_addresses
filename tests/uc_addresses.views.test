@@ -388,6 +388,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
           $access_all = $account->uc_addresses_permissions['view_all_def'];
         }
         break;
+
       case 'delete':
         if ($is_default_address) {
           $access_own = FALSE;

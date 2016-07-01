@@ -143,8 +143,10 @@ class uc_addresses_handler_filter_access extends views_handler_filter_boolean_op
     switch ($this->definition['uc_addresses_access_type']) {
       case 'view':
         return UcAddressesPermissions::canViewAddress($address_user, $address);
+
       case 'edit':
         return UcAddressesPermissions::canEditAddress($address_user, $address);
+
       case 'delete':
         return UcAddressesPermissions::canDeleteAddress($address_user, $address);
     }

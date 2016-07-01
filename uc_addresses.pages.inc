@@ -263,6 +263,7 @@ function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = a
       $title = t('View address');
       $path = $uri['path'];
       break;
+
     case 'edit':
       if (!UcAddressesPermissions::canEditAddress($address_user, $address)) {
         return '';
@@ -270,6 +271,7 @@ function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = a
       $title = t('Edit address');
       $path = $uri['path'] . '/edit';
       break;
+
     case 'delete':
       if (!UcAddressesPermissions::canDeleteAddress($address_user, $address)) {
         return '';
@@ -503,7 +505,7 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
  *   The help message to display.
  * @param string $form
  *   The HTML version of the form that by default
- *	 includes the 'Back' and 'Delete Address' buttons at the bottom
+ *   includes the 'Back' and 'Delete Address' buttons at the bottom
  *   of the confirmation page.
  *
  * @return string

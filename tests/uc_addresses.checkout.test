@@ -351,6 +351,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
         case 'delivery':
           $message = t('The delivery address is correctly saved to the database.');
           break;
+
         case 'billing':
           $message = t('The billing address is correctly saved to the database.');
           break;
@@ -553,6 +554,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
         case 'delivery':
           $message = t('The delivery address is correctly saved to the database.');
           break;
+
         case 'billing':
           $message = t('The billing address is correctly saved to the database.');
           break;

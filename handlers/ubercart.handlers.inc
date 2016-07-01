@@ -414,11 +414,13 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       case 'country_code2_if':
         $format = 'country_iso_code_2';
         break;
+
       case 'country_code3':
       case 'country_code3_if':
         $format = 'country_iso_code_3';
         break;
     }
+
     switch ($format) {
       case 'country_name':
       case 'country_iso_code_2':
@@ -505,9 +507,11 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
       case 'country_name':
       case 'country_name_if':
         return t($country->country_name);
+
       case 'country_code2':
       case 'country_code2_if':
         return $country->country_iso_code_2;
+
       case 'country_code3':
       case 'country_code3_if':
         return $country->country_iso_code_3;

@@ -65,8 +65,10 @@ class uc_addresses_views_plugin_argument_user_address_access extends views_plugi
     switch ($this->options['access_type']) {
       case 'view':
         return UcAddressesPermissions::canViewAddress($address_user);
+
       case 'edit':
         return UcAddressesPermissions::canEditAddress($address_user);
+
       case 'delete':
         return UcAddressesPermissions::canDeleteAddress($address_user);
     }

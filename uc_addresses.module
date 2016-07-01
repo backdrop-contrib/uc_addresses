@@ -491,8 +491,10 @@ function uc_addresses_check_access_by_ids($access_type, $uid, $aid = NULL, $acco
   switch ($access_type) {
     case 'view':
       return UcAddressesPermissions::canViewAddress($address_user, $address, $account);
+
     case 'edit':
       return UcAddressesPermissions::canEditAddress($address_user, $address, $account);
+
     case 'delete':
       return UcAddressesPermissions::canDeleteAddress($address_user, $address, $account);
   }
@@ -700,8 +702,10 @@ function uc_addresses_entity_access($op, $entity = NULL, $account = NULL) {
       case 'create':
       case 'update':
         return UcAddressesPermissions::canEditAddress($address_user, $address, $account);
+
       case 'view':
         return UcAddressesPermissions::canViewAddress($address_user, $address, $account);
+
       case 'delete':
         return UcAddressesPermissions::canDeleteAddress($address_user, $address, $account);
     }
@@ -712,8 +716,10 @@ function uc_addresses_entity_access($op, $entity = NULL, $account = NULL) {
       case 'create':
       case 'update':
         return UcAddressesPermissions::canEditAll($account);
+
       case 'view':
         return UcAddressesPermissions::canViewAll($account);
+
       case 'delete':
         return UcAddressesPermissions::canDeleteAll($account);
     }
@@ -1093,6 +1099,7 @@ function uc_addresses_uc_checkout_pane_alter(&$panes) {
       case 'billing':
         $panes[$key]['callback'] = 'uc_addresses_checkout_pane_billing';
         break;
+
       case 'delivery':
         $panes[$key]['callback'] = 'uc_addresses_checkout_pane_shipping';
         break;
@@ -1116,6 +1123,7 @@ function uc_addresses_uc_order_pane_alter(&$panes) {
       case 'ship_to':
         $panes[$key]['callback'] = 'uc_addresses_order_pane_ship_to';
         break;
+
       case 'bill_to':
         $panes[$key]['callback'] = 'uc_addresses_order_pane_bill_to';
         break;

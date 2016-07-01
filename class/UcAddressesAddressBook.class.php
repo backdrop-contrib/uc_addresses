@@ -230,6 +230,7 @@ class UcAddressesAddressBook {
       case self::PERF_HINT_LOAD_ALL:
         $this->performanceHint = $hint;
         break;
+
       default:
         throw new UcAddressesInvalidParameterException(t('Tried to set an invalid performance hint for the address book'));
     }
