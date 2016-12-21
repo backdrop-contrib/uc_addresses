@@ -40,7 +40,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    * @return void
    */
   public function setUp() {
-    // Setup modules
+    // Setup modules.
     parent::setUp(
       'ctools',
       'token',

@@ -210,7 +210,7 @@ $query->execute();
 
 // Tell system about uc_store module.
 $record = array(
-  'filename' => drupal_get_path('module', 'uc_store'),
+  'filename' => _drupal_get_filename_fallback('module', 'uc_store', FALSE, TRUE),
   'name' => 'uc_store',
   'type' => 'module',
   'owner' => '',

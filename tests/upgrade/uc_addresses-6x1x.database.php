@@ -155,7 +155,7 @@ db_insert('uc_addresses_defaults')
 
 // Tell Drupal an older version of uc_addresses was already installed.
 $record = array(
-  'filename' => drupal_get_path('module', 'uc_addresses') . '/uc_addresses.info',
+  'filename' => _drupal_get_filename_fallback('module', 'uc_addresses', FALSE, TRUE),
   'name' => 'uc_addresses',
   'type' => 'module',
   'owner' => '',

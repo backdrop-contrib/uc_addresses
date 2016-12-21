@@ -24,10 +24,10 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
   }
 
   /**
-   * Setup modules
+   * Setup modules.
    */
-  public function setUp() {
-    parent::setUp();
+  public function setUp($modules = array(), $permissions = array()) {
+    parent::setUp($modules, $permissions);
 
     // Install Ubercart Addresses and flush schema cache.
     module_enable(array('ctools', 'uc_addresses'));
