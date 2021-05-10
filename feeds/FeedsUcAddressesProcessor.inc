@@ -44,7 +44,7 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
   /**
    * Validates an address.
    */
-  protected function entityValidate($address) {
+  protected function entityValidate($address, FeedsSource $source = NULL) {
     if (!$address->isOwned()) {
       throw new FeedsValidationException(t('The address can not be saved because the user it should belong to is not found.'));
     }
