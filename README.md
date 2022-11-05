@@ -1,6 +1,5 @@
-uc_addresses module
+Ubercart Addresses module
 ------------------------
-by MegaChriz and Tony Freixas
 
 The uc_addresses module adds an address book to the user's profile.
 In the address book users can manage their addresses: add new
@@ -162,3 +161,13 @@ Documentation about the hooks can be found in uc_addresses.api.php.
 
 More documentation can be found online:
 http://drupal.org/node/1340672
+
+Created for Drupal 7 by:
+---------
+* [MegaChriz](https://www.drupal.org/u/megachriz)
+* [Tony Freixas](https://www.drupal.org/u/freixas)
+
+
+Maintainer for Backdrop CMS by:
+-------
+* [argiepiano](https:/githug.com/argiepiano)
