@@ -20,7 +20,7 @@
  * The class doesn't interact with the database itself: this should be done in
  * subclasses (such as UcAddressesAddress).
  */
-class UcAddressesSchemaAddress {
+class UcAddressesSchemaAddress extends Entity {
   // -----------------------------------------------------------------------------
   // PROPERTIES
   // -----------------------------------------------------------------------------
@@ -59,14 +59,16 @@ class UcAddressesSchemaAddress {
   /**
    * Construct a schema address.
    *
-   * @param object $schemaAddress
-   *   The schema address array to wrap. If null, a new stdClass
+   * @param array $values
+   *   An array containing a required object keyed as 'schemaAddress', which is
+   *   the schema address to wrap. If null, a new stdClass
    *   object is created.
    *
    * @access public
    * @return void
    */
-  public function __construct($schemaAddress = NULL) {
+  public function __construct($values) {
+    $schemaAddress = !empty($values['schemaAddress']) ? $values['schemaAddress'] : NULL;
     $this->schemaAddress = new stdClass();
     if (is_object($schemaAddress)) {
       $this->schemaAddress = $schemaAddress;
@@ -80,6 +82,30 @@ class UcAddressesSchemaAddress {
       }
     }
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function id() {
+    return $this->aid;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function entityType() {
+    return 'uc_addresses';
+  }
+  
+  /**
+   * {@inheritdoc}
+   */
+  public function label() { }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function uri() { }
 
   /**
    * Tells which members may be kept when the address is being serialized.

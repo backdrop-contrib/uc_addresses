@@ -91,10 +91,10 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    * @return void
    */
   protected function doAccessFilterTests($account) {
-    $this->drupalLogin($account);
+    $this->backdropLogin($account);
 
     // Test view access.
-    $this->drupalGet('uc_addresses/view');
+    $this->backdropGet('uc_addresses/view');
     // View own default addresses.
     $text = $account->uid . '_default';
     if ($account->uc_addresses_permissions['view_own_def']) {
@@ -129,7 +129,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     }
 
     // Test edit access.
-    $this->drupalGet('uc_addresses/edit');
+    $this->backdropGet('uc_addresses/edit');
     // Edit own address.
     $text = $account->uid . '_other';
     if ($account->uc_addresses_permissions['edit_own']) {
@@ -148,7 +148,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     }
 
     // Test delete access.
-    $this->drupalGet('uc_addresses/delete');
+    $this->backdropGet('uc_addresses/delete');
     // Delete own address.
     $text = $account->uid . '_other';
     if ($account->uc_addresses_permissions['delete_own']) {
@@ -196,10 +196,10 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
    * @return void
    */
   protected function doActionLinksTests($account) {
-    $this->drupalLogin($account);
+    $this->backdropLogin($account);
 
     // Test view access.
-    $this->drupalGet('uc_addresses/action-links');
+    $this->backdropGet('uc_addresses/action-links');
 
     // Get own addresses uri's.
     $own_address_default_uri = UcAddressesAddressBook::get($account->uid)->getDefaultAddress()->uri();
@@ -320,7 +320,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     $other_user_address_other = UcAddressesAddressBook::get($this->basicUser->uid)->getAddressByName($this->basicUser->uid . '_other');
 
     foreach ($this->accounts as $account) {
-      $this->drupalLogin($account);
+      $this->backdropLogin($account);
       $addressBook = UcAddressesAddressBook::get($account->uid);
       $default_address = $addressBook->getDefaultAddress();
       $other_address = $addressBook->getAddressByName($account->uid . '_other');
@@ -329,7 +329,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
       foreach ($access_types as $access_type) {
         // Test for access for any own addresses.
         $base_own_path = 'user/' . $account->uid . '/' . $user_path . '_' . $access_type;
-        $this->drupalGet($base_own_path);
+        $this->backdropGet($base_own_path);
         if ($access_type == 'view') {
           // Take "view own default" permission.
           $this->assertAddressAccessResponse($account, $access_type, $account, TRUE);
@@ -338,15 +338,15 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
           $this->assertAddressAccessResponse($account, $access_type, $account);
         }
         // Test access for own default address.
-        $this->drupalGet($base_own_path . '/' . $default_address->getId());
+        $this->backdropGet($base_own_path . '/' . $default_address->getId());
         $this->assertAddressAccessResponse($account, $access_type, $account, TRUE);
         // Test access for own non-default address.
-        $this->drupalGet($base_own_path . '/' . $other_address->getId());
+        $this->backdropGet($base_own_path . '/' . $other_address->getId());
         $this->assertAddressAccessResponse($account, $access_type, $account);
 
         // Test for access for any addresses of an other user.
         $base_other_path = 'user/' . $this->basicUser->uid . '/' . $user_path . '_' . $access_type;
-        $this->drupalGet($base_other_path);
+        $this->backdropGet($base_other_path);
         if ($access_type == 'view') {
           // Take "view all default" permission.
           $this->assertAddressAccessResponse($account, $access_type, $this->basicUser, TRUE);
@@ -355,10 +355,10 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
           $this->assertAddressAccessResponse($account, $access_type, $this->basicUser);
         }
         // Test access for default address of an other user.
-        $this->drupalGet($base_other_path . '/' . $other_user_address_default->getId());
+        $this->backdropGet($base_other_path . '/' . $other_user_address_default->getId());
         $this->assertAddressAccessResponse($account, $access_type, $this->basicUser, TRUE);
         // Test access for non-default address of an other user.
-        $this->drupalGet($base_other_path . '/' . $other_user_address_other->getId());
+        $this->backdropGet($base_other_path . '/' . $other_user_address_other->getId());
         $this->assertAddressAccessResponse($account, $access_type, $this->basicUser);
       }
     }
@@ -423,13 +423,13 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     // Test Views page for each type of user.
     foreach ($this->accounts as $account) {
-      $this->drupalLogin($account);
+      $this->backdropLogin($account);
       $addressBook = UcAddressesAddressBook::get($account->uid);
       $default_address = $addressBook->getDefaultAddress();
       $other_address = $addressBook->getAddressByName($account->uid . '_other');
 
       // Go to Views page with the user's default address.
-      $this->drupalGet('uc_addresses/address-row-style/' . $default_address->getId());
+      $this->backdropGet('uc_addresses/address-row-style/' . $default_address->getId());
       $this->assertAddressLabel($default_address);
       // Assert that the "default" label is presented.
       $this->assertText(t('Default billing address'));
@@ -449,7 +449,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
       $this->assertNoLink(t('Delete address'));
 
       // Go to Views page with the user's other address.
-      $this->drupalGet('uc_addresses/address-row-style/' . $other_address->getId());
+      $this->backdropGet('uc_addresses/address-row-style/' . $other_address->getId());
       $this->assertAddressLabel($other_address);
       // Assert that the "default" label is NOT presented.
       $this->assertNoText(t('Default billing address'));
@@ -476,7 +476,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     // Login as an user that may view, edit and delete all addresses.
     $account = $this->accounts['adminAll'];
-    $this->drupalLogin($account);
+    $this->backdropLogin($account);
     $addressBook = UcAddressesAddressBook::get($account->uid);
     $default_address = $addressBook->getDefaultAddress();
     $other_address = $addressBook->getAddressByName($account->uid . '_other');
@@ -492,14 +492,14 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
 
     // Go to Views page with the user's default address again and
     // ensure various elements are gone now.
-    $this->drupalGet('uc_addresses/address-row-style/' . $default_address->getId());
+    $this->backdropGet('uc_addresses/address-row-style/' . $default_address->getId());
     $this->assertAddressLabel($default_address);
     $this->assertNoText(t('Default billing address'));
     $this->assertNoLink(t('View address'));
     $this->assertNoLink(t('Edit address'));
     $this->assertNoLink(t('Delete address'));
     // Do the same for the user's other address.
-    $this->drupalGet('uc_addresses/address-row-style/' . $other_address->getId());
+    $this->backdropGet('uc_addresses/address-row-style/' . $other_address->getId());
     $this->assertAddressLabel($other_address);
     $this->assertNoText(t('Default billing address'));
     $this->assertNoLink(t('View address'));
@@ -962,7 +962,7 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
     $other_user_address_other = UcAddressesAddressBook::get($this->basicUser->uid)->getAddressByName($this->basicUser->uid . '_other');
 
     foreach ($this->accounts as $account) {
-      $this->drupalLogin($account);
+      $this->backdropLogin($account);
       $addressBook = UcAddressesAddressBook::get($account->uid);
       $default_address = $addressBook->getDefaultAddress();
       $other_address = $addressBook->getAddressByName($account->uid . '_other');

@@ -18,7 +18,7 @@
  *   A list of field handler definitions.
  */
 function uc_addresses_uc_addresses_field_handlers() {
-  $path = drupal_get_path('module', 'uc_addresses') . '/handlers';
+  $path = backdrop_get_path('module', 'uc_addresses') . '/handlers';
 
   $info = array();
 
@@ -332,7 +332,7 @@ function uc_addresses_uc_addresses_fields() {
  * @todo Add setting to say if addresses may come from previous orders or not.
  */
 function uc_addresses_uc_addresses_select_addresses($uid, $context, $type) {
-  $addresses = &drupal_static(__FUNCTION__, array());
+  $addresses = &backdrop_static(__FUNCTION__, array());
   if (!isset($addresses[$type])) {
     $addresses[$type] = array();
   }

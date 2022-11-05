@@ -3,7 +3,7 @@ description = "Example module for Ubercart Addresses. Adds extra address fields.
 dependencies[] = uc_order
 dependencies[] = uc_addresses
 package = "Ubercart - extra"
-core = 7.x
+backdrop = 1.x
+type = module
 
 ; Field handlers
-files[] = handlers/uc_addresses.handlers.inc

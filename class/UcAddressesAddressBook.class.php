@@ -294,7 +294,7 @@ class UcAddressesAddressBook {
     }
 
     if (!$address) {
-      $address = new UcAddressesAddress($this);
+      $address = new UcAddressesAddress(array('addressBook' => $this));
     }
     $this->addresses[$address->getId()] = $address;
 
@@ -771,7 +771,7 @@ class UcAddressesAddressBook {
       }
     }
     catch (Exception $e) {
-      drupal_set_message($e->getMessage(), 'error');
+      backdrop_set_message($e->getMessage(), 'error');
     }
     return theme('uc_addresses_address_book', array('addresses' => $addresses, 'address_book' => $this));
   }
@@ -953,7 +953,7 @@ class UcAddressesAddressBook {
     $addressbook = self::get($obj->uid);
 
     // Create UcAddressesAddress object.
-    $address = new UcAddressesAddress($addressbook, $obj);
+    $address = new UcAddressesAddress(array('addressBook' => $addressbook, 'schemaAddress' => $obj));
 
     // Give other modules a chance to add their fields.
     module_invoke_all('uc_addresses_address_load', $address, $obj);
@@ -977,7 +977,7 @@ class UcAddressesAddressBook {
     foreach ($result as $obj) {
       // Skip addresses that have already been loaded (and perhaps modified).
       if (!isset($this->addresses[$obj->aid])) {
-        $address = new UcAddressesAddress($this, $obj);
+        $address = new UcAddressesAddress(array('addressBook' => $this, 'schemaAddress' => $obj));
         if ($address->isDefault('shipping')) {
           $this->defaultAddresses['shipping'] = $address;
         }

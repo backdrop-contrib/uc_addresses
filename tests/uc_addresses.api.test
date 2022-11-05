@@ -273,8 +273,9 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
    * no default country set.
    */
   public function testAddressFormatWithoutDefaultCountry() {
-    $this->drupalLogin($this->adminUser);
+    $this->backdropLogin($this->adminUser);
     // Ensure there is no store country set.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_del('uc_store_country');
 
     // Remove the U.S. country from Ubercart.
@@ -286,16 +287,20 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     db_delete('uc_zones')
       ->condition('zone_country_id', $country_id)
       ->execute();
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_del('uc_address_format_' . $country_id);
 
     // Adjust the address format for Canada.
     $canada_address_format = self::randomName();
     $this->verbose($canada_address_format);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_address_format_124', $canada_address_format);
 
     // Disable the country field.
-    $address_fields = variable_get('uc_address_fields', drupal_map_assoc(array('first_name', 'last_name', 'phone', 'company', 'street1', 'street2', 'city', 'zone', 'postal_code', 'country')));
+    // TODO This variable was probably removed in Backdrop without replacement.
+    $address_fields = variable_get('uc_address_fields', backdrop_map_assoc(array('first_name', 'last_name', 'phone', 'company', 'street1', 'street2', 'city', 'zone', 'postal_code', 'country')));
     unset($address_fields['country']);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_address_fields', $address_fields);
 
     // Create an address.
@@ -326,7 +331,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
    * Tests field handler with an UcAddressesSchemaAddress.
    */
   public function testFieldHandlerApi() {
-    $schemaAddress = new UcAddressesSchemaAddress();
+    $schemaAddress = new UcAddressesSchemaAddress(array());
     $addressBookAddress = UcAddressesAddressBook::newAddress();
     $address_values = self::getEditAddressValues();
 
@@ -400,7 +405,7 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $form = array();
     $form_state = array();
     $form_field = $handler->getFormField($form, $form_state);
-    $render = drupal_render($form_field);
+    $render = backdrop_render($form_field);
 
     $this->assertTrue(is_bool($handler->isFieldEnabled()), format_string('The method isFieldEnabled() for field %field returns the expected format.', $vars));
     $this->assertTrue(is_bool($handler->isFieldRequired()), format_string('The method isFieldRequired() for field %field returns the expected format.', $vars));

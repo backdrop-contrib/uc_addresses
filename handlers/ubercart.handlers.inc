@@ -127,7 +127,7 @@ class UcAddressesUcZoneFieldHandler extends UcAddressesUcFieldHandler {
           '#required' => FALSE,
           '#prefix' => '<div id="' . $zone_wrapper_id . '">',
           '#suffix' => '</div>',
-        )
+        ),
       );
     }
 
@@ -314,7 +314,7 @@ class UcAddressesUcCountryFieldHandler extends UcAddressesUcFieldHandler {
         '#title' => $this->getFieldTitle(),
         '#options' => $countries,
         '#required' => $this->isFieldRequired(),
-        '#default_value' => empty($default) ? uc_store_default_country() : $default,
+        '#default_value' => empty($default)?uc_store_default_country() : $default,
         '#ajax' => array(
           'callback' => 'uc_store_update_address_field_zones',
           'wrapper' => $zone_wrapper_id,

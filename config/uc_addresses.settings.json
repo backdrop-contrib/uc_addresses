@@ -1,0 +1,14 @@
+{
+    "_config_name": "uc_addresses.settings",
+    "uc_addresses_use_address_name": true,
+    "uc_addresses_use_default_billing": true,
+    "uc_addresses_use_default_shipping": true,
+    "uc_addresses_default_billing_address": true,
+    "uc_addresses_default_shipping_address": true,
+    "uc_addresses_require_address": true,
+    "uc_addresses_require_address_admin": true,
+    "uc_addresses_add_button": "Save address",
+    "uc_addresses_update_button": "Save address",
+    "uc_addresses_delete_button": "Delete address",
+    "uc_addresses_delete_instructions": "Are you sure you want to delete this address? Once deleted, the address cannot be recovered."
+}

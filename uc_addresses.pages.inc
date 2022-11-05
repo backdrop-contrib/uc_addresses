@@ -23,8 +23,8 @@
  *   The themed address book.
  */
 function uc_addresses_address_book($address_user) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
-  drupal_set_title(t('Address book'));
+  backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  backdrop_set_title(t('Address book'));
 
   // Initialize addresses array used for in the template.
   $addresses = array();
@@ -44,7 +44,7 @@ function uc_addresses_address_book($address_user) {
     }
   }
   catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+    backdrop_set_message($e->getMessage(), 'error');
   }
 
   $options = array();
@@ -70,6 +70,7 @@ function uc_addresses_address_book($address_user) {
  * @return void
  */
 function template_preprocess_uc_addresses_address_book(&$vars) {
+  $config = config('uc_addresses.settings');
   // Initialize variables.
   $vars['options'] += array(
     'add_link' => FALSE,
@@ -85,11 +86,11 @@ function template_preprocess_uc_addresses_address_book(&$vars) {
     $address_object = $address_book->getAddressById($aid);
     if ($address_object) {
       $vars['other_addresses'][$aid] = $themed_address;
-      if ($address_object->isDefault('billing') && variable_get('uc_addresses_use_default_billing', TRUE)) {
+      if ($address_object->isDefault('billing') && $config->get('uc_addresses_use_default_billing')) {
         $vars['default_billing_address'] = $themed_address;
         unset($vars['other_addresses'][$aid]);
       }
-      if ($address_object->isDefault('shipping') && variable_get('uc_addresses_use_default_shipping', TRUE)) {
+      if ($address_object->isDefault('shipping') && $config->get('uc_addresses_use_default_shipping')) {
         $vars['default_shipping_address'] = $themed_address;
         unset($vars['other_addresses'][$aid]);
       }
@@ -153,7 +154,8 @@ function uc_addresses_list_one_address($address_user, UcAddressesAddress $addres
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_list_address(&$vars) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  $config = config('uc_addresses.settings');
+  backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   $address = $vars['address'];
 
   // Initialize variables.
@@ -211,10 +213,10 @@ function template_preprocess_uc_addresses_list_address(&$vars) {
   // Setup labels.
   if ($vars['options']['default_flags']) {
     $flags = array();
-    if ($address->isDefault('billing') && variable_get('uc_addresses_use_default_billing', TRUE)) {
+    if ($address->isDefault('billing') && $config->get('uc_addresses_use_default_billing')) {
       $flags['billing'] = '<span class="uc-addresses-default-address-label uc-addresses-default-billing-address-label">' . t('Default billing address') . '</span>';
     }
-    if ($address->isDefault('shipping') && variable_get('uc_addresses_use_default_shipping', TRUE)) {
+    if ($address->isDefault('shipping') && $config->get('uc_addresses_use_default_shipping')) {
       $flags['shipping'] = '<span class="uc-addresses-default-address-label uc-addresses-default-shipping-address-label">' . t('Default shipping address') . '</span>';
     }
     if (count($flags) > 0) {
@@ -316,6 +318,7 @@ function uc_addresses_render_link(UcAddressesAddress $address, $op, $options = a
  * @ingroup forms
  */
 function uc_addresses_get_address_form($form, &$form_state, $address_user, $address = NULL) {
+  $config = config('uc_addresses.settings');
   if (!($address instanceof UcAddressesAddress)) {
     // Try to retrieve from form_state first.
     if (isset($form_state['input']['address']['aid'])) {
@@ -329,7 +332,7 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
 
   $form['uc_addresses'] = array(
     '#type' => 'fieldset',
-    '#title' => ($address->isNew()) ? t('Add an address') : t('Edit address information'),
+    '#title' => ($address->isNew())?t('Add an address') : t('Edit address information'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -345,18 +348,18 @@ function uc_addresses_get_address_form($form, &$form_state, $address_user, $addr
     // New address.
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => variable_get('uc_addresses_add_button', t('Save address')),
+      '#value' => $config->get('uc_addresses_add_button'),
     );
   }
   else {
     // Existing address.
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => variable_get('uc_addresses_update_button', t('Save address')),
+      '#value' => $config->get('uc_addresses_update_button'),
     );
     $form['delete'] = array(
       '#type' => 'submit',
-      '#value' => variable_get('uc_addresses_delete_button', t('Delete address')),
+      '#value' => $config->get('uc_addresses_delete_button'),
       '#limit_validation_errors' => array(),
       '#submit' => array('uc_addresses_get_address_form_submit'),
     );
@@ -400,7 +403,7 @@ function uc_addresses_get_address_form_validate($form, $form_state) {
     }
   }
   catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+    backdrop_set_message($e->getMessage(), 'error');
   }
 }
 
@@ -415,17 +418,17 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
   try {
     $address = $form['uc_addresses']['address']['#uc_addresses_address'];
 
-    if ($form_state['clicked_button']['#value'] == variable_get('uc_addresses_delete_button', t('Delete address'))) {
+    if ($form_state['clicked_button']['#value'] == config_get('uc_addresses.settings', 'uc_addresses_delete_button')) {
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses/' . $address->getId() . '/delete';
     }
     elseif ($form_state['clicked_button']['#value']) {
       $address->save();
-      drupal_set_message(t('The address is saved.'));
+      backdrop_set_message(t('The address is saved.'));
       $form_state['redirect'] = 'user/' . $address->getUserId() . '/addresses';
     }
   }
   catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+    backdrop_set_message($e->getMessage(), 'error');
   }
 }
 
@@ -443,8 +446,8 @@ function uc_addresses_get_address_form_submit(&$form, &$form_state) {
  */
 function theme_uc_addresses_get_address_form($variables) {
   $form = $variables['form'];
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
-  return drupal_render_children($form);
+  backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  return backdrop_render_children($form);
 }
 
 /**
@@ -459,7 +462,7 @@ function theme_uc_addresses_get_address_form($variables) {
  * @ingroup themeable
  */
 function template_preprocess_uc_addresses_form(&$vars) {
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
   $vars['req'] = '<span class="form-required">*</span>';
 }
 
@@ -482,16 +485,10 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
   $uid = $address_user->uid;
   $aid = $address->getId();
 
-  $form = drupal_get_form('uc_addresses_delete_address_confirm_form', $address_user, $address);
+  $form = backdrop_get_form('uc_addresses_delete_address_confirm_form', $address_user, $address);
 
   $help =
-    variable_get('uc_addresses_delete_instructions',
-      t('Are you sure you want to delete this address? Once deleted, the address cannot be recovered.',
-        array(
-          '!delete' => variable_get('uc_addresses_delete_button', t('Delete address')),
-        )
-      )
-  );
+    config_get('uc_addresses.settings', 'uc_addresses_delete_instructions');
 
   $output = theme('uc_addresses_address_delete_confirm', array('help' => $help, 'form' => $form));
 
@@ -517,10 +514,10 @@ function uc_addresses_delete_address_confirm($address_user, UcAddressesAddress $
 function theme_uc_addresses_address_delete_confirm($variables) {
   $help = $variables['help'];
   $form = $variables['form'];
-  drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+  backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
 
   $output = '<p>' . $help . '</p>';
-  $output .= drupal_render($form);
+  $output .= backdrop_render($form);
   return $output;
 }
 
@@ -555,7 +552,7 @@ function uc_addresses_delete_address_confirm_form($form, &$form_state, $address_
     t('Delete address'),
       'user/' . $address_user->uid . '/addresses/',
     (string) $address,
-    variable_get('uc_addresses_delete_button', t('Delete address')),
+    config_get('uc_addresses.settings', 'uc_addresses_delete_button'),
     t('Cancel')
   );
 }
@@ -578,14 +575,14 @@ function uc_addresses_delete_address_confirm_form_submit($form, &$form_state) {
 
   try {
     if ($address->delete()) {
-      drupal_set_message(t('The address has been deleted.'));
+      backdrop_set_message(t('The address has been deleted.'));
     }
     else {
-      drupal_set_message(t('The address could not be deleted.'), 'error');
+      backdrop_set_message(t('The address could not be deleted.'), 'error');
     }
   }
   catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+    backdrop_set_message($e->getMessage(), 'error');
   }
 
   $form_state['redirect'] = array('user/' . $address_user->uid . '/addresses');

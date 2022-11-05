@@ -42,9 +42,9 @@
         <?php else: ?>
           <td class="field-label"></td>
         <?php endif; ?>
-        <td class="field-field"><?php print drupal_render($form[$fieldname]); ?></td>
+        <td class="field-field"><?php print backdrop_render($form[$fieldname]); ?></td>
       </tr>
     <?php endforeach; ?>
   </table>
 </div>
-<div class="address-form-bottom"><?php print drupal_render_children($form); ?></div>
+<div class="address-form-bottom"><?php print backdrop_render_children($form); ?></div>

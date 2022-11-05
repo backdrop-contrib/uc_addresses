@@ -8,9 +8,9 @@
 /**
  * Ubercart Addresses entity controller class.
  */
-class UcAddressesEntityController extends EntityAPIController {
+class UcAddressesEntityController extends EntityPlusController {
   /**
-   * Implements DrupalEntityControllerInterface::load().
+   * Implements BackdropEntityControllerInterface::load().
    *
    * @return array
    *   An array of entities.
@@ -167,7 +167,7 @@ class UcAddressesEntityController extends EntityAPIController {
       $content['#address'] = $address;
       $content['#options'] = $options;
       $content['#attached'] = array(
-        'css' => array(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css'),
+        'css' => array(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css'),
       );
     }
     else {

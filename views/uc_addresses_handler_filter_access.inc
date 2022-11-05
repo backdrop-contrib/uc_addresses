@@ -115,7 +115,7 @@ class uc_addresses_handler_filter_access extends views_handler_filter_boolean_op
       // Check for access.
       if (
         ($this->value && !$this->check_access($address_user, $address))
-        || (!$this->value && $this->check_access($address_user, $address))
+         || (!$this->value && $this->check_access($address_user, $address))
       ) {
         // No access. Remove the row from the results and decrease the calculated
         // number of rows.

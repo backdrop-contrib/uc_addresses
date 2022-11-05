@@ -1,0 +1,137 @@
+{
+    "_config_name": "views.view.uc_addresses_address_book",
+    "name": "uc_addresses_address_book",
+    "description": "Manage your addresses",
+    "tag": "uc_addresses",
+    "disabled": true,
+    "base_table": "uc_addresses",
+    "human_name": "Address book",
+    "core": 7,
+    "display": {
+        "default": {
+            "display_title": "Master",
+            "display_plugin": "default",
+            "display_options": {
+                "query": {
+                    "type": "views_query",
+                    "options": []
+                },
+                "title": "Address book",
+                "use_more_always": false,
+                "access": {
+                    "type": "uc_addresses_views_access",
+                    "uid_argument": "uid",
+                    "aid_argument": ""
+                },
+                "cache": {
+                    "type": "none"
+                },
+                "exposed_form": {
+                    "type": "basic"
+                },
+                "pager": {
+                    "type": "none"
+                },
+                "style_plugin": "grid",
+                "style_options": {
+                    "row_class": "address-item",
+                    "columns": "2",
+                    "fill_single_line": false
+                },
+                "row_plugin": "uc_addresses",
+                "row_options": {
+                    "view_link": 0,
+                    "edit_link": 1,
+                    "delete_link": 1,
+                    "default_flags": 1
+                },
+                "empty": {
+                    "area": {
+                        "id": "area",
+                        "table": "views",
+                        "field": "area",
+                        "empty": true,
+                        "content": "No addresses have been saved.",
+                        "format": "filtered_html"
+                    }
+                },
+                "fields": {
+                    "aid": {
+                        "id": "aid",
+                        "table": "uc_addresses",
+                        "field": "aid"
+                    }
+                },
+                "sorts": {
+                    "default_billing": {
+                        "id": "default_billing",
+                        "table": "uc_addresses",
+                        "field": "default_billing",
+                        "order": "DESC"
+                    },
+                    "default_shipping": {
+                        "id": "default_shipping",
+                        "table": "uc_addresses",
+                        "field": "default_shipping",
+                        "order": "DESC"
+                    },
+                    "address_name": {
+                        "id": "address_name",
+                        "table": "uc_addresses",
+                        "field": "address_name"
+                    }
+                },
+                "arguments": {
+                    "uid": {
+                        "id": "uid",
+                        "table": "uc_addresses",
+                        "field": "uid",
+                        "default_action": "not found",
+                        "default_argument_type": "fixed",
+                        "summary": {
+                            "number_of_records": "0",
+                            "format": "default_summary"
+                        },
+                        "summary_options": {
+                            "items_per_page": "25"
+                        },
+                        "specify_validation": true,
+                        "validate": {
+                            "type": "uc_addresses_user_address_access",
+                            "fail": "access denied"
+                        }
+                    }
+                },
+                "filters": {
+                    "access_view": {
+                        "id": "access_view",
+                        "table": "uc_addresses",
+                        "field": "access_view",
+                        "value": "1"
+                    }
+                }
+            }
+        },
+        "page": {
+            "display_title": "Page",
+            "display_plugin": "page",
+            "display_options": {
+                "query": {
+                    "type": "views_query",
+                    "options": []
+                },
+                "defaults": {
+                    "hide_admin_links": false
+                },
+                "path": "user/%/addresses",
+                "menu": {
+                    "type": "tab",
+                    "title": "Address book",
+                    "description": "Manage your addresses",
+                    "weight": "0",
+                    "context": 0
+                }
+            }
+        }
+    }
+}

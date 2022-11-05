@@ -13,6 +13,8 @@
  * Module settings form.
  */
 function uc_addresses_settings_form($form, &$form_state) {
+  $config = config('uc_addresses.settings');
+  $form['#config'] = 'uc_addresses.settings';
   $form['uc_addresses'] = array(
     '#type' => 'fieldset',
     '#title' => t('Ubercart Addresses settings'),
@@ -23,19 +25,19 @@ function uc_addresses_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Use address nicknames'),
     '#description' => t('When checked, users can optionally give an address a name (e.g. "work", "mary", "joe").'),
-    '#default_value' => variable_get('uc_addresses_use_address_name', TRUE),
+    '#default_value' => $config->get('uc_addresses_use_address_name'),
   );
   $form['uc_addresses']['uc_addresses_use_default_billing'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use default billing addresses'),
     '#description' => t('Note that addresses marked as default billing cannot be deleted.'),
-    '#default_value' => variable_get('uc_addresses_use_default_billing', TRUE),
+    '#default_value' => $config->get('uc_addresses_use_default_billing'),
   );
   $form['uc_addresses']['uc_addresses_use_default_shipping'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use default shipping addresses'),
     '#description' => t('Note that addresses marked as default shipping cannot be deleted.'),
-    '#default_value' => variable_get('uc_addresses_use_default_shipping', TRUE),
+    '#default_value' => $config->get('uc_addresses_use_default_shipping'),
   );
 
   $form['checkout'] = array(
@@ -48,13 +50,13 @@ function uc_addresses_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Automatically fill in the billing address with the user\'s default billing address.'),
     '#description' => t('Note that %use-default-setting must be activated for this setting to have effect.', array('%use-default-setting' => $form['uc_addresses']['uc_addresses_use_default_billing']['#title'])),
-    '#default_value' => variable_get('uc_addresses_default_billing_address', TRUE),
+    '#default_value' => $config->get('uc_addresses_default_billing_address'),
   );
   $form['checkout']['uc_addresses_default_shipping_address'] = array(
     '#type' => 'checkbox',
     '#title' => t('Automatically fill in the delivery address with the user\'s default shipping address.'),
     '#description' => t('Note that %use-default-setting must be activated for this setting to have effect.', array('%use-default-setting' => $form['uc_addresses']['uc_addresses_use_default_shipping']['#title'])),
-    '#default_value' => variable_get('uc_addresses_default_shipping_address', TRUE),
+    '#default_value' => $config->get('uc_addresses_default_shipping_address'),
   );
 
   $form['user'] = array(
@@ -66,13 +68,13 @@ function uc_addresses_settings_form($form, &$form_state) {
   $form['user']['uc_addresses_require_address'] = array(
     '#type' => 'checkbox',
     '#title' => t('Require that an address be entered during registration'),
-    '#default_value' => variable_get('uc_addresses_require_address', TRUE),
+    '#default_value' => $config->get('uc_addresses_require_address'),
   );
   $form['user']['uc_addresses_require_address_admin'] = array(
     '#type' => 'checkbox',
     '#title' => t('Require admins to enter an address upon user creation'),
     '#description' => t('When checked, users with the permission %administer-users need to enter an address when they create a new user.', array('%administer-users' => t('administer users'))),
-    '#default_value' => variable_get('uc_addresses_require_address_admin', TRUE),
+    '#default_value' => $config->get('uc_addresses_require_address_admin'),
   );
 
   return system_settings_form($form);
@@ -98,7 +100,7 @@ function uc_addresses_settings_form($form, &$form_state) {
 function uc_addresses_country_formats_page($country_id = NULL) {
   if ($country_id) {
     // Return address display form for this country.
-    return drupal_get_form('uc_addresses_country_formats_form', $country_id);
+    return backdrop_get_form('uc_addresses_country_formats_form', $country_id);
   }
 
   // List all countries.
@@ -120,7 +122,7 @@ function uc_addresses_country_formats_page($country_id = NULL) {
   foreach ($countries as $country) {
     $rows[] = array(
       l(t($country->country_name), $path . '/' . $country->country_id),
-      (variable_get('uc_addresses_address_format_' . $country->country_id, NULL) ? t('Overridden') : t('Ubercart default')),
+      (config_get('uc_addresses.settings', 'uc_addresses_address_format_' . $country->country_id)?t('Overridden') : t('Ubercart default')),
     );
   }
 
@@ -145,6 +147,7 @@ function uc_addresses_country_formats_form($form, $form_state, $country_id) {
   }
 
   $form = array();
+  $form['#config'] = 'uc_addresses.settings';
   $form['uc_addresses_address_format_' . $country_id] = array(
     '#type' => 'textarea',
     '#title' => t('Address format for @country', array('@country' => t($country->country_name))),

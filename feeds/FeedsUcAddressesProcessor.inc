@@ -177,7 +177,7 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
     // Extra targets for user.
     $targets['user_name'] = array(
       'name' => t('Username'),
-      'description' => t('The Drupal username of the address owner.'),
+      'description' => t('The Backdrop username of the address owner.'),
     );
     $targets['user_mail'] = array(
       'name' => t('User email'),
@@ -240,10 +240,10 @@ class FeedsUcAddressesProcessor extends FeedsProcessor {
    *   The message to log.
    */
   protected function createLogMessage(Exception $e, $entity, $item) {
-    include_once DRUPAL_ROOT . '/includes/utility.inc';
+    include_once BACKDROP_ROOT . '/includes/utility.inc';
     $message = $e->getMessage();
     $message .= '<h3>Original item</h3>';
-    $message .= '<pre>' . drupal_var_export($item) . '</pre>';
+    $message .= '<pre>' . backdrop_var_export($item) . '</pre>';
     $message .= '<h3>Address</h3>';
     $message .= '<pre>' . $entity->varExport() . '</pre>';
     return $message;

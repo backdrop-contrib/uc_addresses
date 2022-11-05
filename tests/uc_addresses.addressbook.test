@@ -36,7 +36,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
     // Check if this user has any addresses, if not create one.
     $number_of_addresses = db_query("SELECT COUNT(aid) FROM {uc_addresses} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
     if ($number_of_addresses < 1) {
-      $this->drupalLogin($this->adminUser);
+      $this->backdropLogin($this->adminUser);
       $this->viewAddressBook($this->adminUser, TRUE);
 
       // Ensure there are no addresses displayed.
@@ -50,7 +50,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
     // Make sure nothing is loaded for the address book.
     UcAddressesAddressBook::get($account->uid)->reset();
 
-    $this->drupalLogin($account);
+    $this->backdropLogin($account);
     $this->viewAddressBook($account, $may_view_own_default);
 
     // Check if this user has a default billing address.
@@ -97,7 +97,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
     $addressBook->setPerformanceHint(UcAddressesAddressBook::PERF_HINT_LOAD_ALL);
 
     // Setup
-    $this->drupalLogin($this->adminUser);
+    $this->backdropLogin($this->adminUser);
     db_delete('uc_addresses')
       ->condition('uid', $this->basicUser->uid)
       ->execute();
@@ -110,7 +110,7 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
     // Make sure nothing is loaded for the address book.
     $addressBook->reset();
 
-    $this->drupalLogin($account);
+    $this->backdropLogin($account);
     $this->viewAddressBook($this->basicUser, $may_view_default);
 
     // Test the default billing address
@@ -175,7 +175,7 @@ class UcAddressesAddressBookCustomerBasicTestCase extends UcAddressesAddressBook
    * addresses.
    */
   public function testCustomerBasic() {
-    $customerBasic = $this->drupalCreateUser();
+    $customerBasic = $this->backdropCreateUser();
     $this->doOwnAddressTests($customerBasic, FALSE, FALSE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($customerBasic, FALSE, FALSE, FALSE, FALSE);
   }
@@ -208,7 +208,7 @@ class UcAddressesAddressBookCustomerViewDefTestCase extends UcAddressesAddressBo
    * view, edit and delete addresses.
    */
   public function testCustomerViewDef() {
-    $customerViewDef = $this->drupalCreateUser(array('view own default addresses'));
+    $customerViewDef = $this->backdropCreateUser(array('view own default addresses'));
     $this->doOwnAddressTests($customerViewDef, TRUE, FALSE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($customerViewDef, FALSE, FALSE, FALSE, FALSE);
   }
@@ -241,7 +241,7 @@ class UcAddressesAddressBookCustomerViewTestCase extends UcAddressesAddressBookT
    * edit and delete addresses.
    */
   public function testCustomerView() {
-    $customerView = $this->drupalCreateUser(array('view own addresses'));
+    $customerView = $this->backdropCreateUser(array('view own addresses'));
     $this->doOwnAddressTests($customerView, TRUE, TRUE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($customerView, FALSE, FALSE, FALSE, FALSE);
   }
@@ -274,7 +274,7 @@ class UcAddressesAddressBookCustomerEditTestCase extends UcAddressesAddressBookT
    * edit and delete addresses.
    */
   public function testCustomerEdit() {
-    $customerEdit = $this->drupalCreateUser(array('add/edit own addresses'));
+    $customerEdit = $this->backdropCreateUser(array('add/edit own addresses'));
     $this->doOwnAddressTests($customerEdit, TRUE, TRUE, TRUE, FALSE);
     $this->doOtherUsersAddressTests($customerEdit, FALSE, FALSE, FALSE, FALSE);
   }
@@ -307,7 +307,7 @@ class UcAddressesAddressBookCustomerDeleteTestCase extends UcAddressesAddressBoo
    * to view, edit and delete addresses.
    */
   public function testCustomerDelete() {
-    $customerDelete = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $customerDelete = $this->backdropCreateUser(array('add/edit own addresses', 'delete own addresses'));
     $this->doOwnAddressTests($customerDelete, TRUE, TRUE, TRUE, TRUE);
     $this->doOtherUsersAddressTests($customerDelete, FALSE, FALSE, FALSE, FALSE);
   }
@@ -340,7 +340,7 @@ class UcAddressesAddressBookAdminViewDefTestCase extends UcAddressesAddressBookT
    * and delete addresses.
    */
   public function testAdminViewDef() {
-    $adminViewDef = $this->drupalCreateUser(array('view all default addresses'));
+    $adminViewDef = $this->backdropCreateUser(array('view all default addresses'));
     $this->doOwnAddressTests($adminViewDef, TRUE, FALSE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($adminViewDef, TRUE, FALSE, FALSE, FALSE);
   }
@@ -373,7 +373,7 @@ class UcAddressesAddressBookAdminViewTestCase extends UcAddressesAddressBookTest
    * addresses.
    */
   public function testAdminView() {
-    $adminView = $this->drupalCreateUser(array('view all addresses'));
+    $adminView = $this->backdropCreateUser(array('view all addresses'));
     $this->doOwnAddressTests($adminView, TRUE, TRUE, FALSE, FALSE);
     $this->doOtherUsersAddressTests($adminView, TRUE, TRUE, FALSE, FALSE);
   }
@@ -406,7 +406,7 @@ class UcAddressesAddressBookAdminEditTestCase extends UcAddressesAddressBookTest
    * and delete addresses.
    */
   public function testAdminEdit() {
-    $adminEdit = $this->drupalCreateUser(array('add/edit all addresses'));
+    $adminEdit = $this->backdropCreateUser(array('add/edit all addresses'));
     $this->doOwnAddressTests($adminEdit, TRUE, TRUE, TRUE, FALSE);
     $this->doOtherUsersAddressTests($adminEdit, TRUE, TRUE, TRUE, FALSE);
   }
@@ -439,7 +439,7 @@ class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestC
    * delete addresses.
    */
   public function testAdminAll() {
-    $adminAll = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
+    $adminAll = $this->backdropCreateUser(array('add/edit all addresses', 'delete all addresses'));
     $this->doOwnAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
     $this->doOtherUsersAddressTests($adminAll, TRUE, TRUE, TRUE, TRUE);
   }
@@ -448,16 +448,16 @@ class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestC
    * Test if double addresses are not saved.
    */
   public function testDoubleAddresses() {
-    $adminAll = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
+    $adminAll = $this->backdropCreateUser(array('add/edit all addresses', 'delete all addresses'));
     $values = self::getEditAddressValues(array('address'), array(), 'address_form');
-    $this->drupalLogin($adminAll);
+    $this->backdropLogin($adminAll);
 
     // Create first address.
     $this->createAddress($adminAll, TRUE, $values['values']);
 
     // Now try to create an address with the same values.
     // A (form) error should be displayed about that the address already exists.
-    $this->drupalPost($this->constructAddressUrl($adminAll) . 'add', $values['form_values'], t('Save address'));
+    $this->backdropPost($this->constructAddressUrl($adminAll) . 'add', $values['form_values'], t('Save address'));
     $this->assertText(t('This address already appears in your address book. A new address was not added.'), t('The address already appeared in the address book.'));
 
     // Create an other address.
@@ -465,7 +465,7 @@ class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestC
     // Now try to edit this same address, but with the values from the first address.
     // This should also result into a (form) error, though with a different message
     // than the first.
-    $this->drupalPost($this->constructAddressUrl($adminAll, $aid) . 'edit', $values['form_values'], t('Save address'));
+    $this->backdropPost($this->constructAddressUrl($adminAll, $aid) . 'edit', $values['form_values'], t('Save address'));
     $this->assertText(t('The revised address is already in your address book. Your change was not made.'), t('The revised address already appeared in the address book.'));
   }
 }

@@ -19,7 +19,7 @@ class UcAddressesExampleTextFieldHandler extends UcAddressesFieldHandler {
    *
    * @access public
    * @return array
-   *   A Drupal Form API field.
+   *   A Backdrop Form API field.
    */
   public function getFormField($form, $form_values) {
     $fieldName = $this->getFieldName();

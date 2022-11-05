@@ -31,7 +31,7 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
 
     // Install Ubercart Addresses and flush schema cache.
     module_enable(array('ctools', 'uc_addresses'));
-    drupal_get_schema(NULL, TRUE);
+    backdrop_get_schema(NULL, TRUE);
   }
 
   /**
@@ -47,25 +47,25 @@ class UcAddressesOrderTestCase extends UbercartOrderTestCase {
   public function testOrderEditing() {
     $order = $this->ucCreateOrder($this->customer);
 
-    $this->drupalLogin($this->customer);
-    $this->drupalGet('user/' . $this->customer->uid . '/orders');
+    $this->backdropLogin($this->customer);
+    $this->backdropGet('user/' . $this->customer->uid . '/orders');
     $this->assertText(t('My order history'));
 
-    $this->drupalGet('user/' . $this->customer->uid . '/orders/' . $order->order_id);
+    $this->backdropGet('user/' . $this->customer->uid . '/orders/' . $order->order_id);
     $this->assertResponse(200, 'Customer can view their own order.');
 
-    $this->drupalGet('admin/store/orders/' . $order->order_id);
+    $this->backdropGet('admin/store/orders/' . $order->order_id);
     $this->assertResponse(403, 'Customer may not edit orders.');
 
-    $this->drupalLogin($this->adminUser);
-    $this->drupalGet('user/' . $this->customer->uid . '/orders/' . $order->order_id);
-    $this->assertText(drupal_strtoupper($order->billing_first_name . ' ' . $order->billing_last_name), 'Found customer name.');
+    $this->backdropLogin($this->adminUser);
+    $this->backdropGet('user/' . $this->customer->uid . '/orders/' . $order->order_id);
+    $this->assertText(backdrop_strtoupper($order->billing_first_name . ' ' . $order->billing_last_name), 'Found customer name.');
 
     $edit = array(
       'bill_to[address][billing_first_name]' => $this->randomName(8),
       'bill_to[address][billing_last_name]' => $this->randomName(15),
     );
-    $this->drupalPost('admin/store/orders/' . $order->order_id . '/edit', $edit, t('Submit changes'));
+    $this->backdropPost('admin/store/orders/' . $order->order_id . '/edit', $edit, t('Submit changes'));
     $this->assertText(t('Order changes saved.'));
     $this->assertFieldByName('bill_to[address][billing_first_name]', $edit['bill_to[address][billing_first_name]'], 'Billing first name changed.');
     $this->assertFieldByName('bill_to[address][billing_last_name]', $edit['bill_to[address][billing_last_name]'], 'Billing last name changed.');

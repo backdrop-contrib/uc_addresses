@@ -23,7 +23,7 @@ class uc_addresses_handler_field_uc_addresses_link_edit extends uc_addresses_han
 
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = $uri['path'] . '/edit';
-    $this->options['alter']['query'] = drupal_get_destination();
+    $this->options['alter']['query'] = backdrop_get_destination();
 
     $text = !empty($this->options['text']) ? $this->options['text'] : t('edit');
     return $text;

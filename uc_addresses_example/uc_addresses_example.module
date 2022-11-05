@@ -24,7 +24,7 @@
  *   A list of field handler definitions.
  */
 function uc_addresses_example_uc_addresses_field_handlers() {
-  $path = drupal_get_path('module', 'uc_addresses_example') . '/handlers';
+  $path = backdrop_get_path('module', 'uc_addresses_example') . '/handlers';
 
   $info = array();
   $info['UcAddressesExampleTextFieldHandler'] = array(
@@ -99,5 +99,14 @@ function uc_addresses_example_uc_addresses_fields() {
       ),
       'compare' => TRUE,
     ),
+  );
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function uc_addresses_example_autoload_info() {
+  return array(
+    'UcAddressesExampleTextFieldHandler' => 'handlers/uc_addresses.handlers.inc',
   );
 }

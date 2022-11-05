@@ -36,7 +36,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
    * Test Ubercart Addresses Entity CRUD.
    */
   public function testEntityCrud() {
-    $this->drupalLogin($this->adminUser);
+    $this->backdropLogin($this->adminUser);
 
     // CREATE TESTS.
     $values = self::getEditAddressValues();
@@ -89,7 +89,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $entities = entity_load('uc_addresses', $aids);
     // View and render the entities.
     $content = entity_view('uc_addresses', $entities);
-    $output = drupal_render($content);
+    $output = backdrop_render($content);
     $this->verbose($output);
     // Test if all addresses are displayed.
     foreach ($addresses as $address) {
@@ -150,12 +150,12 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
   public function testEntityAccess() {
     // Create some users.
     $users = array();
-    $customerBasic = $this->drupalCreateUser();
-    $customerView = $this->drupalCreateUser(array('view own addresses'));
-    $customerEdit = $this->drupalCreateUser(array('add/edit own addresses'));
-    $customerDelete = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
-    $adminView = $this->drupalCreateUser(array('view all addresses'));
-    $adminEdit = $this->drupalCreateUser(array('add/edit all addresses'));
+    $customerBasic = $this->backdropCreateUser();
+    $customerView = $this->backdropCreateUser(array('view own addresses'));
+    $customerEdit = $this->backdropCreateUser(array('add/edit own addresses'));
+    $customerDelete = $this->backdropCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $adminView = $this->backdropCreateUser(array('view all addresses'));
+    $adminEdit = $this->backdropCreateUser(array('add/edit all addresses'));
     $adminAll = $this->adminUser;
 
     // Test access for each user.
@@ -272,7 +272,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $shipping_city = self::randomName();
     $billing_city = self::randomName();
 
-    $account = $this->drupalCreateUser();
+    $account = $this->backdropCreateUser();
 
     // Create default addresses for this user.
     $addressBook = $this->UcAddressesGetAddressBook($account->uid);
@@ -335,7 +335,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $order_new = new UcOrder();
     $order_new->delivery_city = $delivery_city;
     $order_new->billing_city = $billing_city;
-    drupal_write_record('uc_orders', $order_new);
+    backdrop_write_record('uc_orders', $order_new);
 
     // Load this order.
     $order = uc_order_load($order_new->order_id);

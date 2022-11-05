@@ -66,7 +66,7 @@ class uc_addresses_views_access extends views_plugin_access {
 
     $form['help'] = array(
       '#type' => 'markup',
-      '#value' => t('With this access control type you can restrict access to this display based on an user ID argument and/or an address ID argument.') . ' ' . t('Note that this currently only works for path based displays, such as  "!page" displays.', array('!page' => t('Page')))
+      '#value' => t('With this access control type you can restrict access to this display based on an user ID argument and/or an address ID argument.') . ' ' . t('Note that this currently only works for path based displays, such as  "!page" displays.', array('!page' => t('Page'))),
     );
 
     // Get list of Views arguments.

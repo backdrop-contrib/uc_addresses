@@ -1,0 +1,120 @@
+[UcAddressesTestCase]
+name = UcAddressesTestCase
+description = UcAddressesTestCase
+group = uc_addresses_test
+file = UcAddressesTestCase.test
+
+[UcAddressesAddressBookTestCase]
+name = UcAddressesAddressBookTestCase
+description = UcAddressesAddressBookTestCase
+group = uc_addresses_test
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookCustomerBasicTestCase]
+name = Address book: Customer Basic
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookCustomerViewDefTestCase]
+name = Address book: Customer View Defaults
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookCustomerViewTestCase]
+name = Address book: Customer View
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookCustomerEditTestCase]
+name = Address book: Customer Edit
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookCustomerDeleteTestCase]
+name = Address book: Customer Delete
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookAdminViewDefTestCase]
+name = Address book: Admin View Defaults
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookAdminViewTestCase]
+name = Address book: Admin View
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookAdminEditTestCase]
+name = Address book: Admin Edit
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesAddressBookAdminAllTestCase]
+name = Address book: Admin All
+description = Tests for the address book: view, edit and delete addresses.
+group = Ubercart Addresses
+file = uc_addresses.addressbook.test
+
+[UcAddressesApiTestCase]
+name = Unit testing
+description = Ensure that the API behaves as expected.
+group = Ubercart Addresses
+file = uc_addresses.api.test
+
+[UcAddressesCartCheckoutTestCase]
+name = Cart and checkout
+description = Ensures the cart and checkout process is functioning when Ubercart Addresses is enabled.
+group = Ubercart Addresses
+file = uc_addresses.checkout.test
+
+[UcAddressesEntityCase]
+name = Ubercart Addresses entity tests
+description = Test the Ubercart Addresses entity integration.
+group = Ubercart Addresses
+file = uc_addresses.entity.test
+
+[UcAddressesFeedsTest]
+name = Ubercart Addresses Feeds integration
+description = Tests importing addresses from a CSV file using the Feeds module.
+group = Ubercart Addresses
+file = uc_addresses.feeds.test
+
+[UcAddressesOrderTestCase]
+name = Orders
+description = Ensure that orders function properly when Ubercart Addresses is enabled.
+group = Ubercart Addresses
+file = uc_addresses.order.test
+
+[UcAddressesUserRegistrationTestCase]
+name = User registration
+description = Test registration with address information.
+group = Ubercart Addresses
+file = uc_addresses.register.test
+
+[UcAddressesTokenTestCase]
+name = Ubercart Addresses token tests
+description = Test the Ubercart Addresses tokens.
+group = Ubercart Addresses
+file = uc_addresses.tokens.test
+
+[UcAddressesUpgradeTestCase]
+name = Ubercart Addresses upgrade path
+description = Tests upgrading Ubercart Addresses from 6.x-1.x.
+group = Ubercart Addresses
+file = uc_addresses.upgrade.test
+
+[UcAddressesViewsTestCase]
+name = Ubercart Addresses Views tests
+description = Test the Ubercart Addresses Views integration.
+group = Ubercart Addresses
+file = uc_addresses.views.test
+

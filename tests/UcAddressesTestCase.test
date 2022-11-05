@@ -8,7 +8,7 @@
 /**
  * Base class for Ubercart Addresses tests.
  */
-abstract class UcAddressesTestCase extends DrupalWebTestCase {
+abstract class UcAddressesTestCase extends BackdropWebTestCase {
   // -----------------------------------------------------------------------------
   // PROPERTIES
   // -----------------------------------------------------------------------------
@@ -49,16 +49,16 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
     );
 
     // Setup users
-    $this->basicUser = $this->drupalCreateUser();
-    $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
-    $this->adminUser = $this->drupalCreateUser(array('add/edit all addresses', 'delete all addresses'));
+    $this->basicUser = $this->backdropCreateUser();
+    $this->customer = $this->backdropCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $this->adminUser = $this->backdropCreateUser(array('add/edit all addresses', 'delete all addresses'));
 
     // Revoke default permissions for authenticated user, so we can test the effect of permissions.
-    user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array(
-        'view own addresses',
-        'add/edit own addresses',
-        'delete own addresses',
-      )
+    user_role_revoke_permissions(BACKDROP_AUTHENTICATED_RID, array(
+      'view own addresses',
+      'add/edit own addresses',
+      'delete own addresses',
+    )
     );
   }
 
@@ -78,7 +78,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function viewAddressBook($account, $may_view = NULL) {
     // Go to the address book
-    $this->drupalGet($this->constructAddressUrl($account));
+    $this->backdropGet($this->constructAddressUrl($account));
     // Test response code
     if (!is_null($may_view)) {
       $this->assertResponse(($may_view) ? 200 : 403);
@@ -99,7 +99,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function viewAddress($account, $aid, $may_view = NULL) {
     // Go to the view address page
-    $this->drupalGet($this->constructAddressUrl($account, $aid));
+    $this->backdropGet($this->constructAddressUrl($account, $aid));
     // Test response code
     if (!is_null($may_view)) {
       $this->assertResponse(($may_view) ? 200 : 403);
@@ -125,7 +125,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
   protected function createAddress($account, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
       $values = self::getEditAddressValues(array('address'), $values, 'address_form');
-      $this->drupalPost($this->constructAddressUrl($account) . 'add', $values['form_values'], t('Save address'));
+      $this->backdropPost($this->constructAddressUrl($account) . 'add', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
       // Lookup address to find out ID.
@@ -143,7 +143,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       return $aid;
     }
     else {
-      $this->drupalGet($this->constructAddressUrl($account) . 'add');
+      $this->backdropGet($this->constructAddressUrl($account) . 'add');
       $this->assertResponse(403);
     }
     return NULL;
@@ -168,7 +168,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
   protected function editAddress($account, $aid, $may_edit = TRUE, $values = array()) {
     if ($may_edit) {
       $values = self::getEditAddressValues(array('address'), $values, 'address_form');
-      $this->drupalPost($this->constructAddressUrl($account, $aid) . 'edit', $values['form_values'], t('Save address'));
+      $this->backdropPost($this->constructAddressUrl($account, $aid) . 'edit', $values['form_values'], t('Save address'));
       $this->assertText(t('The address is saved.'), t('The address was saved.'));
 
       // Ensure any given values exists based on whether they should be displayed.
@@ -178,7 +178,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       $this->assertTrue(self::checkAddressValuesInDatabase($values['values']), t('The address %aid is correctly saved to the database.', array('%aid' => $aid)));
     }
     else {
-      $this->drupalGet($this->constructAddressUrl($account, $aid) . 'edit');
+      $this->backdropGet($this->constructAddressUrl($account, $aid) . 'edit');
       $this->assertResponse(403);
     }
   }
@@ -199,11 +199,11 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    */
   protected function deleteAddress($account, $aid, $may_delete = TRUE) {
     if ($may_delete) {
-      $this->drupalPost($this->constructAddressUrl($account, $aid) . 'delete', array(), t('Delete address'));
+      $this->backdropPost($this->constructAddressUrl($account, $aid) . 'delete', array(), t('Delete address'));
       $this->assertText(t('The address has been deleted.'), t('Deleting address succesful'));
     }
     else {
-      $this->drupalGet($this->constructAddressUrl($account, $aid) . 'delete');
+      $this->backdropGet($this->constructAddressUrl($account, $aid) . 'delete');
       $this->assertResponse(403);
     }
   }
@@ -260,7 +260,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
       // Check if field is used in the context and if it is enabled.
       if ($handler->checkContext() && $handler->isFieldEnabled()) {
         $value = $handler->outputValue($values[$fieldname]);
-        if (drupal_strlen($value) > 0) {
+        if (backdrop_strlen($value) > 0) {
           if ($output) {
             $this->assertTrue((strpos($output, $value) !== FALSE), t('Value %value found for field %field on the page.', array('%value' => $value, '%field' => $fieldname)));
           }
@@ -299,7 +299,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
     $sQuery = (string) $query;
     $result = $query->execute();
 
-    return ($result->fetchField()) ? TRUE : FALSE;
+    return ($result->fetchField())?TRUE : FALSE;
   }
 
   // -----------------------------------------------------------------------------
@@ -508,7 +508,7 @@ abstract class UcAddressesTestCase extends DrupalWebTestCase {
    * @return void
    */
   protected function UcAddressesCreateUser($name, $permissions = array(), $view_own_def = FALSE, $view_own = FALSE, $edit_own = FALSE, $delete_own = FALSE, $view_all_def = FALSE, $view_all = FALSE, $edit_all = FALSE, $delete_all = FALSE) {
-    $account = $this->drupalCreateUser($permissions);
+    $account = $this->backdropCreateUser($permissions);
     $account->name = $name;
     user_save($account);
     $account->uc_addresses_permissions = array(

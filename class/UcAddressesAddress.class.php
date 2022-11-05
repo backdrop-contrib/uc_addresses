@@ -8,7 +8,7 @@
 /**
  * The main address class used by uc_addresses (and extension modules).
  *
- * This is the main address class used by Ubercart Addresses. It's goal is to
+ * This is the main address class used by Ubercart Addresses. Its goal is to
  * provide specific address book features, such as an address nickname and flags
  * for being the default shipping and/or the default billing address.
  *
@@ -55,16 +55,18 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
   /**
    * UcAddressesAddress object constructor.
    *
-   * @param UcAddressesAddressBook $addressBook
-   *   An instance of UcAddressesAddressBook.
-   * @param object $schemaAddress
-   *   Values to fill the address with.
+   * @param array $values
+   *   An array containing the following elements keyed by:
+   *     - 'addressBook' (required): an UcAddressesAddressBook object
+   *     - 'schemaAddress' (optional): stdClass with values to fill the address
    *
    * @access public
    * @return void
    */
-  public function __construct(UcAddressesAddressBook $addressBook, $schemaAddress = NULL) {
-    parent::__construct($schemaAddress);
+  public function __construct($values) {
+    $addressBook = $values['addressBook'];
+    $schemaAddress = !empty($values['schemaAddress']) ? $values['schemaAddress'] : NULL;
+    parent::__construct(array('schemaAddress' => $schemaAddress));
     $this->addressBook = $addressBook;
 
     if (!is_object($schemaAddress) || !$schemaAddress->aid) {
@@ -168,7 +170,7 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
     $schemaAddress->uid = $addressBook->getUserId();
 
     // Create a new address.
-    $address = new UcAddressesAddress($addressBook, $schemaAddress);
+    $address = new UcAddressesAddress(array('addressBook' => $addressBook, 'schemaAddress' => $schemaAddress));
 
     return $address;
   }
@@ -489,14 +491,14 @@ class UcAddressesAddress extends UcAddressesSchemaAddress {
       if ($address->aid < 0) {
         unset($address->aid);
         $address->created = REQUEST_TIME;
-        $result = drupal_write_record('uc_addresses', $address);
+        $result = backdrop_write_record('uc_addresses', $address);
         $hook = 'insert';
 
         // Tell address book the address now has a definitive ID.
         $this->addressBook->updateAddress($this);
       }
       else {
-        $result = drupal_write_record('uc_addresses', $address, array('aid'));
+        $result = backdrop_write_record('uc_addresses', $address, array('aid'));
         $hook = 'update';
       }
       if ($result === FALSE) {

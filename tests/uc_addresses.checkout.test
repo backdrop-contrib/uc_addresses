@@ -31,7 +31,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
 
     // Install Ubercart Addresses and flush schema cache.
     module_enable(array('ctools', 'uc_addresses'));
-    drupal_get_schema(NULL, TRUE);
+    backdrop_get_schema(NULL, TRUE);
     // Reset permissions so that Ubercart Addresses permissions are available.
     $this->checkPermissions(array(), TRUE);
   }
@@ -48,16 +48,16 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
    *   False otherwise.
    */
   function checkout($edit = array()) {
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('cart', array(), 'Checkout');
 
     $edit = $this->populateCheckoutForm($edit);
 
     // Submit the checkout page.
-    $this->drupalPost('cart/checkout', $edit, t('Review order'));
+    $this->backdropPost('cart/checkout', $edit, t('Review order'));
     $this->assertRaw(t('Your order is almost complete.'));
 
     // Complete the review page.
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
 
     // Check if an order has been created.
     $conditions = array(
@@ -116,7 +116,8 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     foreach ($address_panes as $pane) {
       $prefix = 'panes[' . $pane . '][address][' . $pane;
       $key =  $prefix . '_country]';
-      $country = empty($edit[$key]) ? variable_get('uc_store_country', 840) : $edit[$key];
+      // TODO This variable was probably removed in Backdrop without replacement.
+      $country = empty($edit[$key])?variable_get('uc_store_country', 840) : $edit[$key];
       $zone_id = db_query_range('SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :country ORDER BY rand()', 0, 1, array('country' => $country))->fetchField();
       $edit += array(
         $prefix . '_first_name]' => $this->randomName(10),
@@ -157,14 +158,15 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
    * This is done to fix issues with the zone field.
    */
   function testCartOrderTimeout() {
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('cart', array(), 'Checkout');
     $this->assertText(
       t('Enter your billing address and information here.'),
       t('Viewed cart page: Billing pane has been displayed.')
     );
 
     // Build the panes.
+    // TODO This variable was probably removed in Backdrop without replacement.
     $zone_id = db_query_range('SELECT zone_id FROM {uc_zones} WHERE zone_country_id = :country ORDER BY rand()', 0, 1, array('country' => variable_get('uc_store_country', 840)))->fetchField();
     $oldname = $this->randomName(10);
     $edit = array(
@@ -174,7 +176,6 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
       'panes[delivery][address][delivery_city]' => $this->randomName(10),
       'panes[delivery][address][delivery_zone]' => $zone_id,
       'panes[delivery][address][delivery_postal_code]' => mt_rand(10000, 99999),
-
       'panes[billing][address][billing_first_name]' => $this->randomName(10),
       'panes[billing][address][billing_last_name]' => $this->randomName(10),
       'panes[billing][address][billing_street1]' => $this->randomName(10),
@@ -190,35 +191,35 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     }
 
     // Submit the checkout page.
-    $this->drupalPost('cart/checkout', $edit, t('Review order'));
+    $this->backdropPost('cart/checkout', $edit, t('Review order'));
 
     $order_id = db_query("SELECT order_id FROM {uc_orders} WHERE delivery_first_name = :name", array(':name' => $oldname))->fetchField();
     if ($order_id) {
       // Go to a different page, then back to order - make sure order_id is the same.
-      $this->drupalGet('<front>');
-      $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-      $this->drupalPost('cart', array(), 'Checkout');
+      $this->backdropGet('<front>');
+      $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+      $this->backdropPost('cart', array(), 'Checkout');
       $this->assertRaw($oldname, 'Customer name was unchanged.');
-      $this->drupalPost('cart/checkout', $edit, t('Review order'));
+      $this->backdropPost('cart/checkout', $edit, t('Review order'));
       $new_order_id = db_query("SELECT order_id FROM {uc_orders} WHERE delivery_first_name = :name", array(':name' => $edit['panes[delivery][address][delivery_first_name]']))->fetchField();
       $this->assertEqual($order_id, $new_order_id, 'Original order_id was reused.');
 
       // Jump 10 minutes into the future.
       db_update('uc_orders')
         ->fields(array(
-            'modified' => time() - UC_CART_ORDER_TIMEOUT - 1,
-          ))
+        'modified' => time() - UC_CART_ORDER_TIMEOUT - 1,
+      ))
         ->condition('order_id', $order_id)
         ->execute();
       $old_order = uc_order_load($order_id);
 
       // Go to a different page, then back to order - verify that we are using a new order.
-      $this->drupalGet('<front>');
-      $this->drupalPost('cart', array(), 'Checkout');
+      $this->backdropGet('<front>');
+      $this->backdropPost('cart', array(), 'Checkout');
       $this->assertNoRaw($oldname, 'Customer name was cleared after timeout.');
       $newname = $this->randomName(10);
       $edit['panes[delivery][address][delivery_first_name]'] = $newname;
-      $this->drupalPost('cart/checkout', $edit, t('Review order'));
+      $this->backdropPost('cart/checkout', $edit, t('Review order'));
       $new_order_id = db_query("SELECT order_id FROM {uc_orders} WHERE delivery_first_name = :name", array(':name' => $newname))->fetchField();
       $this->assertNotEqual($order_id, $new_order_id, 'New order was created after timeout.');
 
@@ -244,7 +245,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
    */
   public function testDefaultAddresses() {
     // Create an user with edit address privileges.
-    $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $this->customer = $this->backdropCreateUser(array('add/edit own addresses', 'delete own addresses'));
     // Create a default shipping and a default billing address for this user.
     $addressBook = UcAddressesAddressBook::get($this->customer->uid);
     $address_types = uc_addresses_address_types();
@@ -257,24 +258,30 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     }
 
     // Log in as customer.
-    $this->drupalLogin($this->customer);
+    $this->backdropLogin($this->customer);
 
     // Check if address fields are prefilled with values from the default addresses.
     $this->doDefaultAddressesTests();
 
     // Now, turn off the option to prefill the billing address and check again.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_shipping_address', TRUE);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_billing_address', FALSE);
     $this->doDefaultAddressesTests();
 
     // Reverse, don't fill in a default for the delivery address, but do
     // so for the billing address.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_shipping_address', FALSE);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_billing_address', TRUE);
     $this->doDefaultAddressesTests();
 
     // Now turn off both and check again.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_shipping_address', FALSE);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_addresses_default_billing_address', FALSE);
     $this->doDefaultAddressesTests();
   }
@@ -312,13 +319,13 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     // Initialize array for newly added addresses.
     $new_addresses = array();
 
-    // Clear out any static variables in drupal_html_id().
-    drupal_static_reset('drupal_html_id');
+    // Clear out any static variables in backdrop_html_id().
+    backdrop_static_reset('backdrop_html_id');
 
     // Place item in cart.
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
     // Continue to checkout.
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('cart', array(), 'Checkout');
 
     // Check if the address form is prefilled with the default addresses
     // according to the settings.
@@ -327,6 +334,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
       if ($address_type == 'shipping') {
         $order_address_type = 'delivery';
       }
+      // TODO This variable was probably removed in Backdrop without replacement.
       if (variable_get('uc_addresses_default_' . $address_type . '_address', TRUE)) {
         $this->checkCheckoutAddressFields($order_address_type, $addresses[$address_type]);
       }
@@ -339,10 +347,10 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     }
 
     // And checkout.
-    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->backdropPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
     $this->assertRaw($messages['review_instructions']);
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
 
     // Check if any new addresses got saved.
     foreach ($new_addresses as $address_type => $address_values) {
@@ -374,7 +382,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     foreach ($handlers as $fieldname => $handler) {
       if ($handler->checkContext()) {
         $field_id = 'edit-panes-' . $order_address_type . '-address-' . $order_address_type . '-' . $fieldname;
-        $field_id = drupal_html_id($field_id);
+        $field_id = backdrop_html_id($field_id);
         $value = $address->getField($fieldname);
         $message_variables = array(
           '@address_type' => t($order_address_type),
@@ -397,13 +405,13 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
    */
   public function testDoubleAddresses() {
     // Create an user with edit address privileges.
-    $this->customer = $this->drupalCreateUser(array('add/edit own addresses', 'delete own addresses'));
+    $this->customer = $this->backdropCreateUser(array('add/edit own addresses', 'delete own addresses'));
     // Log in as customer.
-    $this->drupalLogin($this->customer);
+    $this->backdropLogin($this->customer);
     // Place item in cart.
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
     // Continue to checkout.
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('cart', array(), 'Checkout');
 
     // Fill in the same address in both the delivery and billing pane.
     $edit = array();
@@ -424,12 +432,12 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
 
     // Checkout with the default addresses filled and verify that the customer still has only one address.
     $edit = array();
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-    $this->drupalPost('cart', array(), 'Checkout');
-    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('cart', array(), 'Checkout');
+    $this->backdropPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
     $this->assertRaw($messages['review_instructions']);
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
     $query = db_select('uc_addresses');
     $query->addExpression('COUNT(aid)');
     $query->condition('uid', $this->customer->uid);
@@ -443,7 +451,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $billing_values = UcAddressesTestCase::getEditAddressValues(array('panes', 'billing', 'address'), array(), 'checkout_form', 'billing_');
     $edit += $delivery_values['form_values'];
     $edit += $billing_values['form_values'];
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
     $this->checkout($edit);
     $query = db_select('uc_addresses');
     $query->addExpression('COUNT(aid)');
@@ -463,7 +471,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
   public function testCheckoutWithPreviousOrders() {
     // Enable the uc_addresses_test module.
     module_enable(array('uc_addresses_test'));
-    drupal_get_schema(NULL, TRUE);
+    backdrop_get_schema(NULL, TRUE);
 
     // Create an order for the customer first.
     $order_data = array(
@@ -492,9 +500,9 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $this->assertTrue(($count === 1), 'An order was created.');
 
     // Now go to checkout as customer.
-    $this->drupalLogin($this->customer);
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropLogin($this->customer);
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('cart', array(), 'Checkout');
 
     // Ensure that fields 'billing_extra1' and 'shipping_extra2' are present
     // and in the panes they should appear.
@@ -520,7 +528,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
 
         // Select address.
         $triggering_element = 'panes[' . $address_type . '][select_address]';
-        $commands = $this->drupalPostAJAX('cart/checkout', $edit, $triggering_element);
+        $commands = $this->backdropPostAJAX('cart/checkout', $edit, $triggering_element);
       }
     }
 
@@ -529,7 +537,7 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $edit = array(
       'panes[billing][address][billing_last_name]' => '',
     );
-    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->backdropPost(NULL, $edit, t('Review order'));
 
     // Ensure there was at least one form error.
     $this->assertText(t('!name field is required.', array('!name' => t('Last name'))));
@@ -537,10 +545,10 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     // Now fix the form errors and try to checkout again.
     $edit = array();
     $edit['panes[billing][address][billing_last_name]'] = 'custom last name';
-    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->backdropPost(NULL, $edit, t('Review order'));
     $messages = uc_cart_uc_message();
     $this->assertRaw($messages['review_instructions']);
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
 
     // Check if any new addresses got saved.
     $new_addresses = array(
@@ -572,19 +580,20 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
   public function testCheckoutSameAddress() {
     // Enable the uc_addresses_test module.
     module_enable(array('uc_addresses_test'));
-    drupal_get_schema(NULL, TRUE);
+    backdrop_get_schema(NULL, TRUE);
 
     // Enable "Use the same address" setting.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_cart_default_same_address', TRUE);
 
     // Post product to cart.
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('cart', array(), 'Checkout');
     // Checkout and submit order.
     $edit = $this->populateCheckoutForm(array(), array('delivery'));
-    $this->drupalPost('cart/checkout', $edit, t('Review order'));
+    $this->backdropPost('cart/checkout', $edit, t('Review order'));
     $this->assertRaw(t('Your order is almost complete.'));
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
     // Check if an order has been created, we check against billing first pane
     // because the billing address should be the same as the delivery address.
     $conditions = array(
@@ -593,17 +602,19 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
     $order = $this->checkExistingOrder($conditions);
 
     // Now, reverse the delivery and billing panes and check again.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_pane_billing_weight', 1);
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_pane_delivery_weight', 2);
 
     // Post product to cart.
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('cart', array(), 'Checkout');
     // Checkout and submit order.
     $edit = $this->populateCheckoutForm(array(), array('billing'));
-    $this->drupalPost('cart/checkout', $edit, t('Review order'));
+    $this->backdropPost('cart/checkout', $edit, t('Review order'));
     $this->assertRaw(t('Your order is almost complete.'));
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
     // Check if an order has been created, this time we check against delivery first name.
     $conditions = array(
       'delivery_first_name' => $edit['panes[billing][address][billing_first_name]'],
@@ -616,20 +627,21 @@ class UcAddressesCartCheckoutTestCase extends UbercartCartCheckoutTestCase {
    */
   function testAnonymousCheckoutWithoutMailAddress() {
     // Disable the Customer information pane.
+    // TODO This variable was probably removed in Backdrop without replacement.
     variable_set('uc_pane_customer_enabled', FALSE);
 
     // Place item in cart.
-    $this->drupalPost('node/' . $this->product->nid, array(), t('Add to cart'));
+    $this->backdropPost('node/' . $this->product->nid, array(), t('Add to cart'));
     // Continue to checkout.
-    $this->drupalPost('cart', array(), 'Checkout');
+    $this->backdropPost('cart', array(), 'Checkout');
 
     // Populate checkout form, but omit filling mail address.
     $edit = $this->populateCheckoutForm();
     unset($edit['panes[customer][primary_email]']);
     // And checkout.
-    $this->drupalPost(NULL, $edit, t('Review order'));
+    $this->backdropPost(NULL, $edit, t('Review order'));
     $this->assertRaw(t('Your order is almost complete.'));
-    $this->drupalPost(NULL, array(), t('Submit order'));
+    $this->backdropPost(NULL, array(), t('Submit order'));
 
     // Check if an order has been created.
     $conditions = array(

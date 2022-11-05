@@ -13,7 +13,7 @@
  * @return array
  */
 function uc_addresses_test_uc_addresses_field_handlers() {
-  $path = drupal_get_path('module', 'uc_addresses_test') . '/handlers';
+  $path = backdrop_get_path('module', 'uc_addresses_test') . '/handlers';
 
   $info = array();
   $info['UcAddressesTestTextFieldHandler'] = array(
@@ -112,5 +112,15 @@ function uc_addresses_test_entity_delete($entity, $entity_type) {
  *   The entity that was passed with the hook.
  */
 function uc_addresses_test_hook_invoked($hook, $entity) {
+  // TODO This variable was probably removed in Backdrop without replacement.
   variable_set('uc_addresses_' . $hook, entity_id('uc_addresses', $entity));
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function uc_addresses_test_autoload_info() {
+  return array(
+    'UcAddressesTestTextFieldHandler' => 'handlers/uc_addresses.handlers.inc',
+  );
 }

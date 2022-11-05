@@ -12,8 +12,9 @@
  * addresses.
  */
 function uc_addresses_feeds_after_import(FeedsSource $source) {
+  $config = config('uc_addresses.settings');
   // Check if default addresses are used at all.
-  if (!variable_get('uc_addresses_use_default_billing', TRUE) && !variable_get('uc_addresses_use_default_shipping', TRUE)) {
+  if (!$config->get('uc_addresses_use_default_billing') && !$config->get('uc_addresses_use_default_shipping')) {
     // Addresses may not be marked as default. No reason to continue here.
     return;
   }
@@ -38,7 +39,7 @@ function uc_addresses_feeds_after_import(FeedsSource $source) {
     if ($address_book->isOwned()) {
       foreach (uc_addresses_address_types() as $address_type) {
         // Check for default addresses.
-        if (variable_get('uc_addresses_use_default_' . $address_type, TRUE) && $processor_config['mark_as_default_' . $address_type]) {
+        if ($config->get('uc_addresses_use_default_' . $address_type) && $processor_config['mark_as_default_' . $address_type]) {
           $address = $address_book->getDefaultAddress($address_type);
           if (!$address) {
             // Mark one address as the default $address_type.

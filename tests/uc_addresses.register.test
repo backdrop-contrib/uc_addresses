@@ -28,12 +28,12 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
    */
   public function testRegistration() {
     // Allow registration by site visitors without administrator approval.
-    variable_set('user_register', USER_REGISTER_VISITORS);
+    config_set('system.performance', 'user_register', USER_REGISTER_VISITORS);
 
     // Don't require e-mail verification.
-    variable_set('user_email_verification', FALSE);
+    config_set('system.performance', 'user_email_verification', FALSE);
 
-    $this->drupalGet('user/register');
+    $this->backdropGet('user/register');
 
     $address_name = $this->randomName();
     $values = self::getEditAddressValues(array('address'), array('address_name' => $address_name), 'register');
@@ -42,18 +42,19 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $edit['pass[pass1]'] = $new_pass = $this->randomName();
     $edit['pass[pass2]'] = $new_pass;
-    $this->drupalPost(NULL, $edit, t('Create new account'));
+    $this->backdropPost(NULL, $edit, t('Create new account'));
 
     // Clear mail history, or else the address entered during registration stays into memory.
     // This would else cause this test to fail.
-    variable_del('drupal_test_email_collector');
+    // TODO This variable was probably removed in Backdrop without replacement.
+    variable_del('backdrop_test_email_collector');
 
     $uid = db_query("SELECT uid FROM {users} WHERE name = :name AND mail = :mail", array(':name' => $name, ':mail' => $mail))->fetchField();
     $new_user = user_load($uid);
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
 
     // Assign "full customer" privileges to this user.
-    $rid = $this->drupalCreateRole(array('add/edit own addresses', 'delete own addresses'));
+    $rid = $this->backdropCreateRole(array('add/edit own addresses', 'delete own addresses'));
     $edit = array(
       'roles' => array($rid => $rid),
     );
@@ -63,8 +64,8 @@ class UcAddressesUserRegistrationTestCase extends UcAddressesTestCase {
     $this->verbose('$new_user' . serialize($new_user), '$new_user');
 
     // Login the new user.
-    $this->drupalLogout();
-    $this->drupalLogin($new_user);
+    $this->backdropLogout();
+    $this->backdropLogin($new_user);
     // Make sure the permissions are set up right.
     if ($this->checkPermissions(array('add/edit own addresses', 'delete own addresses'))) {
       $this->pass(t('User has assigned the right permissions.'));

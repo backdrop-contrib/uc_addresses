@@ -74,7 +74,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
   }
 
   // Source pane for "copy address" checkbox.
-  $source = &drupal_static('uc_addresses_checkout_pane_address_source_pane');
+  $source = &backdrop_static('uc_addresses_checkout_pane_address_source_pane');
   if (!isset($source)) {
     $source = $pane;
   }
@@ -99,10 +99,11 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       // (if the "copy address" checkbox was enabled).
       if (
         (isset($address->copy_address) && $address->copy_address)
-        || !empty($form_state['values']['panes'][$pane]['copy_address'])
+         || !empty($form_state['values']['panes'][$pane]['copy_address'])
       ) {
         $copy_address_checked = TRUE;
       }
+      // TODO This variable was probably removed in Backdrop without replacement.
       elseif (
         // Check if the "Use the same address for billing and delivery by default."
         // setting is enabled. If so, then the checkbox should be automatically
@@ -110,8 +111,8 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         // state or the address' copy address setting. Also, the checkbox should only
         // be ticked for the "target" pane, not the "source" pane.
         (!isset($form_state['values']['panes'][$pane]['copy_address']) && !isset($address->copy_address))
-        && variable_get('uc_cart_default_same_address', FALSE)
-        && $source != $pane
+         && config_get('uc_cart.settings', 'uc_cart_default_same_address')
+         && $source != $pane
       ) {
         $copy_address_checked = TRUE;
       }
@@ -189,15 +190,15 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
         '#prefix' => '<div id="' . $pane . '-address-pane">',
         '#suffix' => '</div>',
       );
-/*
-      // Form element for debug purposes, displays the address that is taken.
-      $contents['address']['display'] = array(
-        '#type' => 'item',
-        '#title' => t('Address'),
-        '#markup' => (string) $address,
-        '#weight' => 100,
-      );
-//*/
+      /*
+       // Form element for debug purposes, displays the address that is taken.
+       $contents['address']['display'] = array(
+       '#type' => 'item',
+       '#title' => t('Address'),
+       '#markup' => (string) $address,
+       '#weight' => 100,
+       );
+       //*/
 
       return array('description' => $description, 'contents' => $contents);
 
@@ -243,7 +244,7 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       return TRUE;
 
     case 'review':
-      drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+      backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
       return uc_addresses_preprocess_address($order->uc_addresses[$type], 'checkout_review');
   }
 }
@@ -311,7 +312,7 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
   switch ($op) {
     case 'customer':
     case 'view':
-      drupal_add_css(drupal_get_path('module', 'uc_addresses') . '/uc_addresses.css');
+      backdrop_add_css(backdrop_get_path('module', 'uc_addresses') . '/uc_addresses.css');
       $lines = array();
       $values = uc_addresses_preprocess_address($order->uc_addresses[$type], 'order_view');
       foreach ($values as $fieldname => $value) {
@@ -360,7 +361,8 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
 
       // Show copy address button if other pane is enabled.
       $panes = _uc_order_pane_list('edit');
-      if (in_array('edit', $panes[$other_pane]['show']) && variable_get('uc_order_pane_' . $other_pane . '_show_edit', $panes[$other_pane]['enabled'])) {
+      // TODO This variable was probably removed in Backdrop without replacement.
+      if (in_array('edit', $panes[$other_pane]['show']) && $panes[$other_pane]['enabled']) {
         $form[$pane]['copy'] = array(
           '#type' => 'button',
           '#name' => $pane . '_copy',
@@ -434,19 +436,19 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
         '#suffix' => '</div>',
         '#key_prefix' => $order_fieldname_prefix,
       );
-/*
-      // Form element for debug purposes, displays the address that is taken.
-      $form[$pane]['address']['display'] = array(
-        '#type' => 'item',
-        '#title' => t('Address'),
-        '#markup' => (string) $address,
-        '#weight' => 100,
-      );
-//*/
+      /*
+       // Form element for debug purposes, displays the address that is taken.
+       $form[$pane]['address']['display'] = array(
+       '#type' => 'item',
+       '#title' => t('Address'),
+       '#markup' => (string) $address,
+       '#weight' => 100,
+       );
+       //*/
       return $form;
 
     case 'edit-theme':
-      return '<div id="' . $pane . '-pane">' . drupal_render($form[$pane]) . '</div>';
+      return '<div id="' . $pane . '-pane">' . backdrop_render($form[$pane]) . '</div>';
 
     case 'edit-process':
       $order_values = $form_state['values'];

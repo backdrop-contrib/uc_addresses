@@ -94,7 +94,7 @@ class UcAddressesAddressNameFieldHandler extends UcAddressesFieldHandler {
    * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
-    return variable_get('uc_addresses_use_address_name', TRUE);
+    return config_get('uc_addresses.settings', 'uc_addresses_use_address_name');
   }
 
   /**
@@ -191,7 +191,7 @@ class UcAddressesDefaultAddressFieldHandler extends UcAddressesFieldHandler {
    * Implements UcAddressesFieldHandler::isFieldEnabled().
    */
   public function isFieldEnabled() {
-    return variable_get('uc_addresses_use_default_' . $this->getProperty('default_type'), TRUE);
+    return config_get('uc_addresses.settings', 'uc_addresses_use_default_' . $this->getProperty('default_type'));
   }
 
   /**
@@ -297,7 +297,7 @@ class UcAddressesDateFieldHandler extends UcAddressesFieldHandler {
    * date format.
    */
   public function outputValue($value = '', $format = '') {
-    $values = &drupal_static('UcAddressesDateFieldHandler::outputValue', array());
+    $values = &backdrop_static('UcAddressesDateFieldHandler::outputValue', array());
     if ($value === '') {
       $value = $this->getAddress()->getField($this->getFieldName());
     }

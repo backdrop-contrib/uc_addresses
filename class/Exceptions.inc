@@ -31,7 +31,7 @@ class UcAddressesDbException extends UcAddressesException { }
  *
  * Used when a function from outside the class does not
  * exists. This can happen if the classes are used early
- * in the Drupal bootstrap phase.
+ * in the Backdrop bootstrap phase.
  */
 class UcAddressesUndefinedFunctionException extends UcAddressesException { }
 

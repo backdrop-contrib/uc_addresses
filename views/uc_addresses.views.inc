@@ -12,7 +12,7 @@ function uc_addresses_views_data() {
   $data = array();
 
   // Get schema.
-  $schema = drupal_get_schema('uc_addresses');
+  $schema = backdrop_get_schema('uc_addresses');
   // Get registered address fields.
   $address_fields = uc_addresses_get_address_fields();
 
@@ -385,7 +385,7 @@ function uc_addresses_views_plugins() {
         'title' => t('Ubercart Addresses address'),
         'help' => t('Display the address with standard address view.'),
         'handler' => 'uc_addresses_views_plugin_row_address_view',
-        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+        'path' => backdrop_get_path('module', 'uc_addresses') . '/views',
         'base' => array('uc_addresses'), // only works with 'uc_addresses' as base.
         'uses options' => TRUE,
         'type' => 'normal',
@@ -397,7 +397,7 @@ function uc_addresses_views_plugins() {
         'help' => t('Check for address access based on a user ID or address ID argument.'),
         'handler' => 'uc_addresses_views_access',
         'uses options' => TRUE,
-        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+        'path' => backdrop_get_path('module', 'uc_addresses') . '/views',
       ),
     ),
     'argument validator' => array(
@@ -405,13 +405,13 @@ function uc_addresses_views_plugins() {
         'title' => t('Address access'),
         'parent' => 'views_plugin_argument_validate',
         'handler' => 'uc_addresses_views_plugin_argument_address_access',
-        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+        'path' => backdrop_get_path('module', 'uc_addresses') . '/views',
       ),
       'uc_addresses_user_address_access' => array(
         'title' => t('User: address access'),
         'parent' => 'views_plugin_argument_validate_user',
         'handler' => 'uc_addresses_views_plugin_argument_user_address_access',
-        'path' => drupal_get_path('module', 'uc_addresses') . '/views',
+        'path' => backdrop_get_path('module', 'uc_addresses') . '/views',
       ),
     ),
   );
