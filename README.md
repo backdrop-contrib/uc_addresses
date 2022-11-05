@@ -94,15 +94,14 @@ admin/store/settings/countries/uc_addresses_formats
 
 Dependencies
 ------------
-This module requires uc_store, ctools and token.
+This module requires Ubercart.
 
 
 Installation
 ------------
-  * Copy the uc_addresses module's directory to your modules directory
-    and activate it. I have mine in /sites/all/modules/uc_addresses.
-  * Activate the module, set up permissions and go to your account
-    page to begin using the new Address book tab.
+
+- Install this module using the official Backdrop CMS instructions at
+  https://backdropcms.org/guide/modules
 
 
 Permissions
@@ -161,6 +160,13 @@ Documentation about the hooks can be found in uc_addresses.api.php.
 
 More documentation can be found online:
 http://drupal.org/node/1340672
+
+License
+-------
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for
+complete text.
+
 
 Created for Drupal 7 by:
 ---------
