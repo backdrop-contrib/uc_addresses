@@ -39,14 +39,10 @@ abstract class UcAddressesTestCase extends BackdropWebTestCase {
    *
    * @return void
    */
-  public function setUp() {
+  public function setUp($modules = array()) {
     // Setup modules.
-    parent::setUp(
-      'ctools',
-      'token',
-      'uc_store',
-      'uc_addresses'
-    );
+    $modules = array_merge(array('ubercart', 'uc_addresses'), $modules);
+    parent::setUp($modules);
 
     // Setup users
     $this->basicUser = $this->backdropCreateUser();
@@ -54,7 +50,7 @@ abstract class UcAddressesTestCase extends BackdropWebTestCase {
     $this->adminUser = $this->backdropCreateUser(array('add/edit all addresses', 'delete all addresses'));
 
     // Revoke default permissions for authenticated user, so we can test the effect of permissions.
-    user_role_revoke_permissions(BACKDROP_AUTHENTICATED_RID, array(
+    user_role_revoke_permissions(BACKDROP_AUTHENTICATED_ROLE, array(
       'view own addresses',
       'add/edit own addresses',
       'delete own addresses',

@@ -1,0 +1,114 @@
+{
+  "_config_name": "feeds.feeds_importer.uc_addresses",
+  "disabled": false,
+  "id": "uc_addresses",
+  "config": {
+    "name": "Ubercart Addresses address import",
+    "description": "Import addresses from a CSV file.",
+    "fetcher": {
+      "plugin_key": "FeedsFileFetcher",
+      "config": {
+        "allowed_extensions": "txt csv tsv xml opml",
+        "direct": false
+      }
+    },
+    "parser": {
+      "plugin_key": "FeedsCSVParser",
+      "config": {
+        "delimiter": ";",
+        "no_headers": 0
+      }
+    },
+    "processor": {
+      "plugin_key": "FeedsUcAddressesProcessor",
+      "config": {
+        "mappings": [
+          {
+            "source": "user_name",
+            "target": "user_name",
+            "unique": 0
+          },
+          {
+            "source": "first_name",
+            "target": "first_name",
+            "unique": 0
+          },
+          {
+            "source": "last_name",
+            "target": "last_name",
+            "unique": 0
+          },
+          {
+            "source": "phone",
+            "target": "phone",
+            "unique": 0
+          },
+          {
+            "source": "company",
+            "target": "company",
+            "unique": 0
+          },
+          {
+            "source": "street1",
+            "target": "street1",
+            "unique": 0
+          },
+          {
+            "source": "street2",
+            "target": "street2",
+            "unique": 0
+          },
+          {
+            "source": "city",
+            "target": "city",
+            "unique": 0
+          },
+          {
+            "source": "zone",
+            "target": "zone:zone_name",
+            "unique": 0
+          },
+          {
+            "source": "postal_code",
+            "target": "postal_code",
+            "unique": 0
+          },
+          {
+            "source": "country",
+            "target": "country:country_name",
+            "unique": 0
+          },
+          {
+            "source": "address_name",
+            "target": "address_name",
+            "unique": 0
+          },
+          {
+            "source": "default_shipping",
+            "target": "default_shipping",
+            "unique": 0
+          },
+          {
+            "source": "default_billing",
+            "target": "default_billing",
+            "unique": 0
+          },
+          {
+            "source": "guid",
+            "target": "guid",
+            "unique": 1
+          }
+        ],
+        "update_existing": "2",
+        "mark_as_default_billing": 1,
+        "mark_as_default_shipping": 1
+      }
+    },
+    "content_type": "",
+    "update": 0,
+    "import_period": "-1",
+    "expire_period": 3600,
+    "import_on_create": 1,
+    "process_in_background": 0
+  }
+}

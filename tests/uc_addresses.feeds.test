@@ -5,28 +5,18 @@
  * Test for Feeds integration.
  */
 
+ require_once 'UcAddressesTestCase.test';
+
 /**
  * Test aggregating a feed as address records.
  */
 class UcAddressesFeedsTest extends UcAddressesTestCase {
   /**
-   * Describes this test.
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Ubercart Addresses Feeds integration',
-      'description' => 'Tests importing addresses from a CSV file using the Feeds module.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store', 'feeds', 'feeds_ui'),
-    );
-  }
-
-  /**
    * Setup.
    */
-  public function setUp() {
-    parent::setUp();
-    module_enable(array('feeds', 'feeds_ui'));
+  public function setUp($modules = array()) {
+    $modules = array_merge(array('feeds', 'feeds_ui'), $modules);
+    parent::setUp($modules);
 
     // Reset/rebuild all data structures after enabling the modules.
     $this->resetAll();
@@ -178,7 +168,7 @@ class UcAddressesFeedsTest extends UcAddressesTestCase {
   public function importFile($id, $file) {
     $this->assertTrue(file_exists($file), 'Source file exists');
     $edit = array(
-      'files[feeds]' => $file,
+      'files[feeds_FeedsFileFetcher_upload]' => $file,
     );
     $this->backdropPost('import/' . $id, $edit, 'Import');
   }

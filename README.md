@@ -75,7 +75,7 @@ Note: when a user is deleted, all their addresses are also deleted.
 
 Ubercart Addresses address formats
 ---------------------
-Ubercart Addresses comes with it's own address formats that are build
+Ubercart Addresses comes with its own address formats that are build
 by using tokens, rather than the predefined set of variables Ubercart
 uses. This way it's possible to add any extra address values to the
 address format. Only addresses used by Ubercart Addresses are
@@ -94,7 +94,7 @@ admin/store/settings/countries/uc_addresses_formats
 
 Dependencies
 ------------
-This module requires Ubercart.
+This module requires Ubercart and Entity Plus.
 
 
 Installation

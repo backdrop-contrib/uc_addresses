@@ -5,24 +5,12 @@
  * Test cases for the token replacement.
  */
 
+require_once 'UcAddressesTestCase.test';
+
 /**
  * Test cases for the api component.
  */
 class UcAddressesTokenTestCase extends UcAddressesTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Ubercart Addresses token tests',
-      'description' => 'Test the Ubercart Addresses tokens.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
-
   /**
    * Test if tokens defined by Ubercart Addresses work.
    */

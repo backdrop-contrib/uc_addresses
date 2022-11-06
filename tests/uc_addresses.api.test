@@ -5,24 +5,12 @@
  * Test cases for the api component.
  */
 
+include_once 'UcAddressesTestCase.test';
+
 /**
  * Test cases for the api component.
  */
 class UcAddressesApiTestCase extends UcAddressesTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Unit testing',
-      'description' => 'Ensure that the API behaves as expected.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
-
   /**
    * Tests if addresses can be added, saved and deleted.
    */
@@ -276,7 +264,8 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
     $this->backdropLogin($this->adminUser);
     // Ensure there is no store country set.
     // TODO This variable was probably removed in Backdrop without replacement.
-    variable_del('uc_store_country');
+    // variable_del('uc_store_country');
+    config_clear('uc_store.settings','uc_store_country');
 
     // Remove the U.S. country from Ubercart.
     // This will leave Canada as the only available country.
@@ -288,20 +277,26 @@ class UcAddressesApiTestCase extends UcAddressesTestCase {
       ->condition('zone_country_id', $country_id)
       ->execute();
     // TODO This variable was probably removed in Backdrop without replacement.
-    variable_del('uc_address_format_' . $country_id);
+    // variable_del('uc_address_format_' . $country_id);
+    config_clear('uc_store.settings','uc_address_format_' . $country_id);
+
 
     // Adjust the address format for Canada.
     $canada_address_format = self::randomName();
     $this->verbose($canada_address_format);
     // TODO This variable was probably removed in Backdrop without replacement.
-    variable_set('uc_addresses_address_format_124', $canada_address_format);
+    // variable_set('uc_addresses_address_format_124', $canada_address_format);
+    config_set('uc_addresses.settings', 'uc_addresses_address_format_124', $canada_address_format);
 
     // Disable the country field.
     // TODO This variable was probably removed in Backdrop without replacement.
-    $address_fields = variable_get('uc_address_fields', backdrop_map_assoc(array('first_name', 'last_name', 'phone', 'company', 'street1', 'street2', 'city', 'zone', 'postal_code', 'country')));
+    $address_fields = config_get('uc_store.settings','uc_address_fields');
+    if (empty($address_fields)) {
+      $address_fields = backdrop_map_assoc(array('first_name', 'last_name', 'phone', 'company', 'street1', 'street2', 'city', 'zone', 'postal_code', 'country'));
+    }
     unset($address_fields['country']);
     // TODO This variable was probably removed in Backdrop without replacement.
-    variable_set('uc_address_fields', $address_fields);
+    config_set('uc_store.settings', 'uc_address_fields', $address_fields);
 
     // Create an address.
     $aid = $this->createAddress($this->adminUser);

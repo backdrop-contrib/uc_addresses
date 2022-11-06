@@ -5,32 +5,22 @@
  * Test cases for order admin.
  */
 
+require_once 'UcAddressesTestCase.test';
+require_once backdrop_get_path('module', 'uc_order') . '/tests/uc_order.test';
+
 /**
  * Test cases order administration.
  */
 class UcAddressesOrderTestCase extends UbercartOrderTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Orders',
-      'description' => 'Ensure that orders function properly when Ubercart Addresses is enabled.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'rules', 'uc_store', 'uc_order'),
-    );
-  }
 
   /**
    * Setup modules.
    */
   public function setUp($modules = array(), $permissions = array()) {
+    $modules = array_merge(array('uc_addresses'), $modules);
     parent::setUp($modules, $permissions);
 
-    // Install Ubercart Addresses and flush schema cache.
-    module_enable(array('ctools', 'uc_addresses'));
+    // Flush schema cache.
     backdrop_get_schema(NULL, TRUE);
   }
 

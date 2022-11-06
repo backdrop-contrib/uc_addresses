@@ -112,8 +112,7 @@ function uc_addresses_test_entity_delete($entity, $entity_type) {
  *   The entity that was passed with the hook.
  */
 function uc_addresses_test_hook_invoked($hook, $entity) {
-  // TODO This variable was probably removed in Backdrop without replacement.
-  variable_set('uc_addresses_' . $hook, entity_id('uc_addresses', $entity));
+  state_set('uc_addresses_' . $hook, entity_plus_id('uc_addresses', $entity));
 }
 
 /**

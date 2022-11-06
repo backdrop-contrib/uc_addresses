@@ -5,6 +5,8 @@
  * Test cases for the address book component.
  */
 
+include_once 'UcAddressesTestCase.test';
+
 /**
  * Base class for test cases for the address book component.
  */
@@ -152,19 +154,6 @@ abstract class UcAddressesAddressBookTestCase extends UcAddressesTestCase {
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookCustomerBasicTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Customer Basic',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -185,19 +174,6 @@ class UcAddressesAddressBookCustomerBasicTestCase extends UcAddressesAddressBook
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookCustomerViewDefTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Customer View Defaults',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -218,19 +194,6 @@ class UcAddressesAddressBookCustomerViewDefTestCase extends UcAddressesAddressBo
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookCustomerViewTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Customer View',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -251,19 +214,6 @@ class UcAddressesAddressBookCustomerViewTestCase extends UcAddressesAddressBookT
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookCustomerEditTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Customer Edit',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -284,19 +234,6 @@ class UcAddressesAddressBookCustomerEditTestCase extends UcAddressesAddressBookT
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookCustomerDeleteTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Customer Delete',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -317,19 +254,6 @@ class UcAddressesAddressBookCustomerDeleteTestCase extends UcAddressesAddressBoo
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookAdminViewDefTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Admin View Defaults',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -350,19 +274,6 @@ class UcAddressesAddressBookAdminViewDefTestCase extends UcAddressesAddressBookT
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookAdminViewTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Admin View',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -383,19 +294,6 @@ class UcAddressesAddressBookAdminViewTestCase extends UcAddressesAddressBookTest
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookAdminEditTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Admin Edit',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
@@ -416,19 +314,6 @@ class UcAddressesAddressBookAdminEditTestCase extends UcAddressesAddressBookTest
  * Test cases for the address book component.
  */
 class UcAddressesAddressBookAdminAllTestCase extends UcAddressesAddressBookTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Address book: Admin All',
-      'description' => 'Tests for the address book: view, edit and delete addresses.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store'),
-    );
-  }
 
   // -----------------------------------------------------------------------------
   // TESTS
