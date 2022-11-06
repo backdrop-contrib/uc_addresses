@@ -5,31 +5,19 @@
  * Test cases address entity.
  */
 
+require_once 'UcAddressesTestCase.test';
+
 /**
  * Tests for Entity API integration.
  */
 class UcAddressesEntityCase extends UcAddressesTestCase {
-  /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Ubercart Addresses entity tests',
-      'description' => 'Test the Ubercart Addresses entity integration.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store', 'uc_order', 'entity'),
-    );
-  }
 
   /**
    * Setup.
    */
-  public function setUp() {
-    parent::setUp();
-    // Enable Entity API module.
-    module_enable(array('entity', 'uc_addresses_test', 'uc_order'));
+  public function setUp($modules = array()) {
+    $modules = array_merge(array('entity_plus', 'uc_addresses_test', 'ubercart'), $modules);
+    parent::setUp($modules);
   }
 
   /**
@@ -52,7 +40,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     }
     // Save the entity and ensure it is saved to the database.
     $old_id = $entity->identifier();
-    entity_save('uc_addresses', $entity);
+    entity_plus_save('uc_addresses', $entity);
     $this->assertEntityHookInvoked('entity_presave', $old_id);
     $this->assertEntityHookInvoked('entity_insert', $entity->identifier());
     $this->assertTrue(self::checkAddressValuesInDatabase($address_values), 'The address was correctly saved using entity_save().');
@@ -68,7 +56,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     // Load this address through the address book.
     $address = UcAddressesAddressBook::get($this->customer->uid)->getAddressById($aid);
     // Now load through Entity API.
-    $entity = entity_load_single('uc_addresses', $aid);
+    $entity = entity_load('uc_addresses', $aid);
     $this->assertEntityHookInvoked('entity_load', $aid);
     // Ensure these two are equal.
     $this->assertTrue($address === $this->getEntityAddress($entity), 'Address loaded via Address Book API is equal to address loaded via Entity API.');
@@ -88,7 +76,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     }
     $entities = entity_load('uc_addresses', $aids);
     // View and render the entities.
-    $content = entity_view('uc_addresses', $entities);
+    $content = entity_plus_view('uc_addresses', $entities);
     $output = backdrop_render($content);
     $this->verbose($output);
     // Test if all addresses are displayed.
@@ -113,10 +101,10 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
       $address_update_values['aid'] = $address->getId();
     }
     // Save the entity and ensure it is updated in the database.
-    entity_save('uc_addresses', $entity);
+    entity_plus_save('uc_addresses', $entity);
     $this->assertEntityHookInvoked('entity_presave', $entity->identifier());
     $this->assertEntityHookInvoked('entity_update', $entity->identifier());
-    $this->assertTrue(self::checkAddressValuesInDatabase($address_update_values), 'The address was correctly updated using entity_save().');
+    $this->assertTrue(self::checkAddressValuesInDatabase($address_update_values), 'The address was correctly updated using entity_plus_save().');
     if ($address instanceof UcAddressesAddress) {
       // Do tests with other entity API functions.
       $this->doOtherEntityTests($entity, $address);
@@ -126,7 +114,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
 
     // DELETE TESTS.
     $aid = $this->createAddress($this->customer);
-    entity_delete('uc_addresses', $aid);
+    entity_delete_multiple('uc_addresses', array($aid));
     $this->assertEntityHookInvoked('entity_delete', $aid);
     // Ensure the address is removed from the database.
     $result = (int) db_select('uc_addresses')
@@ -138,7 +126,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $this->assertTrue($result === 0, 'The address was deleted using entity_delete().');
     // Ensure the address has been removed from the address book too.
     $deleted_address = UcAddressesAddressBook::get($this->customer->uid)->getAddressById($aid);
-    $this->assertFalse($deleted_address, 'The address was deleted from the address book entity_delete().');
+    $this->assertFalse($deleted_address, 'The address was deleted from the address book entity_delete_multiple().');
   }
 
   /**
@@ -149,7 +137,6 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
    */
   public function testEntityAccess() {
     // Create some users.
-    $users = array();
     $customerBasic = $this->backdropCreateUser();
     $customerView = $this->backdropCreateUser(array('view own addresses'));
     $customerEdit = $this->backdropCreateUser(array('add/edit own addresses'));
@@ -310,7 +297,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $billing_city = self::randomName();
 
     // Create a new order without saving.
-    $order = new UcOrder();
+    $order = new UcOrder(array());
     $order->delivery_city = $delivery_city;
     $order->billing_city = $billing_city;
 
@@ -332,7 +319,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $billing_city = self::randomName();
 
     // Create a new order manually and save into the database.
-    $order_new = new UcOrder();
+    $order_new = new UcOrder(array());
     $order_new->delivery_city = $delivery_city;
     $order_new->billing_city = $billing_city;
     backdrop_write_record('uc_orders', $order_new);
@@ -372,7 +359,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     $address_values = $values['values'];
     $address_values['uid'] = $account->uid;
     $entity = entity_create('uc_addresses', $address_values);
-    entity_save('uc_addresses', $entity);
+    entity_plus_save('uc_addresses', $entity);
 
     $msgvars = array(
       '@user' => check_plain($usertype),
@@ -380,22 +367,22 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
 
     // Test access.
     if ($may_view_own) {
-      $this->assertTrue(entity_access('view', 'uc_addresses', $entity, $account), strtr('User @user may view own addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('view', 'uc_addresses', $entity, $account), strtr('User @user may view own addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('view', 'uc_addresses', $entity, $account), strtr('User @user may NOT view own addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('view', 'uc_addresses', $entity, $account), strtr('User @user may NOT view own addresses.', $msgvars));
     }
     if ($may_edit_own) {
-      $this->assertTrue(entity_access('update', 'uc_addresses', $entity, $account), strtr('User @user may edit own addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('update', 'uc_addresses', $entity, $account), strtr('User @user may edit own addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('update', 'uc_addresses', $entity, $account), strtr('User @user may NOT edit own addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('update', 'uc_addresses', $entity, $account), strtr('User @user may NOT edit own addresses.', $msgvars));
     }
     if ($may_delete_own) {
-      $this->assertTrue(entity_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may delete own addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may delete own addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may NOT delete own addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may NOT delete own addresses.', $msgvars));
     }
   }
 
@@ -423,7 +410,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
       $address_values = $values['values'];
       $address_values['uid'] = 1;
       $entity = entity_create('uc_addresses', $address_values);
-      entity_save('uc_addresses', $entity);
+      entity_plus_save('uc_addresses', $entity);
     }
 
     $msgvars = array(
@@ -432,22 +419,22 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
 
     // Test access.
     if ($may_view_all) {
-      $this->assertTrue(entity_access('view', 'uc_addresses', $entity, $account), strtr('User @user may view all addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('view', 'uc_addresses', $entity, $account), strtr('User @user may view all addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('view', 'uc_addresses', $entity, $account), strtr('User @user may NOT view all addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('view', 'uc_addresses', $entity, $account), strtr('User @user may NOT view all addresses.', $msgvars));
     }
     if ($may_edit_all) {
-      $this->assertTrue(entity_access('update', 'uc_addresses', $entity, $account), strtr('User @user may edit all addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('update', 'uc_addresses', $entity, $account), strtr('User @user may edit all addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('update', 'uc_addresses', $entity, $account), strtr('User @user may NOT edit all addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('update', 'uc_addresses', $entity, $account), strtr('User @user may NOT edit all addresses.', $msgvars));
     }
     if ($may_delete_all) {
-      $this->assertTrue(entity_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may delete all addresses.', $msgvars));
+      $this->assertTrue(entity_plus_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may delete all addresses.', $msgvars));
     }
     else {
-      $this->assertFalse(entity_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may NOT delete all addresses.', $msgvars));
+      $this->assertFalse(entity_plus_access('delete', 'uc_addresses', $entity, $account), strtr('User @user may NOT delete all addresses.', $msgvars));
     }
   }
 
@@ -487,7 +474,7 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
    */
   protected function doOtherEntityTests($entity, UcAddressesAddress $address) {
     // Ensure the address ID can be get via entity_id().
-    $this->assertEqual(entity_id('uc_addresses', $entity), $address->getId(), 'The address ID can be get via entity_id().');
+    $this->assertEqual(entity_plus_id('uc_addresses', $entity), $address->getId(), 'The address ID can be get via entity_id().');
 
     // Test if entity_label() returns the name of the address (if the address has one).
     if ($name = $address->getName()) {
@@ -553,8 +540,8 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     }
     // We can not use variable_get() here, because that returns the
     // on runtime cached variables.
-    $serialized_value = db_select('variable')
-      ->fields('variable', array('value'))
+    $serialized_value = db_select('state')
+      ->fields('state', array('value'))
       ->condition('name', 'uc_addresses_' . $hook)
       ->execute()
       ->fetchField();
@@ -583,8 +570,8 @@ class UcAddressesEntityCase extends UcAddressesTestCase {
     }
     // We can not use variable_get() here, because that returns the
     // on runtime cached variables.
-    $serialized_value = db_select('variable')
-      ->fields('variable', array('value'))
+    $serialized_value = db_select('state')
+      ->fields('state', array('value'))
       ->condition('name', 'uc_addresses_' . $hook)
       ->execute()
       ->fetchField();

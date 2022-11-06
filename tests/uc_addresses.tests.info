@@ -1,15 +1,3 @@
-[UcAddressesTestCase]
-name = UcAddressesTestCase
-description = UcAddressesTestCase
-group = uc_addresses_test
-file = UcAddressesTestCase.test
-
-[UcAddressesAddressBookTestCase]
-name = UcAddressesAddressBookTestCase
-description = UcAddressesAddressBookTestCase
-group = uc_addresses_test
-file = uc_addresses.addressbook.test
-
 [UcAddressesAddressBookCustomerBasicTestCase]
 name = Address book: Customer Basic
 description = Tests for the address book: view, edit and delete addresses.
@@ -106,15 +94,8 @@ description = Test the Ubercart Addresses tokens.
 group = Ubercart Addresses
 file = uc_addresses.tokens.test
 
-[UcAddressesUpgradeTestCase]
-name = Ubercart Addresses upgrade path
-description = Tests upgrading Ubercart Addresses from 6.x-1.x.
-group = Ubercart Addresses
-file = uc_addresses.upgrade.test
-
 [UcAddressesViewsTestCase]
 name = Ubercart Addresses Views tests
 description = Test the Ubercart Addresses Views integration.
 group = Ubercart Addresses
 file = uc_addresses.views.test
-

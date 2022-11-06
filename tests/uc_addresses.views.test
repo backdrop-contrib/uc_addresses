@@ -5,6 +5,8 @@
  * Test cases for Views integration.
  */
 
+ include_once 'UcAddressesTestCase.test';
+
 /**
  * Test cases for Views integration.
  */
@@ -18,26 +20,11 @@ class UcAddressesViewsTestCase extends UcAddressesTestCase {
   protected $accounts = array();
 
   /**
-   * Describes this test.
-   *
-   * @return array
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Ubercart Addresses Views tests',
-      'description' => 'Test the Ubercart Addresses Views integration.',
-      'group' => 'Ubercart Addresses',
-      'dependencies' => array('ctools', 'token', 'uc_store', 'views'),
-    );
-  }
-
-  /**
    * Setup.
    */
-  public function setUp() {
-    parent::setUp();
-    module_enable(array('views'));
+  public function setUp($modules = array()) {
 
+    parent::setUp($modules);
     // Create a number of users with two addresses each.
     $this->UcAddressesCreateUsers();
     foreach ($this->accounts as $account) {

@@ -24,7 +24,7 @@
  * - Rich from Freestyle Systems (enhancements).
  * - Tony Freixas (maintainer) from Tiger Heron LLC (major revisions).
  *
- * Authors of the current 7.x-1.x version:
+ * Authors of the Drupal 7.x-1.x version:
  * @author MegaChriz (maintainer)
  * @author Tony Freixas (maintainer) from Tiger Heron LLC. (initially setup
  * of the architecture)
@@ -1272,17 +1272,6 @@ function uc_addresses_new_address_from_order($order, $order_address_type) {
 //   }
 // }
 
-/**
- * Implements hook_ctools_plugin_type().
- */
-// function uc_addresses_ctools_plugin_type() {
-//   return array(
-//     'field_handlers' => array(
-//       'use hooks' => TRUE,
-//     ),
-//   );
-// }
-
 /** 
  * Gets uc_address_fields plugins
  */
@@ -1434,6 +1423,7 @@ function uc_addresses_feeds_plugins() {
   $info = array();
   $info['FeedsUcAddressesProcessor'] = array(
     'name' => t('Ubercart Addresses processor'),
+    'module' => 'uc_addresses',
     'description' => t('Create and update Ubercart Addresses.'),
     'handler' => array(
       'parent' => 'FeedsProcessor',
@@ -1818,7 +1808,7 @@ function uc_addresses_preprocess_uc_order(&$variables) {
   $order = &$variables['order'];
 
   // Generate tokens to use as template variables.
-  $token_info = token_info();
+  $token_info = token_get_info();
 
   // Remove default_shipping, default_billing, aid, uid, created and modified.
   // These fields are not useful in order context as they never contain values
