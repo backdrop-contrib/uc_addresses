@@ -103,7 +103,6 @@ function uc_addresses_checkout_pane_address($type, $op, $order, $form, &$form_st
       ) {
         $copy_address_checked = TRUE;
       }
-      // TODO This variable was probably removed in Backdrop without replacement.
       elseif (
         // Check if the "Use the same address for billing and delivery by default."
         // setting is enabled. If so, then the checkbox should be automatically
@@ -361,7 +360,6 @@ function uc_addresses_order_pane_address($type, $op, $order, &$form = NULL, &$fo
 
       // Show copy address button if other pane is enabled.
       $panes = _uc_order_pane_list('edit');
-      // TODO This variable was probably removed in Backdrop without replacement.
       if (in_array('edit', $panes[$other_pane]['show']) && $panes[$other_pane]['enabled']) {
         $form[$pane]['copy'] = array(
           '#type' => 'button',

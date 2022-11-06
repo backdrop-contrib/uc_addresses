@@ -1963,7 +1963,6 @@ function uc_addresses_get_address_format($country_id) {
     $formats[$country_id] = $format;
     return $format;
   }
-  // TODO This variable was probably removed in Backdrop without replacement.
   $config = config('uc_store.settings');
   $format = $config->get('uc_address_format_' . $country_id);
   if ($format) {
