@@ -81,7 +81,7 @@ function uc_addresses_tokens($type, $tokens, $data = array(), $options = array()
         foreach ($tokens as $name => $original) {
           $handler = NULL;
           $fieldname = $name;
-          $output_format = NULL;
+          $output_format = '';
           // Check if this token represents a existing address field.
           if (UcAddressesSchemaAddress::fieldExists($fieldname)) {
             $handler = uc_addresses_get_address_field_handler($address, $fieldname, 'token');
